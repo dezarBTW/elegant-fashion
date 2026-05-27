@@ -198,9 +198,11 @@ export default function RegistrationDetails() {
 
         {/* Action Buttons */}
         <div className={styles.actions}>
-          <button onClick={() => window.print()} className={styles.printBtn}>
-            Print Details
-          </button>
+          {registration.accepted && (
+            <button onClick={() => window.print()} className={styles.printBtn}>
+              Print Details
+            </button>
+          )}
         </div>
       </div>
     </div>

@@ -7,9 +7,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 
 export default function Course() {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin } = useAuth();
   const router = useRouter();
   const [checkingRegistration, setCheckingRegistration] = useState(true);
+  const [pendingStudents, setPendingStudents] = useState([]);
+  const [acceptingStudent, setAcceptingStudent] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [formData, setFormData] = useState({
     surname: "",
@@ -35,10 +38,59 @@ export default function Course() {
   useEffect(() => {
     if (user) {
       checkExistingRegistration();
+      if (isAdmin) {
+        fetchPendingStudents();
+      }
     } else if (!loading) {
       setCheckingRegistration(false);
     }
-  }, [user, loading]);
+  }, [user, loading, isAdmin]);
+
+  const fetchPendingStudents = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("students")
+        .select("*")
+        .eq("accepted", false)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching pending students:", error);
+      } else {
+        setPendingStudents(data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching pending students:", error);
+    }
+  };
+
+  const handleAcceptStudent = async (studentId) => {
+    setAcceptingStudent(studentId);
+    try {
+      const { error } = await supabase
+        .from("students")
+        .update({ accepted: true })
+        .eq("id", studentId);
+
+      if (error) {
+        console.error("Error accepting student:", error);
+        alert("Error accepting student. Please try again.");
+      } else {
+        // Remove from pending list
+        setPendingStudents((prev) => prev.filter((s) => s.id !== studentId));
+      }
+    } catch (error) {
+      console.error("Error accepting student:", error);
+      alert("Error accepting student. Please try again.");
+    } finally {
+      setAcceptingStudent(null);
+    }
+  };
+
+  const filteredStudents = pendingStudents.filter((student) => {
+    const fullName = `${student.first_name} ${student.surname} ${student.middle_name || ""}`.toLowerCase();
+    return fullName.includes(searchQuery.toLowerCase());
+  });
 
   const checkExistingRegistration = async () => {
     try {
@@ -204,11 +256,58 @@ export default function Course() {
 
   return (
     <div className="body">
-      <h1 className="header">STUDENT REGISTRATION FORM</h1>
-      <div className="form-container">
-        <div className="form-header">
-          <h1>Personal Information</h1>
+      {isAdmin ? (
+        <div className="admin-panel">
+          <div className="admin-header">
+            <h2>Admin Panel</h2>
+            <Link href="/course/accepted-students" className="admin-link-btn">
+              View Accepted Students
+            </Link>
+          </div>
+          <div className="search-container">
+            <input
+              type="text"
+              className="search-input"
+              placeholder="enter student name"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          {filteredStudents.length > 0 ? (
+            <div className="pending-students">
+              <h3>Pending Students ({filteredStudents.length})</h3>
+              <div className="students-list">
+                {filteredStudents.map((student) => (
+                  <div key={student.id} className="student-card">
+                    <div className="student-info">
+                      <h4>{student.first_name} {student.surname}</h4>
+                      <p>{student.email}</p>
+                      <p>{student.chosen_programme}</p>
+                    </div>
+                    <button
+                      onClick={() => handleAcceptStudent(student.id)}
+                      className="accept-btn"
+                      disabled={acceptingStudent === student.id}
+                    >
+                      {acceptingStudent === student.id ? "Accepting..." : "Accept"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="no-pending">
+              <p>{searchQuery ? "No students found matching your search." : "No pending students to review."}</p>
+            </div>
+          )}
         </div>
+      ) : (
+        <>
+          <h1 className="header">STUDENT REGISTRATION FORM</h1>
+          <div className="form-container">
+            <div className="form-header">
+              <h1>Personal Information</h1>
+            </div>
 
         <form onSubmit={handleSubmit} className="form-body">
           {/* Surname */}
@@ -477,6 +576,8 @@ export default function Course() {
           </button>
         </form>
       </div>
+        </>
+      )}
 
       {/* Success Modal */}
       {showSuccessModal && (

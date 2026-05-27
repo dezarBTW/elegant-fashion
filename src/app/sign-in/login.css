@@ -52,6 +52,68 @@ h2 {
       box-shadow: 0 15px 25px rgba(10, 37, 64, 0.3);
     }
 
+    .signin-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .error-message {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .success-message {
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      color: #16a34a;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .forgot-password-btn {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      color: #64748b;
+      border: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+
+    .forgot-password-btn:hover {
+      color: #0A2540;
+      text-decoration: underline;
+    }
+
+    .back-btn {
+      width: 100%;
+      padding: 12px;
+      background: #e2e8f0;
+      color: #0A2540;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+    }
+
+    .back-btn:hover {
+      background: #cbd5e1;
+    }
+
 /* Responsive Design */
 @media (max-width: 1024px) {
     .logpage {
