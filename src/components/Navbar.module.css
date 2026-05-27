@@ -1,0 +1,236 @@
+/* ====================== NAVIGATION ====================== */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 70px;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  padding: 1.5rem 0;
+  transition: all 0.3s ease;
+}
+
+.navContent {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 300;
+  letter-spacing: 0.3em;
+  color: #ffffff;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.navLinks {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.navLinks a {
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.navLinks a::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: #c9a962;
+  transition: width 0.3s ease;
+}
+
+.navLinks a:hover {
+  color: #c9a962;
+}
+
+.navLinks a:hover::after {
+  width: 100%;
+}
+
+/* Authentication Links */
+.authLink {
+  padding: 0.5rem 1.5rem;
+  border: 1px solid #ffffff;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.authLink:hover {
+  background: #ffffff;
+  color: #0a0a0a;
+}
+
+.authLinkPrimary {
+  background: #c9a962;
+  border-color: #c9a962;
+  color: #0a0a0a;
+}
+
+.authLinkPrimary:hover {
+  background: transparent;
+  color: #c9a962;
+  border-color: #c9a962;
+}
+
+.navLogout {
+  padding: 0.5rem 1.5rem;
+  background: transparent;
+  border: 1px solid #ffffff;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.navLogout:hover {
+  background: #ffffff;
+  color: #0a0a0a;
+}
+
+.adminLink {
+  padding: 0.5rem 1.5rem;
+  border: 1px solid #c9a962;
+  color: #c9a962;
+  transition: all 0.3s ease;
+}
+
+.adminLink:hover {
+  background: transparent;
+}
+
+/* Hamburger Menu Button */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 25px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  z-index: 1001;
+}
+
+.hamburger span {
+  width: 30px;
+  height: 3px;
+  background: #ffffff;
+  border-radius: 10px;
+  transition: all 0.3s linear;
+  position: relative;
+  transform-origin: 1px;
+}
+
+.hamburger span.open:first-child {
+  transform: rotate(45deg);
+}
+
+.hamburger span.open:nth-child(2) {
+  opacity: 0;
+}
+
+.hamburger span.open:nth-child(3) {
+  transform: rotate(-45deg);
+}
+
+
+/* ====================== RESPONSIVE DESIGN ====================== */
+@media (max-width: 1024px) {
+  .navLinks {
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .navContent {
+    position: relative;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+
+  .navLinks {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    background: rgba(10, 10, 10, 0.98);
+    padding: 2rem;
+    gap: 1.5rem;
+    transform: translateY(-150%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 999;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
+  .navLinksOpen {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  .navLinks a,
+  .navLogout,
+  .authLink,
+  .adminLink {
+    width: 100%;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .logo {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav {
+    padding: 1rem 0;
+    height: 60px;
+  }
+
+  .navContent {
+    padding: 0 1rem;
+  }
+
+  .logo {
+    font-size: 1rem;
+  }
+
+  .navLinks {
+    padding: 1.5rem;
+  }
+
+  .navLinks a,
+  .navLogout,
+  .authLink,
+  .adminLink {
+    font-size: 0.85rem;
+    padding: 0.8rem;
+  }
+}

@@ -1,0 +1,121 @@
+.logpage{
+    height: 500px;
+    width: 400px;
+    margin-top: 100px;
+    margin-left: 400px;
+}
+.subtitle {
+    text-align: center;
+    color: #64748b;
+    margin-bottom: 35px;
+    font-size: 1.05rem;
+}
+h2 {
+    text-align: center;
+    color: #0A2540;
+    margin-top: 100px;
+    margin-bottom: 8px;
+    font-size: 1.8rem;
+}
+.form-group {
+    margin-bottom: 20px;
+}
+.input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+.input:focus {
+    border-color: #0A2540;
+    box-shadow: 0 0 0 4px rgba(10, 37, 64, 0.1);
+}
+    .signin-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #0A2540, #1E3A5F);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+    }
+
+    .signin-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 15px 25px rgba(10, 37, 64, 0.3);
+    }
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .logpage {
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .logpage {
+        width: 90%;
+        max-width: 400px;
+        margin: 80px auto 0;
+        height: auto;
+        padding: 30px;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        font-size: 0.95rem;
+        margin-bottom: 25px;
+    }
+
+    .input {
+        padding: 12px 16px;
+        font-size: 0.95rem;
+    }
+
+    .signin-btn {
+        padding: 14px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .logpage {
+        width: 95%;
+        padding: 20px;
+        margin-top: 60px;
+    }
+
+    h2 {
+        font-size: 1.3rem;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .input {
+        padding: 10px 14px;
+        font-size: 0.9rem;
+    }
+
+    .signin-btn {
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+}

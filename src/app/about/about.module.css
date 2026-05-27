@@ -1,0 +1,103 @@
+.card1{
+  background: var(--white, #ffffff);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.card1 h3{
+  text-align: center;
+  font-size: 3rem;
+}
+
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+.card1:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  transform: translateY(-4px);
+}
+
+.curriculumCard {
+  grid-column: span 2;
+  text-align: left;
+}
+
+.programSection {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.programSection:last-of-type {
+  border-bottom: none;
+}
+
+.programSection h4 {
+  font-size: 1.1rem;
+  color: var(--black, #1a1a1a);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.programList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.programList li {
+  font-size: 0.95rem;
+  color: var(--gray, #666666);
+  line-height: 1.6;
+  padding-left: 1.25rem;
+  position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.programList li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--black, #1e1808);
+  font-weight: bold;
+}
+
+.benefitsSection {
+  margin-top: 1.5rem;
+}
+
+.benefitsSection h4 {
+  font-size: 1.1rem;
+  color: var(--black, #1e1808);
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 100px 1rem 2rem;
+  }
+
+  .header h1 {
+    font-size: 2rem;
+  }
+
+  .cardsGrid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .card {
+    padding: 1.5rem;
+  }
+
+  .curriculumCard {
+    grid-column: span 1;
+  }
+}
