@@ -138,22 +138,22 @@ export default function Home() {
             <div className={styles.testimonialCard}>
               <p>"I frequently source premium fabrics for custom garments but lack the time and skills to sew them myself. Elegant Fashion consistently delivers precise, high-quality tailoring and impeccable finishing. Their service is reliable, professional, and exactly what I need."</p>
               <div className={styles.testimonialAuthor}>
-                <strong>James Morrison</strong>
+                <strong>Sunday James</strong>
                 <span>Entrepreneur</span>
               </div>
             </div>
             <div className={styles.testimonialCard}>
-              <p>"i have very little knowledge is fashion and i want to start proffesional training to boost my skill such that in 6 months i will be professional enough to start my own fashion and design business."</p>
+              <p>"I previously struggled in other fashion studios where customer orders were always prioritized over student learning. But here, everything is different. I have a dedicated instructor who guides me step-by-step every day in a calm, conducive environment.Thanks to the constant support and daily guidance, my skills are improving rapidly. I have spent 2 months here already and I'm confident I'll become a professional fashion designer in 6 months.I highly recommend this school to anyone serious about learning fashion!"</p>
               <div className={styles.testimonialAuthor}>
-                <strong>Sophia Chen</strong>
-                <span>Fashion Designer</span>
+                <strong>David Blessing</strong>
+                <span>Aspiring Fashion Designer</span>
               </div>
             </div>
             <div className={styles.testimonialCard}>
               <p>"I love stylish, well-fitted clothing but don't have time to design or tailor my own. Elegant Fashion's ready-to-wear collections allow me to walk in, find beautiful outfits that fit perfectly, and suit my lifestyle. The variety, quality, and convenience are outstanding."</p>
               <div className={styles.testimonialAuthor}>
-                <strong>Alexandra Reed</strong>
-                <span>Art Director</span>
+                <strong>Tare Karen</strong>
+                <span>Civil Servant</span>
               </div>
             </div>
           </div>

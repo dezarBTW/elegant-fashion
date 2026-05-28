@@ -5,8 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabaseClient";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ReadyToWear() {
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState("all");
@@ -17,8 +19,10 @@ export default function ReadyToWear() {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    if (isAdmin) {
+      fetchProducts();
+    }
+  }, [isAdmin]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -63,6 +67,42 @@ export default function ReadyToWear() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  if (authLoading) {
+    return (
+      <div className={styles.container}>
+        <Navbar />
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner}></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className={styles.container}>
+        <Navbar />
+        <div className={styles.unavailableContainer}>
+          <div className={styles.unavailableContent}>
+            <div className={styles.unavailableIcon}>
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#c9a962" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <h2 className={styles.unavailableTitle}>Coming Soon</h2>
+            <p className={styles.unavailableMessage}>Ready to wear products are still unavailable at this moment.</p>
+            <Link href="/" className={styles.backButton}>
+              Return to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -78,7 +118,7 @@ export default function ReadyToWear() {
   return (
     <div className={styles.container}>
       <Navbar />
-      
+
       {/* Search Bar Section */}
       <section className={styles.searchSection}>
         <div className={styles.searchContainer}>

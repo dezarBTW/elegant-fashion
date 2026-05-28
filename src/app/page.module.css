@@ -11,7 +11,6 @@
 .container {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 0 1rem;
 }
 
 /* ====================== NAVIGATION ====================== */
@@ -83,7 +82,7 @@
 /* ====================== HERO SECTION ====================== */
 .hero {
   height: 100vh;
-  margin-top: 86px;
+  margin-top: 70px;
   background: linear-gradient(135deg, var(--black) 0%, #1a1a1a 100%);
   display: flex;
   align-items: center;
@@ -584,10 +583,6 @@
 }
 
 @media (max-width: 480px) {
-  .container {
-    padding: 0 1rem;
-  }
-
   .heroTitle {
     font-size: 2rem;
   }
@@ -598,5 +593,8 @@
 
   .sectionText {
     font-size: 1rem;
+  }
+  .hero{
+    margin-top: 50px;
   }
 }

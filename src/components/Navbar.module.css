@@ -21,8 +21,14 @@
   align-items: center;
 }
 
+.logoSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .logo {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 300;
   letter-spacing: 0.3em;
   color: #ffffff;
@@ -32,8 +38,9 @@
 
 .navLinks {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: center;
+  margin-right: 2rem;
 }
 
 .navLinks a {
@@ -120,6 +127,27 @@
   background: transparent;
 }
 
+.userGreeting {
+  color: #c9a962;
+  font-size: 0.85rem;
+  font-weight: 400;
+  letter-spacing: 0.15em;
+  margin-right: 1rem;
+  padding: 0.5rem 1rem;
+}
+
+.userGreetingMobile {
+  display: none;
+  margin-right: 0;
+  border: none;
+  padding: 0;
+  font-size: 0.75rem;
+}
+
+.userGreetingDesktop {
+  display: inline;
+}
+
 /* Hamburger Menu Button */
 .hamburger {
   display: none;
@@ -167,6 +195,19 @@
 @media (max-width: 768px) {
   .navContent {
     position: relative;
+  }
+
+  .logoSection {
+    gap: 0.5rem;
+  }
+
+  .userGreetingMobile {
+    display: inline;
+    font-size: 0.7rem;
+  }
+
+  .userGreetingDesktop {
+    display: none;
   }
 
   .hamburger {
@@ -220,6 +261,7 @@
 
   .logo {
     font-size: 1rem;
+    margin-right: 2rem;
   }
 
   .navLinks {

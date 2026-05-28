@@ -51,10 +51,15 @@ function Navbar() {
   return (
     <nav className={styles.nav}>
       <div className={styles.navContent}>
-        <Link href="/" className={styles.logo}>
-          ELEGANT FASHION
-        </Link>
-        <button 
+        <div className={styles.logoSection}>
+          <Link href="/" className={styles.logo}>
+            ELEGANT FASHION
+          </Link>
+          {user && (
+            <span className={`${styles.userGreeting} ${styles.userGreetingMobile}`}>Hi, {userData?.username || 'User'}</span>
+          )}
+        </div>
+        <button
           className={styles.hamburger}
           onClick={toggleMenu}
           aria-label="Toggle menu"
@@ -70,7 +75,8 @@ function Navbar() {
           <Link href="/contact" onClick={() => setIsMenuOpen(false)}>Contact Us</Link>
           {user ? (
             <>
-              <button 
+              <span className={`${styles.userGreeting} ${styles.userGreetingDesktop}`}>Hi, {userData?.username || 'User'}</span>
+              <button
                 onClick={() => {
                   handleLogout();
                   setIsMenuOpen(false);
@@ -81,8 +87,8 @@ function Navbar() {
                 {isLoggingOut ? 'Logging out...' : 'Log Out'}
               </button>
               {isAdmin && (
-                <Link 
-                  className={styles.adminLink} 
+                <Link
+                  className={styles.adminLink}
                   href="/admin"
                   onClick={() => setIsMenuOpen(false)}
                 >
@@ -92,15 +98,15 @@ function Navbar() {
             </>
           ) : (
             <>
-              <Link 
-                className={styles.authLink} 
+              <Link
+                className={styles.authLink}
                 href="/sign-in"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Sign In
               </Link>
-              <Link 
-                className={`${styles.authLink} ${styles.authLinkPrimary}`} 
+              <Link
+                className={`${styles.authLink} ${styles.authLinkPrimary}`}
                 href="/sign-up"
                 onClick={() => setIsMenuOpen(false)}
               >
