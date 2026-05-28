@@ -39,7 +39,7 @@ function Navbar() {
           </Link>
           {user && (
             <span className={`${styles.userGreeting} ${styles.userGreetingMobile}`}>
-              Hi, {userData?.username || 'User'}
+              Hi, {userData?.username || ' '}
             </span>
           )}
         </div>
