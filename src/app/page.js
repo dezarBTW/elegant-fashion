@@ -163,23 +163,20 @@ export default function Home() {
       {/* Instagram Section */}
       <section className={styles.section}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Latest Creations</h2>
+          <h2 className={styles.sectionTitle}>ORGANIZATIONS ELEGANT FASHION HAS WORKED WITH</h2>
           <div className={styles.instagramGrid}>
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <div key={item} className={styles.instagramItem}></div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Final CTA Section */}
-      <section id="contact" className={`${styles.section} ${styles.ctaSection}`}>
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Ready to Express Your True Style?</h2>
-          <div className={styles.ctaOptions}>
-            <button className={`${styles.btn} ${styles.btnPrimary}`}>Explore Ready-to-Wear</button>
-            <button className={`${styles.btn} ${styles.btnPrimary}`}>Book Bespoke</button>
-            <button className={`${styles.btn} ${styles.btnPrimary}`}>Join Fashion School</button>
+            <div className={styles.instagramItem}>
+              <div className={styles.organizationCard}></div>
+            </div>
+            <div className={styles.instagramItem}>
+              <div className={styles.organizationCard}></div>
+            </div>
+            <div className={styles.instagramItem}>
+              <div className={styles.organizationCard}></div>
+            </div>
+            <div className={styles.instagramItem}>
+              <div className={styles.organizationCard}></div>
+            </div>
           </div>
         </div>
       </section>

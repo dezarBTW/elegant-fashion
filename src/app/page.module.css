@@ -389,14 +389,21 @@
 
 .instagramItem {
   aspect-ratio: 1;
-  background: linear-gradient(135deg, var(--cream) 0%, #e8e4dc 100%);
-  transition: transform 0.4s ease, opacity 0.4s ease;
-  cursor: pointer;
+  overflow: hidden;
 }
 
-.instagramItem:hover {
+.organizationCard {
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.4s ease;
+}
+
+.organizationCard:hover {
   transform: scale(1.02);
-  opacity: 0.9;
 }
 
 /* ====================== CTA SECTION ====================== */
