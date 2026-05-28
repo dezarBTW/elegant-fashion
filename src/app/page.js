@@ -101,7 +101,7 @@ export default function Home() {
           <p className={styles.sectionText}>
             Our Bespoke is the premier destination for true bespoke fashion and design, where every garment is handcrafted from scratch as a one-of-a-kind masterpiece tailored exclusively to you. Specializing in custom-fitted suits, shirts, dresses, outerwear, and accessories, we combine centuries-old artisanal techniques, like precise individual pattern drafting, hand-stitching, and intricate finishing with contemporary style and premium fabrics to deliver unparalleled fit, elegance, and personal expression.
           </p>
-          <Link href="#contact" className={`${styles.btn} ${styles.btnPrimary}`}>Book Your Bespoke Consultation</Link>
+          <Link href="/contact" className={`${styles.btn} ${styles.btnPrimary}`}>Book Your Bespoke Consultation</Link>
         </div>
       </section>
 
@@ -191,14 +191,14 @@ export default function Home() {
             </div>
             <div className={styles.footerSection}>
               <h4>Quick Links</h4>
-              <Link href="#ready-to-wear">Ready-to-Wear</Link>
-              <Link href="#bespoke">Bespoke</Link>
-              <Link href="#fashion-school">Fashion School</Link>
-              <Link href="#about">About</Link>
+              <Link href="/ready-to-wear">Ready-to-Wear</Link>
+              <Link href="/contact">Bespoke</Link>
+              <Link href="/fashion-school">Fashion School</Link>
+              <Link href="/about">About</Link>
             </div>
             <div className={styles.footerSection}>
               <h4>Contact</h4>
-              <Link href="#contact">Get in Touch</Link>
+              <Link href="/contact">Get in Touch</Link>
               <Link href="https://wa.me/2348166361710" target="_blank" rel="noopener noreferrer">Book Consultation</Link>
             </div>
           </div>
