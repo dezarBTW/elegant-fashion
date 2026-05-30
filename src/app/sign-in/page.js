@@ -45,7 +45,7 @@ export default function SignIn() {
 
         try {
             const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-                redirectTo: `${window.location.origin}/sign-in`,
+                redirectTo: `${window.location.origin}/reset-password`,
             });
 
             if (error) {
@@ -99,10 +99,10 @@ export default function SignIn() {
                 <p className="subtitle">Sign in to access your account</p>
                 {error && <div className="error-message">{error}</div>}
                 <div className="form-group">
-                    <input className="input" onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Email" />
+                    <input className="input" onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Email" value={email} />
                 </div>
                 <div className="form-group">
-                    <input className="input" onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" />
+                    <input className="input" onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" value={password} />
                 </div>
                 <button className="signin-btn" onClick={handlesignIn}>Sign In</button>
                 <button className="forgot-password-btn" onClick={() => setShowForgotPassword(true)}>
