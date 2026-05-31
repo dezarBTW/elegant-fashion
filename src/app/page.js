@@ -97,15 +97,22 @@ export default function Home() {
       {/* Bespoke Section */}
       <section id="bespoke" className={styles.section}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>True Bespoke Couture</h2>
-          <p className={styles.sectionText}>
-            Our Bespoke is the premier destination for true bespoke fashion and design, where every garment is handcrafted from scratch as a one-of-a-kind masterpiece tailored exclusively to you. Specializing in custom-fitted suits, shirts, dresses, outerwear, and accessories, we combine centuries-old artisanal techniques, like precise individual pattern drafting, hand-stitching, and intricate finishing with contemporary style and premium fabrics to deliver unparalleled fit, elegance, and personal expression.
-          </p>
-          <Link href="/contact" className={`${styles.btn} ${styles.btnPrimary}`}>Book Your Bespoke Consultation</Link>
+          <div className={styles.bespokeContent}>
+            <div className={styles.bespokeText}>
+              <h2 className={styles.sectionTitle}>True Bespoke Couture</h2>
+              <p className={styles.sectionText}>
+                Our Bespoke is the premier destination for true bespoke fashion and design, where every garment is handcrafted from scratch as a one-of-a-kind masterpiece tailored exclusively to you. Specializing in custom-fitted suits, shirts, dresses, outerwear, and accessories, we combine centuries-old artisanal techniques, like precise individual pattern drafting, hand-stitching, and intricate finishing with contemporary style and premium fabrics to deliver unparalleled fit, elegance, and personal expression.
+              </p>
+              <Link href="/contact" className={`${styles.btn} ${styles.btnPrimary}`}>Book Your Bespoke Consultation</Link>
+            </div>
+            <div className={styles.bespokeImage}>
+              <div className={styles.imagePlaceholder}></div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Why Lumina Section */}
+      {/* Why Elegant Section */}
       <section id="about" className={`${styles.section} ${styles.sectionDark}`}>
         <div className={styles.container}>
           <h2 className={styles.sectionTitle}>Why Elegant Fashion</h2>

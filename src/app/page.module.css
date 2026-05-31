@@ -424,6 +424,42 @@
   flex-wrap: wrap;
 }
 
+/* ====================== BESPOKE SECTION ====================== */
+.bespokeContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 10px;
+}
+
+.bespokeText {
+  flex: 1;
+}
+
+.bespokeImage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imagePlaceholder {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.45)), /* Dark overlay */
+    url('/images/bespoke-CUbywJn6.jpg'); /* ← Replace with your image path */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;           /* Changed to white for better contrast */
+  font-size: 1.1rem;
+}
+
 /* ====================== FOOTER ====================== */
 .footer {
   background: var(--black);
@@ -528,6 +564,15 @@
   .navLinks {
     gap: 2rem;
   }
+  .bespokeContent {
+  gap: 3rem;
+}
+}
+
+@media (max-width: 915px){
+  .btn{
+    padding-left: 2px;
+  }
 }
 
 @media (max-width: 768px) {
@@ -575,6 +620,17 @@
     align-items: center;
   }
 
+  .bespokeContent {
+    flex-direction: column;     /* Image on top, text below */
+    gap: 1.5rem;                /* Reduced space between image and text */
+    align-items: stretch;
+  }
+
+  .imagePlaceholder {
+    aspect-ratio: 16/9;         /* Wider and more cinematic on mobile */
+    border-radius: 10px;
+  }
+
   .logosGrid {
     gap: 2rem;
   }
@@ -587,13 +643,17 @@
   .newsletter {
     flex-direction: column;
   }
-}
+}  
 
 @media (max-width: 480px) {
   .heroTitle {
     font-size: 2rem;
   }
-
+  .btn{
+    padding-left: 2px;
+    padding-right: 2px;
+    margin-left: 18px;
+  }
   .sectionTitle {
     font-size: 1.75rem;
   }
@@ -603,5 +663,8 @@
   }
   .hero{
     margin-top: 50px;
+  }
+  .bespokeContent {
+    gap: 2rem;                /* Even tighter on small phones */
   }
 }

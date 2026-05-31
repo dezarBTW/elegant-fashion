@@ -13,8 +13,6 @@ export default function SignUp() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
-    const [showConfirmation, setShowConfirmation] = useState(false);
-    const [countdown, setCountdown] = useState(5);
     const router = useRouter();
 
     const createUser = async () => {
@@ -60,18 +58,7 @@ export default function SignUp() {
                     console.error(userError);
                     setMessage("Error creating user profile");
                 } else {
-                    setShowConfirmation(true);
-                    setMessage("Confirmation email sent! Please check your email to verify your account.");
-                    // Start countdown for redirect
-                    let count = 5;
-                    const timer = setInterval(() => {
-                        count--;
-                        setCountdown(count);
-                        if (count === 0) {
-                            clearInterval(timer);
-                            router.push("/sign-in");
-                        }
-                    }, 1000);
+                    router.push("/sign-in");
                 }
             }
         } catch (error) {
@@ -82,43 +69,16 @@ export default function SignUp() {
         }
     };
 
-    const handleManualRedirect = () => {
-        router.push("/sign-in");
-    };
-
-    if (showConfirmation) {
-        return (
-            <div>
-                <div className="logpage">
-                    <div className="confirmation-message">
-                        <div className="success-icon">
-                            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                            </svg>
-                        </div>
-                        <h2>Check Your Email</h2>
-                        <p>{message}</p>
-                        <p className="countdown">Redirecting to sign-in in {countdown} seconds...</p>
-                        <button className="sign-up-button" onClick={handleManualRedirect}>
-                            Go to Sign In Now
-                        </button>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div>
             <div className="logpage">
                 <h2>Create an Account</h2>
                 <p className="subtitle">Sign up to Elegant Fashion</p>
-                {message && !showConfirmation && (
+                {message && (
                     <div className="error-message">{message}</div>
                 )}
                 <div className="form-group">
-                    <input className="input" onChange={(e) => setUsername(e.target.value)} type="text" placeholder="Username" />
+                    <input className="input" onChange={(e) => setUsername(e.target.value)} type="text" placeholder="Username(Cannot be changed after SignUp)" />
                 </div>
                 <div className="form-group">
                     <input className="input" onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Email" />

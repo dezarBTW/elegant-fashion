@@ -22,7 +22,7 @@ function Navbar() {
       console.error('Logout error:', error);
     } else {
       router.push('/');          // Redirect to home
-      // Optional: router.refresh(); // if you want to refresh current page instead
+      router.refresh();          // Refresh page
     }
   };
 

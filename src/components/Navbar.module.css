@@ -185,9 +185,51 @@
 /* ====================== RESPONSIVE DESIGN ====================== */
 @media (max-width: 1024px) {
   .navLinks {
-    gap: 2rem;
+    gap: 0.9rem;
+    margin-left: 1rem;
+  }
+  .navLinks a{
+    font-size: 11px;
+  }
+  .logo{
+    font-size: 14px;
+  }
+  .nav{
+    height: auto;
+  }
+
+  .userGreetingMobile {
+    display: inline;
+  }
+
+  .userGreetingDesktop {
+    display: none;
   }
 }
+
+@media (max-width: 915px) {
+  .navLinks {
+    gap: 0.5rem;  
+  }
+  .navLinks a{
+    font-size: 8px;
+  }
+  .logo{
+    font-size: 12px;
+  }
+  .nav{
+    height: auto;
+  }
+
+  .userGreetingMobile {
+    display: inline;
+  }
+
+  .userGreetingDesktop {
+    display: none;
+  }
+}
+
 
 @media (max-width: 768px) {
   .navContent {
@@ -198,6 +240,10 @@
     gap: 0.5rem;
   }
 
+  .hamburger {
+    display: flex;
+  }
+
   .userGreetingMobile {
     display: inline;
     font-size: 0.7rem;
@@ -205,10 +251,6 @@
 
   .userGreetingDesktop {
     display: none;
-  }
-
-  .hamburger {
-    display: flex;
   }
 
   .navLinks {

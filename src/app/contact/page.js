@@ -20,8 +20,8 @@ export default function Contact() {
             </svg>
           </div>
           <h3>Our Location</h3>
-          <p>NO 27 Biobgblo Issac Boro Express Way</p>
-          <p>Opp Charismatic Church</p>
+          <p>No 27 Biobgblo Issac Boro Express Way,</p>
+          <p>Opp Charismatic Church,</p>
           <p>Beside Rogas Plant</p>
         </div>
 
