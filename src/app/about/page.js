@@ -39,7 +39,7 @@ const values = [
     text: "Our school trains for real studio work \u2014 the same techniques used on our own floor.",
   },
   {
-    title: "Rooted in Lagos",
+    title: "Rooted in Bayelsa",
     text: "Built and staffed locally, from the workroom to the classroom.",
   },
 ];
@@ -51,7 +51,7 @@ export default function About() {
         <span className={styles.eyebrow}>Our story</span>
         <h1 className={styles.heroTitle}>Where individuality is mastered</h1>
         <p className={styles.heroText}>
-          Elegant Fashion is a Lagos-based house working across three
+          Elegant Fashion is a Bayelsa-based house that was founded in 2018 by our CEO Mrs Esther Patrick working across three
           disciplines that share one workroom: ready-to-wear, bespoke
           tailoring, and a fashion school that trains the next generation of
           designers on the same techniques we use on our own floor.
