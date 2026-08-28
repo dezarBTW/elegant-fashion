@@ -3,6 +3,14 @@
    Every page in the project reads these instead of hardcoding values,
    so a change here propagates everywhere automatically.
    ====================================================================== */
+@font-face {
+  font-family: "Ragick";
+  src: url("/fonts/ragick.otf") format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* Ink / paper — the site's two base surfaces */
   --ink: #14120d;

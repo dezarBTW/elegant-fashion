@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "env": {
+    "ANTHROPIC_BASE_URL": "http://localhost:20130",
+    "ANTHROPIC_MODEL": "ddgw/gpt-5.4-mini",
+    "CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY": "1"
+  },
+  "model": "ddgw/gpt-5.4-mini"
+}
