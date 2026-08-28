@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import styles from "./readytowear.module.css";
 import Link from "next/link";
 import Image from "next/image";
-import Navbar from "@/components/Navbar";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -18,11 +17,13 @@ export default function ReadyToWear() {
   const [loading, setLoading] = useState(true);
   const itemsPerPage = 10;
 
+  // Products are public (see "Public can view products" RLS policy), so
+  // every visitor should see them regardless of admin status — this page
+  // was previously gated behind `isAdmin`, which hid all products from
+  // ordinary customers.
   useEffect(() => {
-    if (isAdmin) {
-      fetchProducts();
-    }
-  }, [isAdmin]);
+    fetchProducts();
+  }, []);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -70,10 +71,9 @@ export default function ReadyToWear() {
   if (authLoading) {
     return (
       <div className={styles.container}>
-        <Navbar />
         <div className={styles.loadingContainer}>
-          <div className={styles.spinner}></div>
-          <p>Loading...</p>
+          <div className={styles.spinner} aria-hidden="true" />
+          <p>Loading shop...</p>
         </div>
       </div>
     );
@@ -82,7 +82,6 @@ export default function ReadyToWear() {
   if (!isAdmin) {
     return (
       <div className={styles.container}>
-        <Navbar />
         <div className={styles.unavailableContainer}>
           <div className={styles.unavailableContent}>
             <div className={styles.unavailableIcon}>
@@ -106,9 +105,8 @@ export default function ReadyToWear() {
   if (loading) {
     return (
       <div className={styles.container}>
-        <Navbar />
         <div className={styles.loadingContainer}>
-          <div className={styles.spinner}></div>
+          <div className={styles.spinner} aria-hidden="true" />
           <p>Loading products...</p>
         </div>
       </div>
@@ -117,7 +115,14 @@ export default function ReadyToWear() {
 
   return (
     <div className={styles.container}>
-      <Navbar />
+      {/* Admin Toolbar - only visible to admins */}
+      {isAdmin && (
+        <section className={styles.adminToolbar}>
+          <Link href="/admin" className={styles.manageProductsButton}>
+            Product Management
+          </Link>
+        </section>
+      )}
 
       {/* Search Bar Section */}
       <section className={styles.searchSection}>

@@ -12,10 +12,9 @@
 .backBtn {
   display: inline-block;
   padding: 0.75rem 1.5rem;
-  background: #c9a962;
-  color: #1a1a1a;
+  background: var(--gold);
+  color: var(--ink);
   text-decoration: none;
-  border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.3s;
@@ -23,22 +22,22 @@
 }
 
 .backBtn:hover {
-  background: #1a1a1a;
-  color: #ffffff;
-  transform: translateY(-2px);
+  background: var(--ink);
+  color: var(--white);
 }
 
 .header h1 {
+  font-family: var(--font-display);
   font-size: 2rem;
-  color: #1a1a1a;
-  font-weight: 600;
+  color: var(--ink);
+  font-weight: 500;
   margin: 0;
 }
 
 .studentsList {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 12px;
 }
 
 .studentCard {
@@ -46,65 +45,57 @@
   justify-content: space-between;
   align-items: center;
   padding: 25px;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s;
+  background: var(--white);
+  border: 1px solid var(--line);
+  transition: border-color 0.3s;
 }
 
 .studentCard:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  border-color: var(--gold-deep);
 }
 
 .studentInfo h3 {
   margin: 0 0 10px 0;
   font-size: 1.2rem;
-  color: #1a1a1a;
+  color: var(--ink);
   font-weight: 600;
 }
 
 .studentInfo p {
   margin: 5px 0;
   font-size: 0.95rem;
-  color: #666666;
+  color: var(--stone);
 }
 
 .programme {
   font-weight: 500;
-  color: #c9a962 !important;
+  color: var(--gold-deep) !important;
 }
 
 .viewBtn {
   padding: 0.75rem 1.5rem;
-  background: #1e40af;
-  color: white;
+  background: var(--ink);
+  color: var(--white);
   text-decoration: none;
-  border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
   transition: all 0.3s;
 }
 
 .viewBtn:hover {
-  background: #1e3a8a;
-  transform: translateY(-2px);
+  background: var(--gold-deep);
 }
 
 .noStudents {
   text-align: center;
   padding: 60px 20px;
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background: var(--white);
+  border: 1px solid var(--line);
 }
 
 .noStudents p {
   font-size: 1.1rem;
-  color: #666666;
+  color: var(--stone);
   margin: 0;
 }
 
@@ -114,14 +105,14 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  background: #f5f2ed;
+  background: var(--paper);
 }
 
 .spinner {
   width: 50px;
   height: 50px;
-  border: 3px solid #e0e0e0;
-  border-top-color: #c9a962;
+  border: 3px solid var(--line);
+  border-top-color: var(--gold);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -135,7 +126,7 @@
 
 .loadingContainer p {
   font-size: 1.1rem;
-  color: #666666;
+  color: var(--stone);
 }
 
 @media (max-width: 600px) {

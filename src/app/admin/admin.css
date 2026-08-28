@@ -1,9 +1,39 @@
- .admin-products-container {
+        .loading-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 100vh;
+          background: var(--paper);
+        }
+
+        .loading-container .spinner {
+          width: 50px;
+          height: 50px;
+          border: 3px solid var(--line);
+          border-top-color: var(--gold);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .loading-container p {
+          font-size: 1.1rem;
+          color: var(--stone);
+        }
+
+        .admin-products-container {
           max-width: 1400px;
           margin: 0 auto;
           padding: 2rem;
           margin-top: 50px;
-          font-family: 'Helvetica Neue', Arial, sans-serif;
+          font-family: var(--font-sans);
         }
 
         .admin-header {
@@ -12,28 +42,30 @@
           align-items: center;
           margin-bottom: 2rem;
           padding-bottom: 1rem;
-          border-bottom: 2px solid #c9a962;
+          border-bottom: 2px solid var(--gold);
         }
 
         .admin-header h1 {
           margin: 0;
-          color: #1a1a1a;
+          color: var(--ink);
+          font-family: var(--font-display);
+          font-weight: 500;
           font-size: 2rem;
         }
 
         .back-link {
-          color: #c9a962;
+          color: var(--gold);
           text-decoration: none;
           font-weight: 500;
           transition: color 0.3s;
         }
 
         .back-link:hover {
-          color: #1a1a1a;
+          color: var(--ink);
         }
 
         .form-section {
-          background: #ffffff;
+          background: var(--white);
           padding: 2rem;
           border-radius: 8px;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -43,7 +75,7 @@
         .form-section h2 {
           margin-top: 0;
           margin-bottom: 1.5rem;
-          color: #1a1a1a;
+          color: var(--ink);
         }
 
         .product-form {
@@ -66,14 +98,14 @@
 
         .form-group label {
           font-weight: 500;
-          color: #1a1a1a;
+          color: var(--ink);
           font-size: 0.9rem;
         }
 
         .form-group input,
         .form-group select {
           padding: 0.75rem;
-          border: 1px solid #e0e0e0;
+          border: 1px solid var(--line);
           border-radius: 4px;
           font-size: 1rem;
           transition: border-color 0.3s;
@@ -82,7 +114,7 @@
         .form-group input:focus,
         .form-group select:focus {
           outline: none;
-          border-color: #c9a962;
+          border-color: var(--gold);
         }
 
         .form-actions {
@@ -105,27 +137,27 @@
         }
 
         .submit-btn {
-          background: #c9a962;
-          color: #1a1a1a;
+          background: var(--gold);
+          color: var(--ink);
         }
 
         .submit-btn:hover {
-          background: #1a1a1a;
-          color: #ffffff;
+          background: var(--ink);
+          color: var(--white);
         }
 
         .cancel-btn {
-          background: #e0e0e0;
-          color: #1a1a1a;
+          background: var(--line);
+          color: var(--ink);
         }
 
         .cancel-btn:hover {
-          background: #1a1a1a;
-          color: #ffffff;
+          background: var(--ink);
+          color: var(--white);
         }
 
         .products-list-section {
-          background: #ffffff;
+          background: var(--white);
           padding: 2rem;
           border-radius: 8px;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
@@ -134,7 +166,7 @@
         .products-list-section h2 {
           margin-top: 0;
           margin-bottom: 1.5rem;
-          color: #1a1a1a;
+          color: var(--ink);
         }
 
         .products-grid {
@@ -144,7 +176,7 @@
         }
 
         .product-card {
-          border: 1px solid #e0e0e0;
+          border: 1px solid var(--line);
           border-radius: 8px;
           overflow: hidden;
           transition: box-shadow 0.3s;
@@ -157,7 +189,7 @@
         .product-image-container {
           width: 100%;
           height: 250px;
-          background: #f5f2ed;
+          background: var(--paper);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -177,13 +209,13 @@
         .product-details h3 {
           margin: 0 0 0.5rem 0;
           font-size: 1.1rem;
-          color: #1a1a1a;
+          color: var(--ink);
         }
 
         .product-category {
           margin: 0 0 0.5rem 0;
           font-size: 0.85rem;
-          color: #c9a962;
+          color: var(--gold);
           text-transform: uppercase;
           letter-spacing: 0.1em;
         }
@@ -192,41 +224,41 @@
           margin: 0 0 0.5rem 0;
           font-size: 1.2rem;
           font-weight: 600;
-          color: #1a1a1a;
+          color: var(--ink);
         }
 
         .product-rating {
           margin: 0;
           font-size: 0.9rem;
-          color: #666666;
+          color: var(--stone);
         }
 
         .product-actions {
           padding: 1rem;
           display: flex;
           gap: 0.5rem;
-          border-top: 1px solid #e0e0e0;
+          border-top: 1px solid var(--line);
         }
 
         .edit-btn {
           flex: 1;
-          background: #c9a962;
-          color: #1a1a1a;
+          background: var(--gold);
+          color: var(--ink);
         }
 
         .edit-btn:hover {
-          background: #1a1a1a;
-          color: #ffffff;
+          background: var(--ink);
+          color: var(--white);
         }
 
         .delete-btn {
           flex: 1;
-          background: #b76e79;
-          color: #ffffff;
+          background: var(--roseGold);
+          color: var(--white);
         }
 
         .delete-btn:hover {
-          background: #1a1a1a;
+          background: var(--ink);
         }
 
         .image-preview {
@@ -235,7 +267,7 @@
 
         .preview-image {
           border-radius: 4px;
-          border: 1px solid #e0e0e0;
+          border: 1px solid var(--line);
           object-fit: cover;
         }
 

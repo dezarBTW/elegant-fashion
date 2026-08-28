@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
+import { consumeRateLimit, formatRetryMessage, sanitizeEmail, sanitizeText, validateImageFile } from "@/lib/sanitizeInput";
 
 export default function Course() {
   const { user, loading, isAdmin } = useAuth();
@@ -113,9 +114,10 @@ export default function Course() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    const safeValue = name === "email" ? sanitizeEmail(value) : sanitizeText(value);
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: safeValue,
     }));
   };
 
@@ -123,25 +125,21 @@ export default function Course() {
     const file = e.target.files[0];
     if (!file || !user) return;
 
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-    if (!allowedTypes.includes(file.type)) {
-      alert("Please upload a valid image file (JPG, JPEG, or PNG)");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      alert("File size must be less than 5MB");
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      alert(validation.message);
+      e.target.value = "";
       return;
     }
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/passport.${fileExt}`;   // ← Fixed: Critical for RLS
+      const filePath = `${user.id}/passport.${validation.extension}`;
 
       const { error: uploadError } = await supabase.storage
         .from('student-passports')
         .upload(filePath, file, {
           cacheControl: '3600',
+          contentType: file.type,
           upsert: true,
         });
 
@@ -175,6 +173,12 @@ export default function Course() {
       return;
     }
 
+    const rateLimit = consumeRateLimit(`registration:${user.id}`, 20, 60 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      alert(formatRetryMessage(rateLimit.retryAfterMs));
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -182,19 +186,19 @@ export default function Course() {
         .from("students")
         .insert([
           {
-            surname: formData.surname,
-            first_name: formData.first_name,
-            middle_name: formData.middle_name,
-            gender: formData.gender,
-            date_of_birth: formData.date_of_birth,
+            surname: sanitizeText(formData.surname),
+            first_name: sanitizeText(formData.first_name),
+            middle_name: sanitizeText(formData.middle_name),
+            gender: sanitizeText(formData.gender),
+            date_of_birth: sanitizeText(formData.date_of_birth),
             age: parseInt(formData.age),
-            nationality: formData.nationality,
-            marital_status: formData.marital_status,
-            state_of_origin: formData.state_of_origin,
-            address: formData.address,
-            telephone: formData.telephone,
-            email: formData.email,
-            chosen_programme: formData.chosen_programme,
+            nationality: sanitizeText(formData.nationality),
+            marital_status: sanitizeText(formData.marital_status),
+            state_of_origin: sanitizeText(formData.state_of_origin),
+            address: sanitizeText(formData.address),
+            telephone: sanitizeText(formData.telephone),
+            email: sanitizeEmail(formData.email),
+            chosen_programme: sanitizeText(formData.chosen_programme),
             passport_photo: formData.passport_photo,
             user_id: user.id,
           },
@@ -226,8 +230,8 @@ export default function Course() {
   if (loading || checkingRegistration) {
     return (
       <div className="loading-container">
-        <div className="spinner"></div>
-        <p>Loading...</p>
+        <div className="spinner" aria-hidden="true" />
+        <p>Loading fashion school...</p>
       </div>
     );
   }

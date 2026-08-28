@@ -1,55 +1,58 @@
 "use client";
 import styles from "./page.module.css";
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import Navbar from "@/components/Navbar";
+
+const heroSlides = [
+  { src: "/images/Hero/female-ankara-burgundy-midi_v2.jpg", alt: "Elegant burgundy Ankara midi dress" },
+  { src: "/images/Hero/female-ankara-peplum-gown_v2.jpg", alt: "Ankara peplum fashion gown" },
+  { src: "/images/Hero/Gemini_Generated_Image_6mf0bm6mf0bm6mf0.jfif", alt: "Editorial African fashion look" },
+  { src: "/images/Hero/Gemini_Generated_Image_88v5an88v5an88v5.jfif", alt: "Contemporary Nigerian fashion design" },
+  { src: "/images/Hero/Gemini_Generated_Image_p6lm3pp6lm3pp6lm.jfif", alt: "Tailored fashion collection portrait" },
+  { src: "/images/Hero/male-agbada-cream-stripes_v2.jpg", alt: "Cream striped agbada attire" },
+];
+
+const collectionSlides = [
+  { name: "The Atelier Edit", src: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1000&q=85", alt: "Curated clothing displayed in a bright fashion studio" },
+  { name: "After-Hours", src: "https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1000&q=85", alt: "Elegant evening outfit arranged in a fashion studio" },
+  { name: "Quiet Confidence", src: "https://images.unsplash.com/photo-1496217590455-aa63a8350eea?auto=format&fit=crop&w=1000&q=85", alt: "Contemporary neutral outfit on a fashion model" },
+  { name: "The Occasion", src: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?auto=format&fit=crop&w=1000&q=85", alt: "Polished occasionwear displayed in a boutique" },
+  { name: "Modern Heritage", src: "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=1000&q=85", alt: "A curated rail of modern heritage garments" },
+  { name: "Signature Forms", src: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1000&q=85", alt: "Editorial portrait from a signature fashion collection" },
+];
 
 export default function Home() {
-  const [data, setData] = useState([]);
-  const [user, setUser] = useState(null);
-  const [userId, setUserId] = useState("");
+  const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
-    async function fetchstudents() {
-      const { data, error } = await supabase
-        .from("students")
-        .select("*")
-        .eq("id", "d57821a7-28d2-41fe-a70f-ffae8b9a49ef");
-      if (error) {
-        console.error("Error fetching data:", error);
-      } else {
-        setData(data);
-      }
-    }
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduceMotion) return undefined;
 
-    const fetchuser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error) {
-        console.error(error);
-      } else if (data.user) {
-        setUserId(data.user.id);
-        const { data: userData } = await supabase
-          .from("users")
-          .select("*")
-          .eq("id", data.user.id)
-          .single();
-        setUser(userData);
-      } else {
-        setUser(null);
-      }
-    };
+    const slideTimer = window.setInterval(() => {
+      setActiveSlide((currentSlide) => (currentSlide + 1) % heroSlides.length);
+    }, 6000);
 
-    fetchuser();
-    fetchstudents();
+    return () => window.clearInterval(slideTimer);
   }, []);
 
   return (
     <div className={styles.container}>
-      <Navbar />
-
+      <a className={styles.skipLink} href="#main-content">Skip to content</a>
       {/* Hero Section */}
-      <section className={styles.hero}>
+      <section className={styles.hero} aria-label="Featured fashion collections">
+        <div className={styles.heroSlides} aria-live="polite">
+          {heroSlides.map((slide, index) => (
+            <div
+              key={slide.src}
+              className={`${styles.heroSlide} ${index === activeSlide ? styles.heroSlideActive : ""}`}
+              style={{ backgroundImage: `url(${slide.src})` }}
+              role="img"
+              aria-label={slide.alt}
+              aria-hidden={index !== activeSlide}
+            />
+          ))}
+        </div>
         <div className={styles.heroOverlay}>
           <h1 className={styles.heroTitle}>Fashion That Defines You</h1>
           <p className={styles.heroSubtitle}>
@@ -58,9 +61,15 @@ export default function Home() {
           <div className={styles.heroCTA}>
             <Link className={`${styles.btn} ${styles.btnPrimary}`} href="/ready-to-wear">Explore Collections</Link>
           </div>
+          <div className={styles.slideProgress} aria-label={`Slide ${activeSlide + 1} of ${heroSlides.length}`}>
+            {heroSlides.map((slide, index) => (
+              <span key={slide.src} className={`${styles.slideDot} ${index === activeSlide ? styles.slideDotActive : ""}`} aria-hidden="true" />
+            ))}
+          </div>
         </div>
       </section>
 
+      <main id="main-content">
       {/* Ready-to-Wear Section */}
       <section id="ready-to-wear" className={styles.section}>
         <div className={styles.container}>
@@ -69,12 +78,14 @@ export default function Home() {
             Our limited-edition ready-to-wear collections help style-conscious young professionals who want to express individuality through fashion by reducing mass-produced sameness and increasing personal style confidence, unlike fast-fashion brands that prioritize trends over uniqueness.
           </p>
           <div className={styles.collectionGrid}>
-            {[1, 2, 3, 4, 5, 6].map((item) => (
-              <div key={item} className={styles.collectionCard}>
-                <div className={styles.collectionImage}></div>
-                <h3>Collection {item}</h3>
-                <button className={`${styles.btn} ${styles.btnSmall}`}>Shop Now</button>
-              </div>
+            {collectionSlides.map((item) => (
+              <article key={item.name} className={styles.collectionCard}>
+                <div className={styles.collectionImage}>
+                  <Image src={item.src} alt={item.alt} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+                </div>
+                <h3>Collection {item.name}</h3>
+                <Link className={`${styles.btn} ${styles.btnSmall}`} href="/ready-to-wear">Shop Collection</Link>
+              </article>
             ))}
           </div>
         </div>
@@ -89,7 +100,7 @@ export default function Home() {
           </p>
           <div className={styles.ctaGroup}>
             <Link href="/course" className={`${styles.btn} ${styles.btnPrimary}`}>Enroll Now</Link>
-            <Link href="/about" className={`${styles.btn} ${styles.btnOutline}`}>View Curriculum</Link>
+            <Link href="/curriculum" className={`${styles.btn} ${styles.btnOutline}`}>View Curriculum</Link>
           </div>
         </div>
       </section>
@@ -106,7 +117,7 @@ export default function Home() {
               <Link href="/contact" className={`${styles.btn} ${styles.btnPrimary}`}>Book Your Bespoke Consultation</Link>
             </div>
             <div className={styles.bespokeImage}>
-              <div className={styles.imagePlaceholder}></div>
+              <Image className={styles.bespokePhoto} src="/images/bespoke-CUbywJn6.jpg" alt="Elegant Fashion bespoke tailoring detail" width={900} height={675} sizes="(max-width: 768px) 100vw, 50vw" />
             </div>
           </div>
         </div>
@@ -117,22 +128,22 @@ export default function Home() {
         <div className={styles.container}>
           <h2 className={styles.sectionTitle}>Why Elegant Fashion</h2>
           <div className={styles.featuresGrid}>
-            <div className={styles.featureCard}>
+            <article className={styles.featureCard}>
               <h3>Artisanal Craftsmanship</h3>
               <p>Every piece crafted with meticulous attention to detail</p>
-            </div>
-            <div className={styles.featureCard}>
+            </article>
+            <article className={styles.featureCard}>
               <h3>Sustainability</h3>
               <p>Ethical practices and premium sustainable materials</p>
-            </div>
-            <div className={styles.featureCard}>
+            </article>
+            <article className={styles.featureCard}>
               <h3>Individual Expression</h3>
               <p>Fashion that celebrates your unique identity</p>
-            </div>
-            <div className={styles.featureCard}>
+            </article>
+            <article className={styles.featureCard}>
               <h3>Industry Connections</h3>
               <p>Access to exclusive networks and opportunities</p>
-            </div>
+            </article>
           </div>
         </div>
       </section>
@@ -166,6 +177,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </main>
 
       {/* Instagram Section */}
       <section className={styles.section}>
@@ -201,7 +213,7 @@ export default function Home() {
               <Link href="/ready-to-wear">Ready-to-Wear</Link>
               <Link href="/contact">Bespoke</Link>
               <Link href="/fashion-school">Fashion School</Link>
-              <Link href="/about">About</Link>
+              <Link href="/about">About Us</Link>
             </div>
             <div className={styles.footerSection}>
               <h4>Contact</h4>

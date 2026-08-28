@@ -1,103 +1,223 @@
-.card1{
-  background: var(--white, #ffffff);
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  margin-top: 2rem;
+.page {
+  min-height: 100vh;
+  background: var(--paper);
+  padding: 130px 2rem 0;
+}
+
+.hero {
+  max-width: 760px;
+  margin: 0 auto;
+  padding-bottom: 4rem;
   text-align: center;
 }
 
-.card1 h3{
-  text-align: center;
-  font-size: 3rem;
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px dashed var(--gold-deep);
+  color: var(--gold-deep);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
-.card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transform: translateY(-4px);
-}
-
-.card1:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transform: translateY(-4px);
-}
-
-.curriculumCard {
-  grid-column: span 2;
-  text-align: left;
-}
-
-.programSection {
+.heroTitle {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  line-height: 1.2;
+  color: var(--ink);
   margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e5e5e5;
+  text-wrap: balance;
 }
 
-.programSection:last-of-type {
-  border-bottom: none;
+.heroText {
+  font-size: 1.05rem;
+  line-height: 1.85;
+  color: var(--stone);
+  text-wrap: balance;
 }
 
-.programSection h4 {
-  font-size: 1.1rem;
-  color: var(--black, #1a1a1a);
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-}
-
-.programList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.programList li {
-  font-size: 0.95rem;
-  color: var(--gray, #666666);
-  line-height: 1.6;
-  padding-left: 1.25rem;
+/* A seam-line divider: a dashed rule with a tick at each end,
+   standing in for the stitching that runs through everything the
+   house makes. Used between every major section on this page. */
+.stitchLine {
+  max-width: 1400px;
+  margin: 0 auto;
+  height: 1px;
+  border-top: 1px dashed var(--line);
   position: relative;
-  margin-bottom: 0.5rem;
 }
 
-.programList li::before {
-  content: "•";
+.stitchLine::before,
+.stitchLine::after {
+  content: '';
   position: absolute;
-  left: 0;
-  color: var(--black, #1e1808);
-  font-weight: bold;
+  top: -3px;
+  width: 1px;
+  height: 7px;
+  background: var(--gold-deep);
 }
 
-.benefitsSection {
-  margin-top: 1.5rem;
+.stitchLine::before {
+  left: 2rem;
 }
 
-.benefitsSection h4 {
-  font-size: 1.1rem;
-  color: var(--black, #1e1808);
-  margin-bottom: 0.75rem;
+.stitchLine::after {
+  right: 2rem;
+}
+
+.pillars {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 4.5rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.pillarCard {
+  background: var(--white);
+  border: 1px solid var(--line);
+  padding: 2.25rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: border-color 0.3s ease, transform 0.3s ease;
+}
+
+.pillarCard:hover {
+  border-color: var(--gold-deep);
+  transform: translateY(-4px);
+}
+
+.pillarTag {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  color: var(--gold-deep);
+  margin-bottom: 1rem;
+}
+
+.pillarCard h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--ink);
+  margin-bottom: 0.85rem;
+}
+
+.pillarCard p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--stone);
+  margin-bottom: 1.5rem;
+  flex-grow: 1;
+}
+
+.pillarLink {
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  color: var(--ink);
+  border-bottom: 1px solid var(--gold);
+  padding-bottom: 2px;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.pillarLink:hover {
+  color: var(--gold-deep);
+  border-color: var(--gold-deep);
+}
+
+.valuesSection {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 4.5rem 0;
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  text-align: center;
+  color: var(--ink);
+  margin-bottom: 3rem;
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 2.5rem;
+}
+
+.valueCard h3 {
+  font-size: 1.05rem;
   font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 0.6rem;
+}
+
+.valueCard p {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--stone);
+}
+
+.ctaBand {
+  background: var(--ink);
+  color: var(--paper);
+  text-align: center;
+  padding: 5rem 2rem;
+  margin-top: 1rem;
+}
+
+.ctaBand h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  margin-bottom: 0.75rem;
+}
+
+.ctaBand p {
+  color: var(--stone-light);
+  margin-bottom: 2rem;
+}
+
+.ctaButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 3rem;
+  padding: 0 2.25rem;
+  background: var(--gold);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: background 0.3s ease;
+}
+
+.ctaButton:hover {
+  background: var(--gold-bright);
 }
 
 @media (max-width: 768px) {
-  .container {
-    padding: 100px 1rem 2rem;
+  .page {
+    padding: 100px 1.25rem 0;
   }
 
-  .header h1 {
-    font-size: 2rem;
+  .pillars {
+    padding: 3rem 0;
   }
 
-  .cardsGrid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+  .valuesSection {
+    padding: 3rem 0;
   }
 
-  .card {
-    padding: 1.5rem;
-  }
-
-  .curriculumCard {
-    grid-column: span 1;
+  .ctaBand {
+    padding: 3.5rem 1.5rem;
   }
 }

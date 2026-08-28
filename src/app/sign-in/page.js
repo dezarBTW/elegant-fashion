@@ -1,115 +1,121 @@
-'use client'
-import react from "react"
-import { supabase } from "@/lib/supabaseClient";
+'use client';
+
+import Link from "next/link";
 import { useState } from "react";
-import { useRouter} from "next/navigation";
-import styles from "./login.css";
-
-
-
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabaseClient";
+import { consumeRateLimit, formatRetryMessage, sanitizeEmail } from "@/lib/sanitizeInput";
+import "./signin.css";
 
 export default function SignIn() {
-    const router = useRouter();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState(null);
-    const [showForgotPassword, setShowForgotPassword] = useState(false);
-    const [resetEmail, setResetEmail] = useState("");
-    const [resetMessage, setResetMessage] = useState("");
-    const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const router = useRouter();
 
-    const handlesignIn = async () => {
-        try{
-         const { data, error} = await supabase.auth.signInWithPassword({email, password})
-        if (error){
-            setError("Invalid email or password.");
-        }
-        else {
-            router.push("/")
-        }
-        }
-        catch{
-            setError("An error occurred while signing in.");
-        }
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const safeEmail = sanitizeEmail(email);
+
+    if (!safeEmail || !password) {
+      setMessage("Please enter your email and password");
+      return;
     }
 
-    const handleForgotPassword = async () => {
-        if (!resetEmail) {
-            setError("Please enter your email address.");
-            return;
-        }
-
-        setLoading(true);
-        setError("");
-        setResetMessage("");
-
-        try {
-            const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-                redirectTo: `${window.location.origin}/reset-password`,
-            });
-
-            if (error) {
-                setError(error.message || "Error sending reset email.");
-            } else {
-                setResetMessage("Password reset email sent! Please check your email to reset your password.");
-                setTimeout(() => {
-                    setShowForgotPassword(false);
-                    setResetMessage("");
-                }, 5000);
-            }
-        } catch (error) {
-            setError("An error occurred. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    if (showForgotPassword) {
-        return (
-            <div>
-                <div className="logpage">
-                    <h2>Reset Password</h2>
-                    <p className="subtitle">Enter your email to receive a password reset link</p>
-                    {error && <div className="error-message">{error}</div>}
-                    {resetMessage && <div className="success-message">{resetMessage}</div>}
-                    <div className="form-group">
-                        <input
-                            className="input"
-                            onChange={(e) => setResetEmail(e.target.value)}
-                            type="email"
-                            placeholder="Email"
-                            value={resetEmail}
-                        />
-                    </div>
-                    <button className="signin-btn" onClick={handleForgotPassword} disabled={loading}>
-                        {loading ? "Sending..." : "Send Reset Link"}
-                    </button>
-                    <button className="back-btn" onClick={() => setShowForgotPassword(false)}>
-                        Back to Sign In
-                    </button>
-                </div>
-            </div>
-        );
+    const rateLimit = consumeRateLimit(`login:${safeEmail}`, 5, 15 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      setMessage(formatRetryMessage(rateLimit.retryAfterMs));
+      return;
     }
 
+    setLoading(true);
+    setMessage("");
+
+    try {
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({
+        email: safeEmail,
+        password,
+      });
+
+      if (error) {
+        setMessage(error.message || "Unable to sign in. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      if (!signInData.session) {
+        setMessage("Sign-in succeeded, but your session could not be loaded. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      router.replace("/");
+      router.refresh();
+    } catch (error) {
+      console.error("Sign-in redirect error:", error);
+      setMessage("Unable to complete sign-in. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
     return (
-        <div>
-            <div className="logpage">
-                <h2>Welcome Back</h2>
-                <p className="subtitle">Sign in to access your account</p>
-                {error && <div className="error-message">{error}</div>}
-                <div className="form-group">
-                    <input className="input" onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Email" value={email} />
-                </div>
-                <div className="form-group">
-                    <input className="input" onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" value={password} />
-                </div>
-                <button className="signin-btn" onClick={handlesignIn}>Sign In</button>
-                <button className="forgot-password-btn" onClick={() => setShowForgotPassword(true)}>
-                    Forgot Password?
-                </button>
-            </div>
+      <main className="sign-in-page sign-in-loading-page">
+        <div className="spinner" aria-hidden="true" />
+        <p>Signing you in...</p>
+      </main>
+    );
+  }
 
-        </div>
-    )
+  return (
+    <main className="sign-in-page">
+      <section className="sign-in-panel" aria-labelledby="sign-in-heading">
+        <p className="eyebrow">Welcome back</p>
+        <h1 id="sign-in-heading">Sign In</h1>
+
+        {message && (
+          <div className="error-message" role="alert">
+            {message}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <label htmlFor="email">Email</label>
+            <input
+              id="email"
+              className="input"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(sanitizeEmail(event.target.value))}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Password</label>
+            <input
+              id="password"
+              className="input"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              required
+            />
+          </div>
+
+          <button className="sign-in-button" type="submit" disabled={loading}>
+            {loading ? "Signing In..." : "Sign In"}
+          </button>
+        </form>
+
+        <p className="sign-up-prompt">
+          New to Elegant Fashion? <Link href="/sign-up">Create an account</Link>
+        </p>
+      </section>
+    </main>
+  );
 }

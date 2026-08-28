@@ -1,13 +1,4 @@
 /* ====================== GLOBAL STYLES ====================== */
-:root {
-  --black: #1a1a1a;
-  --cream: #f5f2ed;
-  --gold: #c9a962;
-  --roseGold: #b76e79;
-  --white: #ffffff;
-  --gray: #666666;
-  --lightGray: #e0e0e0;
-}
 
 .container {
   min-height: 100vh;
@@ -57,26 +48,27 @@
 .unavailableContent {
   text-align: center;
   max-width: 500px;
-  padding: 3rem;
+  padding: 3.5rem 3rem;
   background: var(--white);
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--line);
 }
 
 .unavailableIcon {
   margin-bottom: 1.5rem;
+  color: var(--gold-deep);
 }
 
 .unavailableTitle {
+  font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 300;
+  font-weight: 500;
   color: var(--black);
   margin-bottom: 1rem;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
 }
 
 .unavailableMessage {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--gray);
   margin-bottom: 2rem;
   line-height: 1.6;
@@ -84,18 +76,50 @@
 
 .backButton {
   display: inline-block;
-  padding: 1rem 2rem;
+  padding: 1rem 2.25rem;
   background: var(--gold);
   color: var(--black);
   text-decoration: none;
-  border-radius: 4px;
   font-weight: 500;
+  letter-spacing: 0.05em;
   transition: all 0.3s ease;
 }
 
 .backButton:hover {
   background: var(--black);
   color: var(--white);
+}
+
+/* ====================== ADMIN TOOLBAR ====================== */
+.adminToolbar {
+  background: var(--black);
+  padding: 0.9rem 2rem;
+  margin-top: 86px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* When the admin toolbar is present it owns the space below the fixed navbar,
+   so the search section no longer needs its own top offset. */
+.adminToolbar + .searchSection {
+  margin-top: 0;
+}
+
+.manageProductsButton {
+  display: inline-block;
+  padding: 0.65rem 1.5rem;
+  background: var(--gold);
+  color: var(--black);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  border-radius: var(--radius);
+  transition: all 0.3s ease;
+}
+
+.manageProductsButton:hover {
+  background: var(--white);
 }
 
 /* ====================== SEARCH SECTION ====================== */
@@ -117,7 +141,7 @@
   flex: 1;
   padding: 1rem 1.5rem;
   border: 1px solid var(--lightGray);
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 1rem;
   color: var(--black);
 }
@@ -131,7 +155,7 @@
   padding: 1rem 2rem;
   background: var(--gold);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 1rem;
   font-weight: 500;
   color: var(--black);
@@ -157,9 +181,10 @@
 }
 
 .promoTitle {
+  font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  letter-spacing: 0;
   color: var(--white);
   margin-bottom: 0.5rem;
 }
@@ -185,8 +210,7 @@
 .sidebar {
   background: var(--white);
   padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--line);
   height: fit-content;
   position: sticky;
   top: 100px;
@@ -218,7 +242,7 @@
   padding: 0.75rem 1rem;
   background: transparent;
   border: 1px solid var(--lightGray);
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 0.9rem;
   color: var(--gray);
   cursor: pointer;
@@ -278,7 +302,7 @@
 .sortSelect {
   padding: 0.75rem 1rem;
   border: 1px solid var(--lightGray);
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 0.9rem;
   color: var(--gray);
   background: var(--white);
@@ -294,15 +318,14 @@
 /* ====================== PRODUCT CARD ====================== */
 .productCard {
   background: var(--white);
-  border-radius: 8px;
+  border: 1px solid var(--line);
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   transition: all 0.3s ease;
 }
 
 .productCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: var(--gold-deep);
+  transform: translateY(-4px);
 }
 
 .productImage {
@@ -334,7 +357,7 @@
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border-radius: 2px;
+  border-radius: var(--radius);
 }
 
 .productOverlay {
@@ -359,7 +382,7 @@
   padding: 1rem 2rem;
   background: var(--white);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 0.9rem;
   font-weight: 500;
   letter-spacing: 0.1em;
@@ -421,7 +444,7 @@
   padding: 1rem;
   background: var(--black);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 0.9rem;
   font-weight: 500;
   letter-spacing: 0.1em;
@@ -449,7 +472,7 @@
   padding: 0.75rem 1.25rem;
   background: var(--white);
   border: 1px solid var(--lightGray);
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--gray);
@@ -476,8 +499,7 @@
 /* ====================== SHOPPING CART SIDEBAR ====================== */
 .cartSidebar {
   background: var(--white);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--line);
   height: fit-content;
   position: sticky;
   top: 100px;
@@ -533,7 +555,7 @@
 
 .cartItemImage {
   flex-shrink: 0;
-  border-radius: 4px;
+  border-radius: var(--radius);
   overflow: hidden;
 }
 
@@ -585,7 +607,7 @@
   padding: 1rem;
   background: var(--gold);
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius);
   font-size: 0.9rem;
   font-weight: 500;
   letter-spacing: 0.1em;
@@ -605,20 +627,20 @@
   bottom: 2rem;
   right: 2rem;
   padding: 1rem 1.5rem;
-  background: var(--gold);
-  border: none;
-  border-radius: 50px;
+  background: var(--ink);
+  color: var(--paper);
+  border: 1px solid var(--ink);
   font-size: 1.2rem;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
   z-index: 1000;
 }
 
 .cartToggle:hover {
-  transform: scale(1.05);
-  background: var(--black);
-  color: var(--white);
+  transform: translateY(-2px);
+  background: var(--gold);
+  color: var(--ink);
+  border-color: var(--gold);
 }
 
 /* ====================== RESPONSIVE DESIGN ====================== */
@@ -654,6 +676,11 @@
 }
 
 @media (max-width: 768px) {
+  .adminToolbar {
+    padding: 0.75rem 1rem;
+    margin-top: 60px;
+  }
+
   .searchSection {
     padding: 1rem;
     margin-top: 60px;

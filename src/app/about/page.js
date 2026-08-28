@@ -1,51 +1,99 @@
-"use client";
-import React, { use } from "react";
-import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabaseClient"; 
-import styles from "./about.module.css";
 import Link from "next/link";
+import styles from "./about.module.css";
+
+const pillars = [
+  {
+    tag: "N\u00b0 01",
+    title: "Ready-to-wear",
+    text: "Limited-run collections cut in small batches, so a piece you buy off the rail never feels mass-produced.",
+    href: "/ready-to-wear",
+    cta: "View collections",
+  },
+  {
+    tag: "N\u00b0 02",
+    title: "Bespoke couture",
+    text: "Garments drafted from your own measurements and hand-finished, from first muslin to final stitch.",
+    href: "/contact",
+    cta: "Book a consultation",
+  },
+  {
+    tag: "N\u00b0 03",
+    title: "Fashion school",
+    text: "A practical, mentor-led path into the industry \u2014 pattern-making, construction, and portfolio work.",
+    href: "/course",
+    cta: "See the programme",
+  },
+];
+
+const values = [
+  {
+    title: "Cut by hand, not by trend",
+    text: "Every pattern is drafted and adjusted individually before a single cut is made.",
+  },
+  {
+    title: "Small runs, on purpose",
+    text: "We limit production so pieces stay distinctive rather than disposable.",
+  },
+  {
+    title: "Skills that transfer",
+    text: "Our school trains for real studio work \u2014 the same techniques used on our own floor.",
+  },
+  {
+    title: "Rooted in Lagos",
+    text: "Built and staffed locally, from the workroom to the classroom.",
+  },
+];
 
 export default function About() {
-
   return (
-    <div>
-      {/* Curriculum Card */}
-        <div className={`${styles.card1} ${styles.curriculumCard}`}>
-          <h3>Our Curriculum</h3>
-          
-          <div className={styles.programSection}>
-            <h4>3 Months Program</h4>
-            <ul className={styles.programList}>
-              <li>Beginner sewing and garment construction</li>
-              <li>Pattern drafting and cutting</li>
-              <li>Clothing construction / cut-and-sew techniques</li>
-            </ul>
-          </div>
+    <div className={styles.page}>
+      <header className={styles.hero}>
+        <span className={styles.eyebrow}>Our story</span>
+        <h1 className={styles.heroTitle}>Where individuality is mastered</h1>
+        <p className={styles.heroText}>
+          Elegant Fashion is a Lagos-based house working across three
+          disciplines that share one workroom: ready-to-wear, bespoke
+          tailoring, and a fashion school that trains the next generation of
+          designers on the same techniques we use on our own floor.
+        </p>
+      </header>
 
-          <div className={styles.programSection}>
-            <h4>6 Months Program</h4>
-            <ul className={styles.programList}>
-              <li>Beginner sewing and garment construction</li>
-              <li>Pattern drafting and cutting</li>
-              <li>Clothing construction / cut-and-sew techniques</li>
-              <li>Fashion illustration / sketching</li>
-              <li>Business and entrepreneurship modules</li>
-              <li>Specialized garment types</li>
-            </ul>
-          </div>
+      <div className={styles.stitchLine} aria-hidden="true"></div>
 
-          <div className={styles.benefitsSection}>
-            <h4>What You Stand to Gain</h4>
-            <ul className={styles.programList}>
-              <li>Additional or primary income generation</li>
-              <li>Entrepreneurship and self-employment opportunities</li>
-              <li>Practical, marketable technical skills</li>
-              <li>Creativity and self-expression boost</li>
-              <li>Improved professional portfolio and credibility</li>
-              <li>Networking and industry exposure</li>
-            </ul>
-          </div>
+      <section className={styles.pillars} aria-label="What we do">
+        {pillars.map((pillar) => (
+          <article key={pillar.title} className={styles.pillarCard}>
+            <span className={styles.pillarTag}>{pillar.tag}</span>
+            <h2>{pillar.title}</h2>
+            <p>{pillar.text}</p>
+            <Link href={pillar.href} className={styles.pillarLink}>
+              {pillar.cta} &rarr;
+            </Link>
+          </article>
+        ))}
+      </section>
+
+      <div className={styles.stitchLine} aria-hidden="true"></div>
+
+      <section className={styles.valuesSection}>
+        <h2 className={styles.sectionTitle}>How we work</h2>
+        <div className={styles.valuesGrid}>
+          {values.map((value) => (
+            <article key={value.title} className={styles.valueCard}>
+              <h3>{value.title}</h3>
+              <p>{value.text}</p>
+            </article>
+          ))}
         </div>
+      </section>
+
+      <section className={styles.ctaBand}>
+        <h2>Have a piece in mind?</h2>
+        <p>Tell us what you&apos;re looking for and we&apos;ll take it from there.</p>
+        <Link href="/contact" className={styles.ctaButton}>
+          Get in touch
+        </Link>
+      </section>
     </div>
   );
 }

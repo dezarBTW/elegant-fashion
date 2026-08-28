@@ -55,7 +55,7 @@ export default function RegistrationDetails() {
     return (
       <div className={styles.container}>
         <div className={styles.loadingContainer}>
-          <div className={styles.spinner}></div>
+          <div className={styles.spinner} aria-hidden="true" />
           <p>Loading registration details...</p>
         </div>
       </div>

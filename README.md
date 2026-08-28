@@ -36,3 +36,19 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 "# nesta" 
 "# nesthub" 
+
+## Supabase environment variables
+
+The browser client may use only the public Supabase URL and anon key:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
+```
+
+Keep the service-role key server-side only. It must not use the `NEXT_PUBLIC_`
+prefix, be imported by client components, or be committed to the repository:
+
+```text
+SUPABASE_SERVICE_ROLE_KEY=your-server-only-service-role-key
+```

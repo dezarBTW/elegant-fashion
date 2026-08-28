@@ -1,19 +1,52 @@
+/* ======================================================================
+   Design tokens — single source of truth for color, type, and spacing.
+   Every page in the project reads these instead of hardcoding values,
+   so a change here propagates everywhere automatically.
+   ====================================================================== */
 :root {
-  --background: #f5f2ed;
-  --foreground: #0a0a0a;
-  --black: #0a0a0a;
-  --cream: #f5f2ed;
-  --gold: #c9a962;
-  --emerald: #046b4a;
+  /* Ink / paper — the site's two base surfaces */
+  --ink: #14120d;
+  --ink-soft: #221f19;
+  --paper: #f6f1e8;
+  --paper-dim: #ece4d3;
   --white: #ffffff;
-  --gray: #666666;
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #f5f2ed;
-  }
+  /* Accent ramp — brass gold is the one accent color in the system */
+  --gold: #c9a962;
+  --gold-bright: #dabb7a;
+  --gold-deep: #a17a46;
+  --roseGold: #b76e79;
+
+  /* Secondary accent, used sparingly (bespoke section, success states) */
+  --emerald: #046b4a;
+
+  /* Text + line weights */
+  --stone: #6b675e;
+  --stone-light: #948f83;
+  --lightGray: #e4ddcf;
+  --line: rgba(20, 18, 13, 0.12);
+  --line-dark: rgba(246, 241, 232, 0.16);
+
+  /* Functional colors, warmed to sit inside the palette */
+  --danger: #a3402c;
+  --danger-bg: #f6e9e4;
+  --success: #3f7d52;
+  --success-bg: #e9f1e7;
+
+  /* Legacy aliases already referenced throughout the codebase */
+  --black: var(--ink);
+  --cream: var(--paper);
+  --gray: var(--stone);
+  --background: var(--paper);
+  --foreground: var(--ink);
+
+  /* Type */
+  --font-display: var(--font-playfair), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-geist-sans), 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', Consolas, monospace;
+
+  --radius: 4px;
+  --radius-lg: 10px;
 }
 
 html {
@@ -33,7 +66,7 @@ body {
   flex-direction: column;
   color: var(--foreground);
   background: var(--background);
-  font-family: 'Helvetica Neue', 'Arial', sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
@@ -50,8 +83,12 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+::selection {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold-deep);
+  outline-offset: 2px;
 }

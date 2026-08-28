@@ -5,6 +5,7 @@ import Link from "next/link";
 import styles from "./admin.css";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
+import { consumeRateLimit, formatRetryMessage, sanitizeText, validateImageFile } from "@/lib/sanitizeInput";
 
 export default function ProductsAdmin() {
   const { user, userData, loading, isAdmin } = useAuth();
@@ -40,10 +41,16 @@ export default function ProductsAdmin() {
     e.preventDefault();
     setSubmitted(false);
 
+    const rateLimit = consumeRateLimit(`admin-product-write:${user.id}`, 30, 60 * 1000);
+    if (!rateLimit.allowed) {
+      alert(formatRetryMessage(rateLimit.retryAfterMs));
+      return;
+    }
+
     const productData = {
-      name: formData.name,
+      name: sanitizeText(formData.name),
       price: parseFloat(formData.price),
-      category: formData.category,
+      category: sanitizeText(formData.category),
       image: formData.image || "/images/placeholder.jpg",
       rating: parseFloat(formData.rating),
       reviews: parseInt(formData.reviews)
@@ -101,6 +108,12 @@ export default function ProductsAdmin() {
       return;
     }
 
+    const rateLimit = consumeRateLimit(`admin-product-delete:${user.id}`, 30, 60 * 1000);
+    if (!rateLimit.allowed) {
+      alert(formatRetryMessage(rateLimit.retryAfterMs));
+      return;
+    }
+
     setSubmitted(false);
     const { data, error } = await supabase
       .from("products")
@@ -131,9 +144,12 @@ export default function ProductsAdmin() {
   };
 
   const handleChange = (e) => {
+    const value = ["name", "category"].includes(e.target.name)
+      ? sanitizeText(e.target.value)
+      : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: value
     });
   };
 
@@ -141,15 +157,24 @@ export default function ProductsAdmin() {
     const file = e.target.files[0];
     if (!file) return;
 
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      alert(validation.message);
+      e.target.value = "";
+      return;
+    }
+
     try {
       // Upload to Supabase storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
+      const fileName = `${Date.now()}.${validation.extension}`;
       const filePath = `products/${fileName}`;
 
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('product-images')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          contentType: file.type,
+          upsert: false,
+        });
 
       if (uploadError) {
         console.error("Error uploading image:", uploadError);
@@ -175,8 +200,10 @@ export default function ProductsAdmin() {
   if (loading) {
     return (
       <div className="admin-container">
-        <div className="spinner"></div>
-        <p>Loading...</p>
+        <div className="loading-container">
+          <div className="spinner" aria-hidden="true" />
+          <p>Loading admin dashboard...</p>
+        </div>
       </div>
     );
   }

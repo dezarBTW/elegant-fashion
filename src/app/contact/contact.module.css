@@ -1,187 +1,120 @@
 .container {
   min-height: 100vh;
-  background: var(--cream, #f5f2ed);
-  padding: 120px 2rem 4rem;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
+  background: var(--paper);
+  padding: 130px 2rem 5rem;
 }
 
 .header {
+  max-width: 640px;
+  margin: 0 auto 3.5rem;
   text-align: center;
-  margin-bottom: 3rem;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 1.25rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px dashed var(--gold-deep);
+  color: var(--gold-deep);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
 .header h1 {
-  font-size: 2.5rem;
-  color: var(--black, #1a1a1a);
-  margin-bottom: 0.5rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--ink);
+  margin-bottom: 0.75rem;
 }
 
 .header p {
-  font-size: 1.1rem;
-  color: var(--gray, #666666);
+  font-size: 1.05rem;
+  color: var(--stone);
 }
 
 .cardsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1px;
+  max-width: 1100px;
   margin: 0 auto;
+  background: var(--line);
+  border: 1px solid var(--line);
 }
 
 .card {
-  background: var(--white, #ffffff);
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  text-align: center;
-}
-
-.card1{
-  background: var(--white, #ffffff);
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s ease;
-  margin-top: 2rem;
-  text-align: center;
-}
-
-.card1 h3{
-  text-align: center;
-  font-size: 3rem;
+  background: var(--paper);
+  padding: 2.25rem 1.75rem;
+  text-align: left;
+  transition: background 0.3s ease;
 }
 
 .card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transform: translateY(-4px);
-}
-
-.card1:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  transform: translateY(-4px);
+  background: var(--white);
 }
 
 .cardIcon {
-  width: 60px;
-  height: 60px;
-  margin: 0 auto 1.5rem;
-  background: var(--black, #1e1808);
+  width: 40px;
+  height: 40px;
+  margin-bottom: 1.25rem;
+  border: 1px solid var(--line);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--black, #1a1a1a);
+  color: var(--gold-deep);
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.card:hover .cardIcon {
+  border-color: var(--gold-deep);
+  color: var(--ink);
 }
 
 .card h3 {
-  font-size: 1.25rem;
-  color: var(--black, #1a1a1a);
-  margin-bottom: 1rem;
+  font-size: 0.75rem;
   font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+  margin-bottom: 0.75rem;
 }
 
 .card p {
-  font-size: 1rem;
-  color: var(--gray, #666666);
+  font-size: 0.95rem;
+  color: var(--ink);
   line-height: 1.6;
-  margin: 0.25rem 0;
+  margin: 0.15rem 0;
 }
 
 .cardLink {
-  font-size: 1rem;
-  color: var(--gold, #c9a962);
-  text-decoration: none;
-  transition: color 0.3s ease;
+  display: inline-block;
+  font-size: 0.95rem;
+  color: var(--ink);
+  border-bottom: 1px solid var(--gold);
+  padding-bottom: 1px;
+  transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 .cardLink:hover {
-  color: var(--black, #1a1a1a);
+  color: var(--gold-deep);
+  border-color: var(--gold-deep);
 }
 
 .cardText {
-  font-size: 1rem;
-  color: var(--gray, #666666);
-  font-style: italic;
-}
-
-.curriculumCard {
-  grid-column: span 2;
-  text-align: left;
-}
-
-.programSection {
-  margin-bottom: 1.5rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.programSection:last-of-type {
-  border-bottom: none;
-}
-
-.programSection h4 {
-  font-size: 1.1rem;
-  color: var(--black, #1a1a1a);
-  margin-bottom: 0.75rem;
-  font-weight: 600;
-}
-
-.programList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.programList li {
   font-size: 0.95rem;
-  color: var(--gray, #666666);
-  line-height: 1.6;
-  padding-left: 1.25rem;
-  position: relative;
-  margin-bottom: 0.5rem;
-}
-
-.programList li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  color: var(--black, #1e1808);
-  font-weight: bold;
-}
-
-.benefitsSection {
-  margin-top: 1.5rem;
-}
-
-.benefitsSection h4 {
-  font-size: 1.1rem;
-  color: var(--black, #1e1808);
-  margin-bottom: 0.75rem;
-  font-weight: 600;
+  color: var(--stone-light);
 }
 
 @media (max-width: 768px) {
   .container {
-    padding: 100px 1rem 2rem;
-  }
-
-  .header h1 {
-    font-size: 2rem;
+    padding: 100px 1.25rem 3rem;
   }
 
   .cardsGrid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .card {
-    padding: 1.5rem;
-  }
-
-  .curriculumCard {
-    grid-column: span 1;
   }
 }

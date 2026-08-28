@@ -40,6 +40,13 @@ export function AuthProvider({ children }) {
             .single();
 
           if (!userError && userData && mounted) {
+            if (userData.is_active === false) {
+              await supabase.auth.signOut({ scope: "local" });
+              setUser(null);
+              setUserData(null);
+              setIsAdmin(false);
+              return;
+            }
             setUserData(userData);
             setIsAdmin(!!userData.is_admin);
           }
@@ -56,34 +63,45 @@ export function AuthProvider({ children }) {
       }
     };
 
+    const loadUserData = async (userId) => {
+      const { data: profile, error: userError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (mounted && !userError && profile) {
+        if (profile.is_active === false) {
+          await supabase.auth.signOut({ scope: "local" });
+          setUser(null);
+          setUserData(null);
+          setIsAdmin(false);
+          setLoading(false);
+          return;
+        }
+        setUserData(profile);
+        setIsAdmin(!!profile.is_admin);
+      }
+    };
+
     // Debounce auth check to prevent race conditions
     authCheckTimeout = setTimeout(checkAuth, 100);
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
 
-        if (event === 'SIGNED_IN' && session?.user) {
-          setUser(session.user);
-          
-          const { data: userData, error: userError } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
-
-          if (!userError && userData) {
-            setUserData(userData);
-            setIsAdmin(!!userData.is_admin);
-          }
-        } else if (event === 'SIGNED_OUT') {
-          setUser(null);
-          setUserData(null);
-          setIsAdmin(false);
-        }
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUser(session.user);
+        setLoading(false);
+        window.setTimeout(() => loadUserData(session.user.id), 0);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setUserData(null);
+        setIsAdmin(false);
+        setLoading(false);
       }
-    );
+    });
 
     return () => {
       mounted = false;
@@ -92,11 +110,20 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  const logout = () => {
+    // Clear local state immediately (synchronous, no network required)
+    setUser(null);
+    setUserData(null);
+    setIsAdmin(false);
+    setLoading(false);
+  };
+
   const value = {
     user,
     userData,
     loading,
     isAdmin,
+    logout,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

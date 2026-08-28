@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabaseClient";
 import {useState, useEffect} from "react";
 import { useRouter} from "next/navigation";
 import styles from "./signup.css";
+import { consumeRateLimit, formatRetryMessage, sanitizeEmail, sanitizeText } from "@/lib/sanitizeInput";
 
 export default function SignUp() {
     const [email, setEmail] = useState("");
@@ -16,7 +17,10 @@ export default function SignUp() {
     const router = useRouter();
 
     const createUser = async () => {
-        if (!email || !password || !username || !confirmPassword) {
+        const safeEmail = sanitizeEmail(email);
+        const safeUsername = sanitizeText(username);
+
+        if (!safeEmail || !password || !safeUsername || !confirmPassword) {
             setMessage("Please fill in all fields");
             return;
         }
@@ -31,15 +35,24 @@ export default function SignUp() {
             return;
         }
 
+        const rateLimit = consumeRateLimit(`signup:${safeEmail}`, 20, 60 * 60 * 1000);
+        if (!rateLimit.allowed) {
+            setMessage(formatRetryMessage(rateLimit.retryAfterMs));
+            return;
+        }
+
         setLoading(true);
         setMessage("");
 
         try {
             const { data, error } = await supabase.auth.signUp({
-                email,
+                email: safeEmail,
                 password,
                 options: {
-                    emailRedirectTo: `${window.location.origin}/sign-in`
+                    emailRedirectTo: `${window.location.origin}/sign-in`,
+                    data: {
+                        username: safeUsername,
+                    },
                 }
             });
 
@@ -48,18 +61,7 @@ export default function SignUp() {
                 setMessage(error.message || "Error creating account");
             } else {
                 setUser(data.user);
-                const { data: userData, error: userError } = await supabase.from("users").insert([{
-                    id: data.user.id,
-                    username: username,
-                    email: email
-                }]);
-
-                if (userError) {
-                    console.error(userError);
-                    setMessage("Error creating user profile");
-                } else {
-                    router.push("/sign-in");
-                }
+                router.push("/sign-in");
             }
         } catch (error) {
             console.error(error);
@@ -78,10 +80,10 @@ export default function SignUp() {
                     <div className="error-message">{message}</div>
                 )}
                 <div className="form-group">
-                    <input className="input" onChange={(e) => setUsername(e.target.value)} type="text" placeholder="Username(Cannot be changed after SignUp)" />
+                    <input className="input" onChange={(e) => setUsername(sanitizeText(e.target.value))} type="text" placeholder="Username(Cannot be changed after SignUp)" />
                 </div>
                 <div className="form-group">
-                    <input className="input" onChange={(e) => setEmail(e.target.value)} type="email" placeholder="Email" />
+                    <input className="input" onChange={(e) => setEmail(sanitizeEmail(e.target.value))} type="email" placeholder="Email" />
                 </div>
                 <div className="form-group">
                     <input className="input" onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" />

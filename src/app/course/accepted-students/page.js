@@ -46,8 +46,8 @@ export default function AcceptedStudents() {
   if (loading || loadingStudents) {
     return (
       <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Loading...</p>
+        <div className={styles.spinner} aria-hidden="true" />
+        <p>Loading accepted students...</p>
       </div>
     );
   }
