@@ -179,41 +179,27 @@ export default function Home() {
       </section>
       </main>
 
-      {/* Instagram Section */}
-      <section className={styles.section}>
-        <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>ORGANIZATIONS ELEGANT FASHION HAS WORKED WITH</h2>
-          <div className={styles.instagramGrid}>
-            <div className={styles.instagramItem}>
-              <div className={styles.organizationCard}></div>
-            </div>
-            <div className={styles.instagramItem}>
-              <div className={styles.organizationCard}></div>
-            </div>
-            <div className={styles.instagramItem}>
-              <div className={styles.organizationCard}></div>
-            </div>
-            <div className={styles.instagramItem}>
-              <div className={styles.organizationCard}></div>
-            </div>
-          </div>
-        </div>
-      </section>
+
 
       {/* Footer */}
       <footer className={styles.footer}>
         <div className={styles.container}>
           <div className={styles.footerContent}>
             <div className={styles.footerSection}>
-              <h3>ELEGANT FASHION</h3>
+              <h3>Elegant Style Fashion</h3>
               <p>Where Individuality is Mastered</p>
             </div>
             <div className={styles.footerSection}>
               <h4>Quick Links</h4>
               <Link href="/ready-to-wear">Ready-to-Wear</Link>
               <Link href="/contact">Bespoke</Link>
-              <Link href="/fashion-school">Fashion School</Link>
+              <Link href="/course">Fashion School</Link>
               <Link href="/about">About Us</Link>
+            </div>
+            <div className={styles.footerSection}>
+              <h4>Legal</h4>
+              <Link href="/terms">Terms of Service</Link>
+              <Link href="/privacy">Privacy Policy</Link>
             </div>
             <div className={styles.footerSection}>
               <h4>Contact</h4>
@@ -222,7 +208,7 @@ export default function Home() {
             </div>
           </div>
           <div className={styles.copyright}>
-            © 2026 Elegant Fashion. All Rights Reserved.
+            © 2026 Elegant Style Fashion. All rights reserved.
           </div>
         </div>
       </footer>

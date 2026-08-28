@@ -88,6 +88,8 @@ function Navbar() {
   const [openProfileMenu, setOpenProfileMenu] = useState(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+  const [isNavbarVisible, setIsNavbarVisible] = useState(true);
+  const lastScrollY = React.useRef(0);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -281,8 +283,28 @@ function Navbar() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Hide navbar on scroll down, show on scroll up
+  useEffect(() => {
+    const handleScroll = () => {
+      if (isMenuOpen || isPasswordModalOpen || isDeactivateModalOpen) return;
+
+      const currentScrollY = window.scrollY;
+      if (currentScrollY < 80) {
+        setIsNavbarVisible(true);
+      } else if (currentScrollY > lastScrollY.current) {
+        setIsNavbarVisible(false);
+      } else {
+        setIsNavbarVisible(true);
+      }
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isMenuOpen, isPasswordModalOpen, isDeactivateModalOpen]);
+
   return (
-    <nav className={styles.nav}>
+    <nav className={`${styles.nav} ${isNavbarVisible ? '' : styles.navHidden}`}>
       <div className={styles.navContent}>
         <div className={styles.logoSection}>
           <Link href="/" className={styles.logo} onClick={closeMenu}>

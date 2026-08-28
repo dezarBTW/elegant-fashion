@@ -79,29 +79,6 @@ export default function ReadyToWear() {
     );
   }
 
-  if (!isAdmin) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.unavailableContainer}>
-          <div className={styles.unavailableContent}>
-            <div className={styles.unavailableIcon}>
-              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#c9a962" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
-            </div>
-            <h2 className={styles.unavailableTitle}>Coming Soon</h2>
-            <p className={styles.unavailableMessage}>Ready to wear products are still unavailable at this moment.</p>
-            <Link href="/" className={styles.backButton}>
-              Return to Home
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
       <div className={styles.container}>
@@ -141,8 +118,9 @@ export default function ReadyToWear() {
       {/* Promotional Banner */}
       <section className={styles.promoBanner}>
         <div className={styles.promoContent}>
-          <h2 className={styles.promoTitle}>Summer Sale - Up to 30% Off</h2>
-          <p className={styles.promoSubtitle}>Limited time offer on selected items</p>
+          <p className={styles.promoEyebrow}>Ready-to-wear</p>
+          <h2 className={styles.promoTitle}>The Current Edit</h2>
+          <p className={styles.promoSubtitle}>Considered pieces, released in limited quantities.</p>
         </div>
       </section>
 
@@ -208,7 +186,7 @@ export default function ReadyToWear() {
                     setCurrentPage(1);
                   }}
                 />
-                ₦40,000 - ₦60,000
+                ₦40,000 – ₦60,000
               </label>
               <label className={styles.priceOption}>
                 <input
@@ -265,7 +243,7 @@ export default function ReadyToWear() {
                   <span className={styles.productCategory}>{product.category}</span>
                   <h3 className={styles.productName}>{product.name}</h3>
                   <div className={styles.productRating}>
-                    <span className={styles.stars}>{"★".repeat(Math.floor(product.rating))}</span>
+                    <span className={styles.stars}>{"★".repeat(Math.floor(product.rating || 0))}</span>
                     <span className={styles.reviews}>({product.reviews})</span>
                   </div>
                   <p className={styles.productPrice}>₦{product.price.toLocaleString()}</p>
@@ -314,7 +292,7 @@ export default function ReadyToWear() {
         <aside className={`${styles.cartSidebar} ${cart.length > 0 ? styles.open : ''}`}>
           <div className={styles.cartHeader}>
             <h3 className={styles.cartTitle}>Shopping Cart ({cart.length})</h3>
-            <button className={styles.closeCart} onClick={() => setCart([])}>×</button>
+            <button className={styles.closeCart} onClick={() => setCart([])} aria-label="Clear cart">×</button>
           </div>
           <div className={styles.cartItems}>
             {cart.map((item, index) => (
@@ -353,7 +331,7 @@ export default function ReadyToWear() {
       {/* Cart Toggle Button */}
       {cart.length > 0 && (
         <button className={styles.cartToggle} onClick={() => setCart([])}>
-          🛒 {cart.length}
+          Cart ({cart.length})
         </button>
       )}
     </div>

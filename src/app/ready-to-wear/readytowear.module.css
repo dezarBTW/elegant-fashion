@@ -170,14 +170,24 @@
 
 /* ====================== PROMOTIONAL BANNER ====================== */
 .promoBanner {
-  background: linear-gradient(135deg, var(--gold) 0%, var(--roseGold) 100%);
-  padding: 2rem;
+  background: var(--ink);
+  padding: 2.5rem 2rem;
   text-align: center;
 }
 
 .promoContent {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.promoEyebrow {
+  margin-bottom: 0.55rem;
+  color: var(--gold);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .promoTitle {

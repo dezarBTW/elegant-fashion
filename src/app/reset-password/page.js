@@ -103,20 +103,24 @@ export default function ResetPassword() {
         {message && <div className="success-message">{message}</div>}
         <form onSubmit={handleResetPassword} className="reset-form">
           <div className="form-group">
+            <label htmlFor="new-password">New password</label>
             <input
+              id="new-password"
               className="input"
               type="password"
-              placeholder="New Password"
+              autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
             />
           </div>
           <div className="form-group">
+            <label htmlFor="confirm-new-password">Confirm new password</label>
             <input
+              id="confirm-new-password"
               className="input"
               type="password"
-              placeholder="Confirm New Password"
+              autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={loading}

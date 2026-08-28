@@ -1,14 +1,33 @@
+.sign-up-page {
+    min-height: calc(100vh - 70px);
+    display: grid;
+    place-items: center;
+    padding: 3rem 1.25rem;
+    background: var(--paper);
+}
+
 .logpage {
     max-width: 430px;
     width: 100%;
-    margin: 110px auto 60px;
+    margin: 0;
     padding: 42px;
     background: var(--white);
     border: 1px solid var(--line);
     box-shadow: 0 18px 45px rgba(20, 18, 13, 0.08);
 }
 
-.logpage h2 {
+.eyebrow {
+    margin: 0 0 0.65rem;
+    color: var(--gold-deep);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.logpage h1 {
     text-align: center;
     color: var(--ink);
     font-family: var(--font-display);
@@ -26,6 +45,22 @@
 
 .form-group {
     margin-bottom: 20px;
+}
+
+.form-group label {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.form-group label span {
+    color: var(--stone);
+    font-size: 0.72rem;
+    font-weight: 400;
 }
 
 .input {
@@ -71,6 +106,18 @@
     cursor: not-allowed;
 }
 
+.sign-in-prompt {
+    margin: 1.25rem 0 0;
+    color: var(--stone);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.sign-in-prompt a {
+    color: var(--gold-deep);
+    font-weight: 600;
+}
+
 .error-message {
     background: var(--danger-bg);
     border: 1px solid var(--danger);
@@ -114,11 +161,10 @@
 @media (max-width: 768px) {
     .logpage {
         width: 90%;
-        margin: 90px auto 40px;
         padding: 30px;
     }
 
-    .logpage h2 {
+    .logpage h1 {
         font-size: 1.6rem;
     }
 
@@ -137,10 +183,9 @@
     .logpage {
         width: 92%;
         padding: 24px;
-        margin-top: 80px;
     }
 
-    .logpage h2 {
+    .logpage h1 {
         font-size: 1.4rem;
     }
 

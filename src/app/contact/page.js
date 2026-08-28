@@ -6,6 +6,7 @@ export default function Contact() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
+        <span className={styles.eyebrow}>Visit or connect</span>
         <h1>Contact us</h1>
         <p>Reach the workroom, the school, or the shop floor directly.</p>
       </div>

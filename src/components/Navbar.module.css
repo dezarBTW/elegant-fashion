@@ -1,6 +1,6 @@
 /* ====================== NAVIGATION ====================== */
 .nav {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
@@ -10,7 +10,12 @@
   z-index: 1000;
   padding: 0;
   border-bottom: 1px solid var(--line-dark);
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, visibility 0.3s ease;
+}
+
+.navHidden {
+  transform: translateY(-100%);
+  visibility: hidden;
 }
 
 .navContent {

@@ -72,30 +72,35 @@ export default function SignUp() {
     };
 
     return (
-        <div>
-            <div className="logpage">
-                <h2>Create an Account</h2>
-                <p className="subtitle">Sign up to Elegant Fashion</p>
-                {message && (
-                    <div className="error-message">{message}</div>
-                )}
-                <div className="form-group">
-                    <input className="input" onChange={(e) => setUsername(sanitizeText(e.target.value))} type="text" placeholder="Username(Cannot be changed after SignUp)" />
-                </div>
-                <div className="form-group">
-                    <input className="input" onChange={(e) => setEmail(sanitizeEmail(e.target.value))} type="email" placeholder="Email" />
-                </div>
-                <div className="form-group">
-                    <input className="input" onChange={(e) => setPassword(e.target.value)} type="password" placeholder="Password" />
-                </div>
-                <div className="form-group">
-                    <input className="input" onChange={(e) => setConfirmPassword(e.target.value)} type="password" placeholder="Confirm Password" />
-                </div>
-                <button className="sign-up-button" onClick={createUser} disabled={loading}>
-                    {loading ? "Creating Account..." : "Sign Up"}
-                </button>
-            </div>
-
-        </div>
+        <main className="sign-up-page">
+            <section className="logpage" aria-labelledby="sign-up-heading">
+                <p className="eyebrow">Create your account</p>
+                <h1 id="sign-up-heading">Join Elegant Fashion</h1>
+                <p className="subtitle">Save your details and begin your fashion journey.</p>
+                {message && <div className="error-message" role="alert">{message}</div>}
+                <form onSubmit={(event) => { event.preventDefault(); createUser(); }}>
+                    <div className="form-group">
+                        <label htmlFor="username">Username <span>Cannot be changed later</span></label>
+                        <input id="username" className="input" value={username} onChange={(e) => setUsername(sanitizeText(e.target.value))} type="text" autoComplete="username" required />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="email">Email address</label>
+                        <input id="email" className="input" value={email} onChange={(e) => setEmail(sanitizeEmail(e.target.value))} type="email" autoComplete="email" required />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="password">Password</label>
+                        <input id="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} type="password" autoComplete="new-password" minLength="6" required />
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="confirm-password">Confirm password</label>
+                        <input id="confirm-password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" autoComplete="new-password" minLength="6" required />
+                    </div>
+                    <button className="sign-up-button" type="submit" disabled={loading}>
+                        {loading ? "Creating Account..." : "Create account"}
+                    </button>
+                </form>
+                <p className="sign-in-prompt">Already have an account? <a href="/sign-in">Sign in</a></p>
+            </section>
+        </main>
     )
 }
