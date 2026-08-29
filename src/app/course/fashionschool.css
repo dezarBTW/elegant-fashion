@@ -258,6 +258,23 @@
   background: var(--ink-soft);
 }
 
+.submit-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.submit-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: var(--paper);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
 @media (max-width: 600px) {
   .form-container {
     margin: 10px;
@@ -405,6 +422,23 @@
   object-fit: cover;
   border-radius: var(--radius);
   border: 2px solid var(--line);
+}
+
+/* Upload progress bar */
+.upload-progress-container {
+  margin-top: 1rem;
+  width: 100%;
+  background-color: var(--line);
+  border-radius: var(--radius);
+  height: 8px;
+  overflow: hidden;
+}
+
+.upload-progress-bar {
+  height: 100%;
+  background-color: var(--gold);
+  width: 0%;
+  transition: width 0.3s ease;
 }
 
 /* Success modal */

@@ -52,6 +52,7 @@ export default function Course() {
   const [submitting, setSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [registrationId, setRegistrationId] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -180,6 +181,22 @@ export default function Course() {
     try {
       const filePath = `${user.id}/passport.${validation.extension}`;
 
+      // Reset and start progress simulation
+      setUploadProgress(0);
+      
+      // Simulate progress increments - start immediately visible
+      setUploadProgress(1); // Ensure bar is visible immediately
+      
+      // Simulate progress increments
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          // Slow down progress as it gets higher to simulate realistic upload
+          const increment = prev < 30 ? 10 : prev < 70 ? 5 : prev < 90 ? 2 : 1;
+          const newProgress = Math.min(prev + increment, 95); // Cap at 95% until upload completes
+          return newProgress;
+        });
+      }, 100); // Update every 100ms for smoother animation
+
       const { error: uploadError } = await supabase.storage
         .from('student-passports')
         .upload(filePath, file, {
@@ -188,11 +205,18 @@ export default function Course() {
           upsert: true,
         });
 
+      // Clear progress interval
+      clearInterval(progressInterval);
+      
       if (uploadError) {
         console.error("Upload error:", uploadError);
         alert(`Error uploading passport: ${uploadError.message || "Please try again."}`);
+        setUploadProgress(0);
         return;
       }
+
+      // Complete progress
+      setUploadProgress(100);
 
       const { data: { publicUrl } } = supabase.storage
         .from('student-passports')
@@ -205,10 +229,16 @@ export default function Course() {
       setTouchedFields((prev) => ({ ...prev, passport_photo: true }));
       setFieldErrors((prev) => ({ ...prev, passport_photo: "" }));
 
+      // Brief pause at 100% then reset
+      setTimeout(() => {
+        setUploadProgress(0);
+      }, 1500);
+
       alert("Passport photo uploaded successfully!");
     } catch (error) {
       console.error("Passport upload error:", error);
       alert(`Error uploading passport: ${error?.message || "Please try again."}`);
+      setUploadProgress(0);
     }
   };
 
@@ -282,6 +312,7 @@ export default function Course() {
   const completedFields = requiredFields.filter(
     (name) => !validateField(name, formData[name])
   ).length;
+  const isFormValid = completedFields === requiredFields.length;
   const progress = Math.round((completedFields / requiredFields.length) * 100);
 
   if (loading || checkingRegistration) {
@@ -657,6 +688,16 @@ export default function Course() {
               onChange={handlePassportUpload}
               required
             />
+            {uploadProgress > 0 && uploadProgress < 100 && (
+              <div className="upload-progress-container">
+                <div className="upload-progress-bar" style={{ width: `${uploadProgress}%` }}></div>
+              </div>
+            )}
+            {uploadProgress === 100 && (
+              <div className="upload-progress-container">
+                <div className="upload-progress-bar" style={{ width: '100%' }}></div>
+              </div>
+            )}
             {formData.passport_photo && (
               <div className="passport-preview">
                 <img
@@ -680,8 +721,15 @@ export default function Course() {
             {touchedFields.agreed && <FieldError message={fieldErrors.agreed} />}
           </div>
 
-          <button type="submit" className="submit-btn" disabled={submitting}>
-            {submitting ? "Submitting..." : "Submit Application"}
+          <button type="submit" className="submit-btn" disabled={submitting || !isFormValid}>
+            {submitting ? (
+              <>
+                <span className="submit-spinner" aria-hidden="true" />
+                Submitting...
+              </>
+            ) : (
+              "Submit Application"
+            )}
           </button>
         </form>
       </div>

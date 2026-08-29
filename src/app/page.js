@@ -178,7 +178,7 @@ export default function Home() {
               <div className={styles.testimonialCard}>
                 <p>"I love stylish, well-fitted clothing but don't have time to design or tailor my own. Elegant Fashion's ready-to-wear collections allow me to walk in, find beautiful outfits that fit perfectly, and suit my lifestyle. The variety, quality, and convenience are outstanding."</p>
                 <div className={styles.testimonialAuthor}>
-                  <strong>Tare Karen</strong>
+                  <strong>Tejiri Benita</strong>
                   <span>Civil Servant</span>
                 </div>
               </div>

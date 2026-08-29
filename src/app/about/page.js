@@ -37,7 +37,7 @@ const values = [
   },
   {
     title: "Skills that transfer",
-    text: "Our school trains for real studio work \u2014 the same techniques used on our own floor.",
+    text: "Our school trains for real studio work \u2014 the same techniques used in our own organization.",
   },
   {
     title: "Rooted in Bayelsa",
@@ -55,7 +55,7 @@ export default function About() {
           Elegant Fashion is a Bayelsa-based house that was founded in 2018 by our CEO Mrs Esther Patrick working across three
           disciplines that share one workroom: ready-to-wear, bespoke
           tailoring, and a fashion school that trains the next generation of
-          designers on the same techniques we use on our own floor.
+          designers on the same techniques we use in our own organization.
         </p>
       </header>
 
