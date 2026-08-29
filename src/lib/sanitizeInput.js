@@ -12,6 +12,11 @@ export function sanitizeEmail(value) {
 }
 
 export function validateImageFile(file, maxSizeBytes = 5 * 1024 * 1024) {
+  // IMPORTANT: the extensions here MUST stay "jpg" / "png" (not "jpeg").
+  // The student-passports storage RLS policies in rls_policies.sql only
+  // allow filenames matching ^passport\.(jpg|png)$ — if you add a MIME type
+  // or change an extension here without updating that regex too, uploads
+  // will start failing with "new row violates row-level security policy".
   const allowedTypes = {
     "image/jpeg": "jpg",
     "image/png": "png",

@@ -248,7 +248,10 @@ USING (
 );
 
 -- Student Passports Bucket
--- Allow users to upload only to their own folder
+-- Allow users to upload only to their own folder.
+-- NOTE: metadata->>'mimetype' / metadata->>'size' are NOT reliable on insert,
+-- so type/size are enforced client-side (validateImageFile). Security here is
+-- limited to: own folder + passport.(jpg|png) filename.
 DROP POLICY IF EXISTS "Users can upload own passport" ON storage.objects;
 CREATE POLICY "Users can upload own passport"
 ON storage.objects
@@ -256,9 +259,26 @@ FOR INSERT
 WITH CHECK (
   bucket_id = 'student-passports'
   AND (storage.foldername(name))[1] = auth.uid()::text
-  AND (storage.filename(name)) ~ '^passport\.(jpg|png)$'
-  AND (metadata->>'mimetype') IN ('image/jpeg', 'image/png')
-  AND COALESCE((metadata->>'size')::bigint, 0) <= 5242880
+  AND (storage.filename(name)) ~* '^passport\.(jpg|png)$'
+);
+
+-- Allow users to update (re-upload) their own passport.
+-- NOTE: required because the client calls storage.upload() with upsert: true,
+-- which performs an UPDATE on storage.objects when a file already exists at
+-- that path. Without this policy, re-uploads fail with "new row violates
+-- row-level security policy".
+DROP POLICY IF EXISTS "Users can update own passport" ON storage.objects;
+CREATE POLICY "Users can update own passport"
+ON storage.objects
+FOR UPDATE
+USING (
+  bucket_id = 'student-passports'
+  AND (storage.foldername(name))[1] = auth.uid()::text
+)
+WITH CHECK (
+  bucket_id = 'student-passports'
+  AND (storage.foldername(name))[1] = auth.uid()::text
+  AND (storage.filename(name)) ~* '^passport\.(jpg|png)$'
 );
 
 -- Allow users to view their own passport

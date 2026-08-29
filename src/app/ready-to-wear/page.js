@@ -5,10 +5,32 @@ import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
+import { getCachedValue, setCachedValue } from "@/lib/browserCache";
+
+const PRODUCTS_CACHE_KEY = "products:v1";
+const PRODUCTS_CACHE_TTL_MS = 10 * 60 * 1000;
+const CART_CACHE_KEY = "shopping-cart:v1";
+const CART_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+function ProductSkeleton() {
+  return (
+    <div className={styles.skeletonCard} aria-hidden="true">
+      <div className={`${styles.skeleton} ${styles.skeletonImage}`} />
+      <div className={styles.skeletonInfo}>
+        <div className={`${styles.skeleton} ${styles.skeletonCategory}`} />
+        <div className={`${styles.skeleton} ${styles.skeletonTitle}`} />
+        <div className={`${styles.skeleton} ${styles.skeletonPrice}`} />
+        <div className={`${styles.skeleton} ${styles.skeletonButton}`} />
+      </div>
+    </div>
+  );
+}
 
 export default function ReadyToWear() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const [cart, setCart] = useState([]);
+  const [cartLoaded, setCartLoaded] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -22,19 +44,51 @@ export default function ReadyToWear() {
   // was previously gated behind `isAdmin`, which hid all products from
   // ordinary customers.
   useEffect(() => {
-    fetchProducts();
+    let isMounted = true;
+
+    const loadProducts = async () => {
+      const cachedProducts = getCachedValue(PRODUCTS_CACHE_KEY);
+      if (cachedProducts) {
+        if (isMounted) {
+          setProducts(cachedProducts);
+          setLoading(false);
+        }
+        return;
+      }
+
+      const { data, error } = await supabase.from("products").select("*");
+      if (!isMounted) return;
+
+      if (error) {
+        console.error("Error fetching products:", error);
+      } else {
+        const productList = data || [];
+        setProducts(productList);
+        setCachedValue(PRODUCTS_CACHE_KEY, productList, PRODUCTS_CACHE_TTL_MS);
+      }
+      setLoading(false);
+    };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const fetchProducts = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from("products").select("*");
-    if (error) {
-      console.error("Error fetching products:", error);
-    } else {
-      setProducts(data || []);
-    }
-    setLoading(false);
-  };
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const savedCart = getCachedValue(CART_CACHE_KEY);
+      if (Array.isArray(savedCart)) setCart(savedCart);
+      setCartLoaded(true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    if (cartLoaded) setCachedValue(CART_CACHE_KEY, cart, CART_CACHE_TTL_MS);
+  }, [cart, cartLoaded]);
 
   const categories = ["All", "Dresses", "Skirts", "Trousers", "Tops", "Jackets", "Accessories"];
 
@@ -54,11 +108,12 @@ export default function ReadyToWear() {
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   const addToCart = (product) => {
-    setCart([...cart, product]);
+    setCart((currentCart) => [...currentCart, product]);
+    setIsCartOpen(true);
   };
 
   const removeFromCart = (index) => {
-    setCart(cart.filter((_, i) => i !== index));
+    setCart((currentCart) => currentCart.filter((_, i) => i !== index));
   };
 
   const cartTotal = cart.reduce((total, item) => total + item.price, 0);
@@ -82,9 +137,19 @@ export default function ReadyToWear() {
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.spinner} aria-hidden="true" />
-          <p>Loading products...</p>
+        <div className={styles.skeletonPage} aria-label="Loading products" aria-busy="true">
+          <div className={`${styles.skeleton} ${styles.skeletonBanner}`} />
+          <div className={styles.skeletonLayout}>
+            <div className={styles.skeletonSidebar}>
+              <div className={`${styles.skeleton} ${styles.skeletonSidebarTitle}`} />
+              <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
+              <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
+              <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
+            </div>
+            <div className={styles.skeletonGrid}>
+              {Array.from({ length: 6 }, (_, index) => <ProductSkeleton key={index} />)}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -289,10 +354,10 @@ export default function ReadyToWear() {
         </main>
 
         {/* Shopping Cart Sidebar */}
-        <aside className={`${styles.cartSidebar} ${cart.length > 0 ? styles.open : ''}`}>
+        <aside className={`${styles.cartSidebar} ${isCartOpen && cart.length > 0 ? styles.open : ''}`}>
           <div className={styles.cartHeader}>
             <h3 className={styles.cartTitle}>Shopping Cart ({cart.length})</h3>
-            <button className={styles.closeCart} onClick={() => setCart([])} aria-label="Clear cart">×</button>
+            <button className={styles.closeCart} onClick={() => setIsCartOpen(false)} aria-label="Close cart">×</button>
           </div>
           <div className={styles.cartItems}>
             {cart.map((item, index) => (
@@ -330,7 +395,7 @@ export default function ReadyToWear() {
 
       {/* Cart Toggle Button */}
       {cart.length > 0 && (
-        <button className={styles.cartToggle} onClick={() => setCart([])}>
+        <button className={styles.cartToggle} onClick={() => setIsCartOpen((open) => !open)}>
           Cart ({cart.length})
         </button>
       )}

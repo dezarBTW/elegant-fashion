@@ -88,6 +88,7 @@ function Navbar() {
   const [openProfileMenu, setOpenProfileMenu] = useState(null);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
+  const [deactivatePassword, setDeactivatePassword] = useState('');
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const lastScrollY = React.useRef(0);
   const [currentPassword, setCurrentPassword] = useState('');
@@ -192,8 +193,24 @@ function Navbar() {
       return;
     }
 
+    if (!deactivatePassword) {
+      setAccountError('Enter your password to confirm deactivation.');
+      return;
+    }
+
     setIsAccountActionLoading(true);
     setAccountError('');
+
+    const { error: reauthenticationError } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: deactivatePassword,
+    });
+
+    if (reauthenticationError) {
+      setIsAccountActionLoading(false);
+      setAccountError('Your password is incorrect.');
+      return;
+    }
 
     const { error } = await supabase
       .from('users')
@@ -209,6 +226,7 @@ function Navbar() {
     await supabase.auth.signOut({ scope: 'local' });
     logout();
     setIsAccountActionLoading(false);
+    setIsDeactivateModalOpen(false);
     router.replace('/sign-in?deactivated=true');
     router.refresh();
   };
@@ -246,6 +264,7 @@ function Navbar() {
           <button type="button" role="menuitem" className={styles.deactivateAction} onClick={() => {
             setOpenProfileMenu(null);
             setAccountError('');
+            setDeactivatePassword('');
             setIsDeactivateModalOpen(true);
           }}>
             Deactivate account
@@ -346,7 +365,7 @@ function Navbar() {
             </Link>
             <Link href="/course" onClick={closeMenu}>
               <SchoolIcon />
-              FASHION SCHOOL
+              FASHION ACADEMY
             </Link>
             <Link href="/about" onClick={closeMenu}>
               <AboutIcon />
@@ -416,10 +435,22 @@ function Navbar() {
             <h2 id="deactivate-account-title">Deactivate account?</h2>
             <p>Your account and its data will stay in the database, but you will be signed out and unable to sign in until an administrator reactivates it.</p>
             {accountError && <p className={styles.accountError} role="alert">{accountError}</p>}
-            <div className={styles.accountModalActions}>
-              <button type="button" className={styles.modalSecondaryButton} onClick={() => setIsDeactivateModalOpen(false)}>Keep account</button>
-              <button type="button" className={styles.deactivateButton} onClick={handleDeactivateAccount} disabled={isAccountActionLoading}>{isAccountActionLoading ? 'Deactivating...' : 'Deactivate account'}</button>
-            </div>
+            <form onSubmit={(event) => { event.preventDefault(); handleDeactivateAccount(); }}>
+              <label htmlFor="deactivate-password">Confirm your password</label>
+              <input
+                id="deactivate-password"
+                type="password"
+                autoComplete="current-password"
+                value={deactivatePassword}
+                onChange={(event) => setDeactivatePassword(event.target.value)}
+                disabled={isAccountActionLoading}
+                required
+              />
+              <div className={styles.accountModalActions}>
+                <button type="button" className={styles.modalSecondaryButton} onClick={() => setIsDeactivateModalOpen(false)}>Keep account</button>
+                <button type="submit" className={styles.deactivateButton} disabled={isAccountActionLoading}>{isAccountActionLoading ? 'Deactivating...' : 'Deactivate account'}</button>
+              </div>
+            </form>
           </section>
         </div>
       )}

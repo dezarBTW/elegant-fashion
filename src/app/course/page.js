@@ -6,6 +6,35 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabaseClient";
 import { consumeRateLimit, formatRetryMessage, sanitizeEmail, sanitizeText, validateImageFile } from "@/lib/sanitizeInput";
+import { getCachedValue, invalidateCachedValue, setCachedValue } from "@/lib/browserCache";
+import BackToTopButton from "@/components/BackToTopButton";
+
+const REGISTRATION_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
+const requiredFields = [
+  "surname", "first_name", "gender", "date_of_birth", "age", "nationality",
+  "marital_status", "state_of_origin", "address", "telephone", "email",
+  "chosen_programme", "passport_photo", "agreed",
+];
+
+const initialFormData = {
+  surname: "", first_name: "", middle_name: "", gender: "", date_of_birth: "",
+  age: "", nationality: "", marital_status: "", state_of_origin: "", address: "",
+  telephone: "", email: "", chosen_programme: "", passport_photo: "", agreed: false,
+};
+
+function validateField(name, value) {
+  if (name === "agreed") return value ? "" : "You must agree before submitting.";
+  if (name === "passport_photo") return value ? "" : "Please upload your passport photograph.";
+  if (!String(value || "").trim()) return "This field is required.";
+  if (name === "email" && !/^\S+@\S+\.\S+$/.test(value)) return "Enter a valid email address.";
+  if (name === "age" && (Number(value) < 1 || Number(value) > 100)) return "Enter an age between 1 and 100.";
+  if (name === "telephone" && String(value).replace(/\D/g, "").length < 7) return "Enter a valid telephone number.";
+  return "";
+}
+
+function FieldError({ message }) {
+  return message ? <p className="field-error" role="alert">{message}</p> : null;
+}
 
 export default function Course() {
   const { user, loading, isAdmin } = useAuth();
@@ -15,22 +44,10 @@ export default function Course() {
   const [acceptingStudent, setAcceptingStudent] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const [formData, setFormData] = useState({
-    surname: "",
-    first_name: "",
-    middle_name: "",
-    gender: "",
-    date_of_birth: "",
-    age: "",
-    nationality: "",
-    marital_status: "",
-    state_of_origin: "",
-    address: "",
-    telephone: "",
-    email: "",
-    chosen_programme: "",
-    passport_photo: "",
-  });
+  const [formData, setFormData] = useState(initialFormData);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [touchedFields, setTouchedFields] = useState({});
+  const [draftLoaded, setDraftLoaded] = useState(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -46,6 +63,19 @@ export default function Course() {
       setCheckingRegistration(false);
     }
   }, [user, loading, isAdmin]);
+
+  useEffect(() => {
+    if (!user) return;
+    const draft = getCachedValue(`registration-draft:${user.id}`);
+    if (draft) setFormData((current) => ({ ...current, ...draft }));
+    setDraftLoaded(true);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || !draftLoaded) return;
+    const { passport_photo, ...draft } = formData;
+    setCachedValue(`registration-draft:${user.id}`, draft, REGISTRATION_DRAFT_TTL_MS);
+  }, [formData, user, draftLoaded]);
 
   const fetchPendingStudents = async () => {
     try {
@@ -119,6 +149,21 @@ export default function Course() {
       ...prev,
       [name]: safeValue,
     }));
+    setTouchedFields((prev) => ({ ...prev, [name]: true }));
+    setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, safeValue) }));
+  };
+
+  const handleFieldBlur = (e) => {
+    const { name, value } = e.target;
+    setTouchedFields((prev) => ({ ...prev, [name]: true }));
+    setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, value) }));
+  };
+
+  const handleAgreementChange = (e) => {
+    const agreed = e.target.checked;
+    setFormData((prev) => ({ ...prev, agreed }));
+    setTouchedFields((prev) => ({ ...prev, agreed: true }));
+    setFieldErrors((prev) => ({ ...prev, agreed: validateField("agreed", agreed) }));
   };
 
   const handlePassportUpload = async (e) => {
@@ -145,7 +190,7 @@ export default function Course() {
 
       if (uploadError) {
         console.error("Upload error:", uploadError);
-        alert("Error uploading passport. Please try again.");
+        alert(`Error uploading passport: ${uploadError.message || "Please try again."}`);
         return;
       }
 
@@ -157,19 +202,25 @@ export default function Course() {
         ...prev,
         passport_photo: publicUrl,
       }));
+      setTouchedFields((prev) => ({ ...prev, passport_photo: true }));
+      setFieldErrors((prev) => ({ ...prev, passport_photo: "" }));
 
       alert("Passport photo uploaded successfully!");
     } catch (error) {
       console.error("Passport upload error:", error);
-      alert("Error uploading passport. Please try again.");
+      alert(`Error uploading passport: ${error?.message || "Please try again."}`);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.passport_photo) {
-      alert("Please upload your passport photograph before submitting.");
+    const errors = Object.fromEntries(
+      requiredFields.map((name) => [name, validateField(name, formData[name])]).filter(([, error]) => error)
+    );
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      setTouchedFields(Object.fromEntries(requiredFields.map((name) => [name, true])));
       return;
     }
 
@@ -209,6 +260,7 @@ export default function Course() {
         console.error("Submission error:", error);
         alert("Error submitting application. Please try again.");
       } else {
+        invalidateCachedValue(`registration-draft:${user.id}`);
         setRegistrationId(data[0].id);
         setShowSuccessModal(true);
       }
@@ -226,6 +278,11 @@ export default function Course() {
       router.push(`/course/registration/${registrationId}`);
     }
   };
+
+  const completedFields = requiredFields.filter(
+    (name) => !validateField(name, formData[name])
+  ).length;
+  const progress = Math.round((completedFields / requiredFields.length) * 100);
 
   if (loading || checkingRegistration) {
     return (
@@ -308,12 +365,30 @@ export default function Course() {
       ) : (
         <>
           <h1 className="header">STUDENT REGISTRATION FORM</h1>
+          <Link href="/curriculum" className="curriculum-card">
+            <h2>View Our Curriculum</h2>
+            <p>
+              Haven&apos;t viewed our curriculum yet? Click here to get acquainted
+              with the programme, what you&apos;ll learn, and your options before
+              registering.
+            </p>
+            <span aria-hidden="true">Explore the curriculum &rarr;</span>
+          </Link>
           <div className="form-container">
             <div className="form-header">
               <h1>Personal Information</h1>
+              <div className="registration-progress" aria-label={`${progress}% of registration completed`}>
+                <div className="registration-progress-copy">
+                  <span>Registration progress</span>
+                  <strong>{completedFields} of {requiredFields.length} completed</strong>
+                </div>
+                <div className="registration-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}>
+                  <span style={{ width: `${progress}%` }} />
+                </div>
+              </div>
             </div>
 
-        <form onSubmit={handleSubmit} className="form-body">
+        <form onSubmit={handleSubmit} className="form-body" noValidate>
           {/* Surname */}
           <div className="question">
             <div className="question-number">1. Surname/Last Name <span className="required">*</span></div>
@@ -325,8 +400,10 @@ export default function Course() {
               placeholder="Enter your answer"
               value={formData.surname}
               onChange={handleInputChange}
+              onBlur={handleFieldBlur}
               required
             />
+            {touchedFields.surname && <FieldError message={fieldErrors.surname} />}
           </div>
 
           {/* First Name */}
@@ -340,8 +417,10 @@ export default function Course() {
               placeholder="Enter your answer"
               value={formData.first_name}
               onChange={handleInputChange}
+              onBlur={handleFieldBlur}
               required
             />
+            {touchedFields.first_name && <FieldError message={fieldErrors.first_name} />}
           </div>
 
           {/* Middle Name */}
@@ -355,6 +434,7 @@ export default function Course() {
               placeholder="Enter your answer"
               value={formData.middle_name}
               onChange={handleInputChange}
+              onBlur={handleFieldBlur}
             />
           </div>
 
@@ -369,6 +449,7 @@ export default function Course() {
                   value="Male"
                   checked={formData.gender === "Male"}
                   onChange={handleInputChange}
+                  onBlur={handleFieldBlur}
                   required
                 />
                 Male
@@ -380,11 +461,13 @@ export default function Course() {
                   value="Female"
                   checked={formData.gender === "Female"}
                   onChange={handleInputChange}
+                  onBlur={handleFieldBlur}
                   required
                 />
                 Female
               </label>
             </div>
+            {touchedFields.gender && <FieldError message={fieldErrors.gender} />}
           </div>
 
           {/* Date of Birth */}
@@ -396,8 +479,10 @@ export default function Course() {
               className="input-field"
               value={formData.date_of_birth}
               onChange={handleInputChange}
+              onBlur={handleFieldBlur}
               required
             />
+            {touchedFields.date_of_birth && <FieldError message={fieldErrors.date_of_birth} />}
           </div>
 
           {/* Age */}
@@ -412,8 +497,10 @@ export default function Course() {
               max="100"
               value={formData.age}
               onChange={handleInputChange}
+              onBlur={handleFieldBlur}
               required
             />
+            {touchedFields.age && <FieldError message={fieldErrors.age} />}
           </div>
 
           {/* Nationality */}
@@ -426,8 +513,10 @@ export default function Course() {
               placeholder="Enter your nationality"
               value={formData.nationality}
               onChange={handleInputChange}
+              onBlur={handleFieldBlur}
               required
             />
+            {touchedFields.nationality && <FieldError message={fieldErrors.nationality} />}
           </div>
 
           {/* Marital Status */}
@@ -441,6 +530,7 @@ export default function Course() {
                   value="Single"
                   checked={formData.marital_status === "Single"}
                   onChange={handleInputChange}
+                  onBlur={handleFieldBlur}
                   required
                 />
                 Single
@@ -452,11 +542,13 @@ export default function Course() {
                   value="Married"
                   checked={formData.marital_status === "Married"}
                   onChange={handleInputChange}
+                  onBlur={handleFieldBlur}
                   required
                 />
                 Married
               </label>
             </div>
+            {touchedFields.marital_status && <FieldError message={fieldErrors.marital_status} />}
           </div>
 
           {/* State of Origin */}
@@ -469,8 +561,10 @@ export default function Course() {
               placeholder="Enter your state of origin"
               value={formData.state_of_origin}
               onChange={handleInputChange}
+              onBlur={handleFieldBlur}
               required
             />
+            {touchedFields.state_of_origin && <FieldError message={fieldErrors.state_of_origin} />}
           </div>
 
           {/* Address */}
@@ -482,8 +576,10 @@ export default function Course() {
               placeholder="Enter your full address"
               value={formData.address}
               onChange={handleInputChange}
+              onBlur={handleFieldBlur}
               required
             />
+            {touchedFields.address && <FieldError message={fieldErrors.address} />}
           </div>
 
           {/* Telephone */}
@@ -496,8 +592,10 @@ export default function Course() {
               placeholder="Enter your phone number"
               value={formData.telephone}
               onChange={handleInputChange}
+              onBlur={handleFieldBlur}
               required
             />
+            {touchedFields.telephone && <FieldError message={fieldErrors.telephone} />}
           </div>
 
           {/* Email */}
@@ -510,8 +608,10 @@ export default function Course() {
               placeholder="Enter your email address"
               value={formData.email}
               onChange={handleInputChange}
+              onBlur={handleFieldBlur}
               required
             />
+            {touchedFields.email && <FieldError message={fieldErrors.email} />}
           </div>
 
           {/* Chosen Programme */}
@@ -525,6 +625,7 @@ export default function Course() {
                   value="3 Months Programme"
                   checked={formData.chosen_programme === "3 Months Programme"}
                   onChange={handleInputChange}
+                  onBlur={handleFieldBlur}
                   required
                 />
                 3 Months Programme <span style={{color: 'black'}}>(₦150,000)</span>
@@ -536,11 +637,13 @@ export default function Course() {
                   value="6 Months Programme"
                   checked={formData.chosen_programme === "6 Months Programme"}
                   onChange={handleInputChange}
+                  onBlur={handleFieldBlur}
                   required
                 />
                 6 Months Programme <span style={{color: 'black'}}>(₦250,000)</span>
               </label>
             </div>
+            {touchedFields.chosen_programme && <FieldError message={fieldErrors.chosen_programme} />}
           </div>
 
           {/* Passport Photograph */}
@@ -563,6 +666,7 @@ export default function Course() {
                 />
               </div>
             )}
+            {touchedFields.passport_photo && <FieldError message={fieldErrors.passport_photo} />}
           </div>
 
           <div className="declaration">
@@ -570,9 +674,10 @@ export default function Course() {
               I hereby apply for training at <strong>ELEGANTSTYLE FASHION AND DESIGN</strong> and have completed this form to the best of my knowledge.
             </div>
             <label className="agree-checkbox">
-              <input type="checkbox" id="agree" required />
+              <input type="checkbox" id="agree" checked={formData.agreed} onChange={handleAgreementChange} required />
               <span>I agree</span>
             </label>
+            {touchedFields.agreed && <FieldError message={fieldErrors.agreed} />}
           </div>
 
           <button type="submit" className="submit-btn" disabled={submitting}>
@@ -601,6 +706,7 @@ export default function Course() {
           </div>
         </div>
       )}
+      <BackToTopButton />
     </div>
   );
 }

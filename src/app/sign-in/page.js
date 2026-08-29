@@ -12,6 +12,7 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [isDeactivated, setIsDeactivated] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (event) => {
@@ -50,6 +51,20 @@ export default function SignIn() {
         return;
       }
 
+      // Verify the account is still active before completing sign-in.
+      const { data: profile, error: profileError } = await supabase
+        .from("users")
+        .select("is_active")
+        .eq("id", signInData.user.id)
+        .single();
+
+      if (!profileError && profile && profile.is_active === false) {
+        await supabase.auth.signOut({ scope: "local" });
+        setLoading(false);
+        setIsDeactivated(true);
+        return;
+      }
+
       router.replace("/");
       router.refresh();
     } catch (error) {
@@ -68,11 +83,31 @@ export default function SignIn() {
     );
   }
 
-  return (
+    return (
     <main className="sign-in-page">
+      {isDeactivated && (
+        <div className="deactivated-overlay" role="presentation">
+          <section className="deactivated-modal" role="alertdialog" aria-modal="true" aria-labelledby="deactivated-title">
+            <h2 id="deactivated-title">Account deactivated</h2>
+            <p>
+              Your account is no longer active and you cannot access it. Contact
+              Elegant Style to resolve this issue.
+            </p>
+            <button
+              type="button"
+              className="deactivated-button"
+              onClick={() => setIsDeactivated(false)}
+            >
+              Okay
+            </button>
+          </section>
+        </div>
+      )}
+
       <section className="sign-in-panel" aria-labelledby="sign-in-heading">
         <p className="eyebrow">Welcome back</p>
         <h1 id="sign-in-heading">Sign In</h1>
+
 
         {message && (
           <div className="error-message" role="alert">

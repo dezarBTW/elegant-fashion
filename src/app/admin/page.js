@@ -6,6 +6,9 @@ import styles from "./admin.css";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { consumeRateLimit, formatRetryMessage, sanitizeText, validateImageFile } from "@/lib/sanitizeInput";
+import { invalidateCachedValue } from "@/lib/browserCache";
+
+const PRODUCTS_CACHE_KEY = "products:v1";
 
 export default function ProductsAdmin() {
   const { user, userData, loading, isAdmin } = useAuth();
@@ -22,12 +25,6 @@ export default function ProductsAdmin() {
   const [editId, setEditId] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
-  useEffect(() => {
-    if (isAdmin) {
-      fetchProducts();
-    }
-  }, [submitted, isAdmin]);
-
   const fetchProducts = async () => {
     const { data, error } = await supabase.from("products").select("*");
     if (error) {
@@ -36,6 +33,12 @@ export default function ProductsAdmin() {
       setProducts(data || []);
     }
   };
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchProducts();
+    }
+  }, [submitted, isAdmin]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -67,6 +70,7 @@ export default function ProductsAdmin() {
         console.error("Error updating product:", error);
         alert("Error updating product");
       } else {
+        invalidateCachedValue(PRODUCTS_CACHE_KEY);
         console.log("Product updated successfully:", data);
         alert("Product updated successfully");
         resetForm();
@@ -82,6 +86,7 @@ export default function ProductsAdmin() {
         console.error("Error inserting product:", error);
         alert("Error inserting product");
       } else {
+        invalidateCachedValue(PRODUCTS_CACHE_KEY);
         console.log("Product inserted successfully:", data);
         alert("Product inserted successfully");
         resetForm();
@@ -124,6 +129,7 @@ export default function ProductsAdmin() {
       console.error("Error deleting product:", error);
       alert("Error deleting product");
     } else {
+      invalidateCachedValue(PRODUCTS_CACHE_KEY);
       console.log("Product deleted successfully:", data);
       alert("Product deleted successfully");
       setSubmitted(true);

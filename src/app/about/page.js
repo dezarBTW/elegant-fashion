@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "./about.module.css";
+import ScrollRevealRoot from "@/components/ScrollRevealRoot";
 
 const pillars = [
   {
@@ -46,8 +47,8 @@ const values = [
 
 export default function About() {
   return (
-    <div className={styles.page}>
-      <header className={styles.hero}>
+    <ScrollRevealRoot className={styles.page}>
+      <header className={styles.hero} data-reveal>
         <span className={styles.eyebrow}>Our story</span>
         <h1 className={styles.heroTitle}>Where individuality is mastered</h1>
         <p className={styles.heroText}>
@@ -61,25 +62,32 @@ export default function About() {
       <div className={styles.stitchLine} aria-hidden="true"></div>
 
       <section className={styles.pillars} aria-label="What we do">
-        {pillars.map((pillar) => (
-          <article key={pillar.title} className={styles.pillarCard}>
-            <span className={styles.pillarTag}>{pillar.tag}</span>
-            <h2>{pillar.title}</h2>
-            <p>{pillar.text}</p>
-            <Link href={pillar.href} className={styles.pillarLink}>
-              {pillar.cta} &rarr;
-            </Link>
-          </article>
+        {pillars.map((pillar, index) => (
+          <div key={pillar.title} data-reveal data-reveal-delay={String(index * 90)}>
+            <article className={styles.pillarCard}>
+              <span className={styles.pillarTag}>{pillar.tag}</span>
+              <h2>{pillar.title}</h2>
+              <p>{pillar.text}</p>
+              <Link href={pillar.href} className={styles.pillarLink}>
+                {pillar.cta} &rarr;
+              </Link>
+            </article>
+          </div>
         ))}
       </section>
 
       <div className={styles.stitchLine} aria-hidden="true"></div>
 
       <section className={styles.valuesSection}>
-        <h2 className={styles.sectionTitle}>How we work</h2>
+        <h2 className={styles.sectionTitle} data-reveal>How we work</h2>
         <div className={styles.valuesGrid}>
-          {values.map((value) => (
-            <article key={value.title} className={styles.valueCard}>
+          {values.map((value, index) => (
+            <article
+              key={value.title}
+              className={styles.valueCard}
+              data-reveal
+              data-reveal-delay={String(index * 80)}
+            >
               <h3>{value.title}</h3>
               <p>{value.text}</p>
             </article>
@@ -87,13 +95,13 @@ export default function About() {
         </div>
       </section>
 
-      <section className={styles.ctaBand}>
+      <section className={styles.ctaBand} data-reveal>
         <h2>Have a piece in mind?</h2>
         <p>Tell us what you&apos;re looking for and we&apos;ll take it from there.</p>
         <Link href="/contact" className={styles.ctaButton}>
           Get in touch
         </Link>
       </section>
-    </div>
+    </ScrollRevealRoot>
   );
 }

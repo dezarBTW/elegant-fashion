@@ -3,6 +3,7 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import ScrollRevealRoot from "@/components/ScrollRevealRoot";
 
 const heroSlides = [
   { src: "/images/Hero/female-ankara-burgundy-midi_v2.jpg", alt: "Elegant burgundy Ankara midi dress" },
@@ -37,7 +38,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className={styles.container}>
+    <ScrollRevealRoot className={styles.container}>
       <a className={styles.skipLink} href="#main-content">Skip to content</a>
       {/* Hero Section */}
       <section className={styles.hero} aria-label="Featured fashion collections">
@@ -53,7 +54,7 @@ export default function Home() {
             />
           ))}
         </div>
-        <div className={styles.heroOverlay}>
+        <div className={styles.heroOverlay} data-reveal>
           <h1 className={styles.heroTitle}>Fashion That Defines You</h1>
           <p className={styles.heroSubtitle}>
             Limited Ready-to-Wear • Masterful Bespoke • Professional Fashion Training
@@ -73,19 +74,21 @@ export default function Home() {
       {/* Ready-to-Wear Section */}
       <section id="ready-to-wear" className={styles.section}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Limited-Edition Ready-to-Wear</h2>
-          <p className={styles.sectionText}>
+          <h2 className={styles.sectionTitle} data-reveal>Limited-Edition Ready-to-Wear</h2>
+          <p className={styles.sectionText} data-reveal data-reveal-delay="80">
             Our limited-edition ready-to-wear collections help style-conscious young professionals who want to express individuality through fashion by reducing mass-produced sameness and increasing personal style confidence, unlike fast-fashion brands that prioritize trends over uniqueness.
           </p>
           <div className={styles.collectionGrid}>
-            {collectionSlides.map((item) => (
-              <article key={item.name} className={styles.collectionCard}>
-                <div className={styles.collectionImage}>
-                  <Image src={item.src} alt={item.alt} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
-                </div>
-                <h3>Collection {item.name}</h3>
-                <Link className={`${styles.btn} ${styles.btnSmall}`} href="/ready-to-wear">Shop Collection</Link>
-              </article>
+            {collectionSlides.map((item, index) => (
+              <div key={item.name} data-reveal data-reveal-delay={String(index * 80)}>
+                <article className={styles.collectionCard}>
+                  <div className={styles.collectionImage}>
+                    <Image src={item.src} alt={item.alt} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+                  </div>
+                  <h3>Collection {item.name}</h3>
+                  <Link className={`${styles.btn} ${styles.btnSmall}`} href="/ready-to-wear">Shop Collection</Link>
+                </article>
+              </div>
             ))}
           </div>
         </div>
@@ -94,11 +97,11 @@ export default function Home() {
       {/* Fashion School Section */}
       <section id="fashion-school" className={`${styles.section} ${styles.sectionDark}`}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Fashion & Design Training</h2>
-          <p className={styles.sectionText}>
+          <h2 className={styles.sectionTitle} data-reveal>Fashion & Design Training</h2>
+          <p className={styles.sectionText} data-reveal data-reveal-delay="80">
             Our fashion and design training delivers a fast, practical path to a professional career. Learn essential skills like sketching, pattern-making, CAD, trend forecasting, and sustainable design directly from industry experts. You'll build a standout portfolio through real-world projects and personalized mentorship, gaining the creative confidence, business know-how, and industry connections needed to land jobs at top brands, launch your own label, or freelance successfully.
           </p>
-          <div className={styles.ctaGroup}>
+          <div className={styles.ctaGroup} data-reveal data-reveal-delay="140">
             <Link href="/course" className={`${styles.btn} ${styles.btnPrimary}`}>Enroll Now</Link>
             <Link href="/curriculum" className={`${styles.btn} ${styles.btnOutline}`}>View Curriculum</Link>
           </div>
@@ -109,14 +112,14 @@ export default function Home() {
       <section id="bespoke" className={styles.section}>
         <div className={styles.container}>
           <div className={styles.bespokeContent}>
-            <div className={styles.bespokeText}>
+            <div className={styles.bespokeText} data-reveal>
               <h2 className={styles.sectionTitle}>True Bespoke Couture</h2>
               <p className={styles.sectionText}>
                 Our Bespoke is the premier destination for true bespoke fashion and design, where every garment is handcrafted from scratch as a one-of-a-kind masterpiece tailored exclusively to you. Specializing in custom-fitted suits, shirts, dresses, outerwear, and accessories, we combine centuries-old artisanal techniques, like precise individual pattern drafting, hand-stitching, and intricate finishing with contemporary style and premium fabrics to deliver unparalleled fit, elegance, and personal expression.
               </p>
               <Link href="/contact" className={`${styles.btn} ${styles.btnPrimary}`}>Book Your Bespoke Consultation</Link>
             </div>
-            <div className={styles.bespokeImage}>
+            <div className={styles.bespokeImage} data-reveal data-reveal-delay="120">
               <Image className={styles.bespokePhoto} src="/images/bespoke-CUbywJn6.jpg" alt="Elegant Fashion bespoke tailoring detail" width={900} height={675} sizes="(max-width: 768px) 100vw, 50vw" />
             </div>
           </div>
@@ -126,21 +129,21 @@ export default function Home() {
       {/* Why Elegant Section */}
       <section id="about" className={`${styles.section} ${styles.sectionDark}`}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>Why Elegant Fashion</h2>
+          <h2 className={styles.sectionTitle} data-reveal>Why Elegant Fashion</h2>
           <div className={styles.featuresGrid}>
-            <article className={styles.featureCard}>
+            <article className={styles.featureCard} data-reveal data-reveal-delay="0">
               <h3>Artisanal Craftsmanship</h3>
               <p>Every piece crafted with meticulous attention to detail</p>
             </article>
-            <article className={styles.featureCard}>
+            <article className={styles.featureCard} data-reveal data-reveal-delay="80">
               <h3>Sustainability</h3>
               <p>Ethical practices and premium sustainable materials</p>
             </article>
-            <article className={styles.featureCard}>
+            <article className={styles.featureCard} data-reveal data-reveal-delay="160">
               <h3>Individual Expression</h3>
               <p>Fashion that celebrates your unique identity</p>
             </article>
-            <article className={styles.featureCard}>
+            <article className={styles.featureCard} data-reveal data-reveal-delay="240">
               <h3>Industry Connections</h3>
               <p>Access to exclusive networks and opportunities</p>
             </article>
@@ -151,27 +154,33 @@ export default function Home() {
       {/* Testimonials Section */}
       <section className={`${styles.section} ${styles.sectionDark}`}>
         <div className={styles.container}>
-          <h2 className={styles.sectionTitle}>What Our Clients Say</h2>
+          <h2 className={styles.sectionTitle} data-reveal>What Our Clients Say</h2>
           <div className={styles.testimonialsGrid}>
-            <div className={styles.testimonialCard}>
-              <p>"I frequently source premium fabrics for custom garments but lack the time and skills to sew them myself. Elegant Fashion consistently delivers precise, high-quality tailoring and impeccable finishing. Their service is reliable, professional, and exactly what I need."</p>
-              <div className={styles.testimonialAuthor}>
-                <strong>Sunday James</strong>
-                <span>Entrepreneur</span>
+            <div data-reveal data-reveal-delay="0">
+              <div className={styles.testimonialCard}>
+                <p>"I frequently source premium fabrics for custom garments but lack the time and skills to sew them myself. Elegant Fashion consistently delivers precise, high-quality tailoring and impeccable finishing. Their service is reliable, professional, and exactly what I need."</p>
+                <div className={styles.testimonialAuthor}>
+                  <strong>Sunday James</strong>
+                  <span>Entrepreneur</span>
+                </div>
               </div>
             </div>
-            <div className={styles.testimonialCard}>
-              <p>"I previously struggled in other fashion studios where customer orders were always prioritized over student learning. But here, everything is different. I have a dedicated instructor who guides me step-by-step every day in a calm, conducive environment.Thanks to the constant support and daily guidance, my skills are improving rapidly. I have spent 2 months here already and I'm confident I'll become a professional fashion designer in 6 months.I highly recommend this school to anyone serious about learning fashion!"</p>
-              <div className={styles.testimonialAuthor}>
-                <strong>David Blessing</strong>
-                <span>Aspiring Fashion Designer</span>
+            <div data-reveal data-reveal-delay="100">
+              <div className={styles.testimonialCard}>
+                <p>"I previously struggled in other fashion studios where customer orders were always prioritized over student learning. But here, everything is different. I have a dedicated instructor who guides me step-by-step every day in a calm, conducive environment.Thanks to the constant support and daily guidance, my skills are improving rapidly. I have spent 2 months here already and I'm confident I'll become a professional fashion designer in 6 months.I highly recommend this school to anyone serious about learning fashion!"</p>
+                <div className={styles.testimonialAuthor}>
+                  <strong>David Blessing</strong>
+                  <span>Aspiring Fashion Designer</span>
+                </div>
               </div>
             </div>
-            <div className={styles.testimonialCard}>
-              <p>"I love stylish, well-fitted clothing but don't have time to design or tailor my own. Elegant Fashion's ready-to-wear collections allow me to walk in, find beautiful outfits that fit perfectly, and suit my lifestyle. The variety, quality, and convenience are outstanding."</p>
-              <div className={styles.testimonialAuthor}>
-                <strong>Tare Karen</strong>
-                <span>Civil Servant</span>
+            <div data-reveal data-reveal-delay="200">
+              <div className={styles.testimonialCard}>
+                <p>"I love stylish, well-fitted clothing but don't have time to design or tailor my own. Elegant Fashion's ready-to-wear collections allow me to walk in, find beautiful outfits that fit perfectly, and suit my lifestyle. The variety, quality, and convenience are outstanding."</p>
+                <div className={styles.testimonialAuthor}>
+                  <strong>Tare Karen</strong>
+                  <span>Civil Servant</span>
+                </div>
               </div>
             </div>
           </div>
@@ -179,10 +188,8 @@ export default function Home() {
       </section>
       </main>
 
-
-
       {/* Footer */}
-      <footer className={styles.footer}>
+      <footer className={styles.footer} data-reveal>
         <div className={styles.container}>
           <div className={styles.footerContent}>
             <div className={styles.footerSection}>
@@ -212,6 +219,6 @@ export default function Home() {
           </div>
         </div>
       </footer>
-    </div>
+    </ScrollRevealRoot>
   );
 }
