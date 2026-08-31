@@ -210,6 +210,7 @@ export default function Home() {
             </div>
             <div className={styles.footerSection}>
               <h4>Contact</h4>
+              <p className={styles.footerAddress}>No 27 Biobgblo Issac Boro Express Way,<br />Opposite Charismatic Church, Beside Rogas Plant,<br />Bayelsa State, Nigeria</p>
               <Link href="/contact">Get in Touch</Link>
               <Link href="https://wa.me/2348166361710" target="_blank" rel="noopener noreferrer">Book Consultation</Link>
             </div>

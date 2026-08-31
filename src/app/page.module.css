@@ -583,6 +583,10 @@
   margin-bottom: 1rem;
 }
 
+.footerAddress {
+  margin-bottom: 1.25rem;
+}
+
 .footerSection a {
   display: block;
   color: rgb(252, 230, 249);

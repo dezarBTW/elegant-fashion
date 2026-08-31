@@ -82,6 +82,19 @@
     box-shadow: 0 0 0 3px rgba(161, 122, 70, 0.15);
 }
 
+.field-hint {
+    margin: 6px 0 0;
+    color: var(--stone);
+    font-size: 0.78rem;
+}
+
+.field-error {
+    margin: 6px 0 0;
+    color: var(--danger);
+    font-size: 0.78rem;
+    font-weight: 500;
+}
+
 .sign-up-button {
     width: 100%;
     padding: 14px;

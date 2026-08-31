@@ -45,6 +45,33 @@ const values = [
   },
 ];
 
+const partners = [
+  {
+    name: "Foundation for Partnership Initiatives in the Niger Delta (PIND)",
+    text: "We partnered with PIND to train 75 Students in a 6 months fashion and design Course in 2026 and two months Internship and job placement in anticipation.",
+  },
+  {
+    name: "Industrial Training Fund (ITF)",
+    text: "Elegant Style has been an Implementing Partner with ITF since 2021 and have trained well over 250 students in fashion and designing. We have been active in the ITF SUPA-Skill-up programme till date.",
+  },
+  {
+    name: "Technical and Vocational Education and Training (TVET)",
+    text: "We currently have approval from TVET as their verified training Centre in fashion and design/shoe making, and will be allocated students in the next cohort.",
+  },
+  {
+    name: "Africa's Hub for Skills & Enterprise Development (AHSED)",
+    text: "Recently in May 2026, AHSED engaged us in a training with over 200 persons, male and female, in fashion and designing, Pattern drafting and Fashion Illustration.",
+  },
+  {
+    name: "Transforming Nigerian Youth program (TNY)",
+    text: "From 2021-2025, we were in the Transforming Nigerian Youth program sponsored by MasterCard Foundation and implemented by Enterprise Development Center (EDC) Lagos, as a certified National Business Development Service Provider (NBDSP) we were paired with MSMEs to impact positively in there businesses by providing advisory support and mentorship",
+  },
+  {
+    name: "Nigeria Incentive-Based Risk Sharing System for Agricultural Lending (NIRSAL Mfb)",
+    text: "Between 2019-2023 we partnered with NIRSAL Microfinance Bank to facilitate SME Loans to over 1000 applicants in the Niger Delta as an Entrepreneurship Development Institute (EDI).",
+  },
+];
+
 export default function About() {
   return (
     <ScrollRevealRoot className={styles.page}>
@@ -58,6 +85,25 @@ export default function About() {
           designers on the same techniques we use in our own organization.
         </p>
       </header>
+
+      <section className={styles.partnersSection} aria-label="Organizations we have worked with">
+        <h2 className={styles.sectionTitle} data-reveal>Organizations we have worked with</h2>
+        <div className={styles.partnersGrid}>
+          {partners.map((partner, index) => (
+            <article
+              key={partner.name}
+              className={styles.partnerCard}
+              data-reveal
+              data-reveal-delay={String(index * 80)}
+            >
+              <div className={styles.partnerOverlay}>
+                <h3>{partner.name}</h3>
+                <p>{partner.text}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <div className={styles.stitchLine} aria-hidden="true"></div>
 
