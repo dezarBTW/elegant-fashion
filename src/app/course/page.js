@@ -129,9 +129,15 @@ export default function Course() {
 
   useEffect(() => {
     if (user) {
-      checkExistingRegistration();
       if (isAdmin) {
+        // Admins manage the academy from this page; they should never be
+        // redirected to the student registration form, even if this
+        // account also happens to have a row in `students` (e.g. from
+        // registering before becoming an admin).
+        setCheckingRegistration(false);
         fetchPendingStudents();
+      } else {
+        checkExistingRegistration();
       }
     } else if (!loading) {
       setCheckingRegistration(false);

@@ -77,7 +77,7 @@ export default function About() {
     <ScrollRevealRoot className={styles.page}>
       <header className={styles.hero} data-reveal>
         <span className={styles.eyebrow}>Our story</span>
-        <h1 className={styles.heroTitle}>Where individuality is mastered</h1>
+        <h1 className={styles.heroTitle}>Where creativity is mastered</h1>
         <p className={styles.heroText}>
           Elegant Fashion is a Bayelsa-based house that was founded in 2018 by our CEO Mrs Esther Patrick working across three
           disciplines that share one workroom: ready-to-wear, bespoke

@@ -5,32 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCachedValue, setCachedValue } from "@/lib/browserCache";
-
-const PRODUCTS_CACHE_KEY = "products:v1";
-const PRODUCTS_CACHE_TTL_MS = 10 * 60 * 1000;
-const CART_CACHE_KEY = "shopping-cart:v1";
-const CART_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
-
-function ProductSkeleton() {
-  return (
-    <div className={styles.skeletonCard} aria-hidden="true">
-      <div className={`${styles.skeleton} ${styles.skeletonImage}`} />
-      <div className={styles.skeletonInfo}>
-        <div className={`${styles.skeleton} ${styles.skeletonCategory}`} />
-        <div className={`${styles.skeleton} ${styles.skeletonTitle}`} />
-        <div className={`${styles.skeleton} ${styles.skeletonPrice}`} />
-        <div className={`${styles.skeleton} ${styles.skeletonButton}`} />
-      </div>
-    </div>
-  );
-}
 
 export default function ReadyToWear() {
   const { user, isAdmin, loading: authLoading } = useAuth();
   const [cart, setCart] = useState([]);
-  const [cartLoaded, setCartLoaded] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,51 +22,19 @@ export default function ReadyToWear() {
   // was previously gated behind `isAdmin`, which hid all products from
   // ordinary customers.
   useEffect(() => {
-    let isMounted = true;
-
-    const loadProducts = async () => {
-      const cachedProducts = getCachedValue(PRODUCTS_CACHE_KEY);
-      if (cachedProducts) {
-        if (isMounted) {
-          setProducts(cachedProducts);
-          setLoading(false);
-        }
-        return;
-      }
-
-      const { data, error } = await supabase.from("products").select("*");
-      if (!isMounted) return;
-
-      if (error) {
-        console.error("Error fetching products:", error);
-      } else {
-        const productList = data || [];
-        setProducts(productList);
-        setCachedValue(PRODUCTS_CACHE_KEY, productList, PRODUCTS_CACHE_TTL_MS);
-      }
-      setLoading(false);
-    };
-
-    loadProducts();
-
-    return () => {
-      isMounted = false;
-    };
+    fetchProducts();
   }, []);
 
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      const savedCart = getCachedValue(CART_CACHE_KEY);
-      if (Array.isArray(savedCart)) setCart(savedCart);
-      setCartLoaded(true);
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
-
-  useEffect(() => {
-    if (cartLoaded) setCachedValue(CART_CACHE_KEY, cart, CART_CACHE_TTL_MS);
-  }, [cart, cartLoaded]);
+  const fetchProducts = async () => {
+    setLoading(true);
+    const { data, error } = await supabase.from("products").select("*");
+    if (error) {
+      console.error("Error fetching products:", error);
+    } else {
+      setProducts(data || []);
+    }
+    setLoading(false);
+  };
 
   const categories = ["All", "Dresses", "Skirts", "Trousers", "Tops", "Jackets", "Accessories"];
 
@@ -108,12 +54,11 @@ export default function ReadyToWear() {
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   const addToCart = (product) => {
-    setCart((currentCart) => [...currentCart, product]);
-    setIsCartOpen(true);
+    setCart([...cart, product]);
   };
 
   const removeFromCart = (index) => {
-    setCart((currentCart) => currentCart.filter((_, i) => i !== index));
+    setCart(cart.filter((_, i) => i !== index));
   };
 
   const cartTotal = cart.reduce((total, item) => total + item.price, 0);
@@ -134,20 +79,54 @@ export default function ReadyToWear() {
     );
   }
 
+  if (!isAdmin) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.unavailableContainer}>
+          <div className={styles.unavailableContent}>
+            <div className={styles.unavailableIcon}>
+              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#c9a962" strokeWidth="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <h2 className={styles.unavailableTitle}>Coming Soon</h2>
+            <p className={styles.unavailableMessage}>Ready to wear products are still unavailable at this moment.</p>
+            <Link href="/" className={styles.backButton}>
+              Return to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.skeletonPage} aria-label="Loading products" aria-busy="true">
-          <div className={`${styles.skeleton} ${styles.skeletonBanner}`} />
+        <div className={styles.skeletonPage}>
+          <div className={styles.skeletonBanner} />
           <div className={styles.skeletonLayout}>
-            <div className={styles.skeletonSidebar}>
+            <aside className={styles.skeletonSidebar}>
               <div className={`${styles.skeleton} ${styles.skeletonSidebarTitle}`} />
               <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
               <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
               <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
-            </div>
+              <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
+            </aside>
             <div className={styles.skeletonGrid}>
-              {Array.from({ length: 6 }, (_, index) => <ProductSkeleton key={index} />)}
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className={styles.skeletonCard}>
+                  <div className={`${styles.skeleton} ${styles.skeletonImage}`} />
+                  <div className={styles.skeletonInfo}>
+                    <div className={`${styles.skeleton} ${styles.skeletonCategory}`} />
+                    <div className={`${styles.skeleton} ${styles.skeletonTitle}`} />
+                    <div className={`${styles.skeleton} ${styles.skeletonPrice}`} />
+                    <div className={`${styles.skeleton} ${styles.skeletonButton}`} />
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -183,9 +162,8 @@ export default function ReadyToWear() {
       {/* Promotional Banner */}
       <section className={styles.promoBanner}>
         <div className={styles.promoContent}>
-          <p className={styles.promoEyebrow}>Ready-to-wear</p>
-          <h2 className={styles.promoTitle}>The Current Edit</h2>
-          <p className={styles.promoSubtitle}>Considered pieces, released in limited quantities.</p>
+          <h2 className={styles.promoTitle}>Summer Sale - Up to 30% Off</h2>
+          <p className={styles.promoSubtitle}>Limited time offer on selected items</p>
         </div>
       </section>
 
@@ -251,7 +229,7 @@ export default function ReadyToWear() {
                     setCurrentPage(1);
                   }}
                 />
-                ₦40,000 – ₦60,000
+                ₦40,000 - ₦60,000
               </label>
               <label className={styles.priceOption}>
                 <input
@@ -308,7 +286,7 @@ export default function ReadyToWear() {
                   <span className={styles.productCategory}>{product.category}</span>
                   <h3 className={styles.productName}>{product.name}</h3>
                   <div className={styles.productRating}>
-                    <span className={styles.stars}>{"★".repeat(Math.floor(product.rating || 0))}</span>
+                    <span className={styles.stars}>{"★".repeat(Math.floor(product.rating))}</span>
                     <span className={styles.reviews}>({product.reviews})</span>
                   </div>
                   <p className={styles.productPrice}>₦{product.price.toLocaleString()}</p>
@@ -354,10 +332,10 @@ export default function ReadyToWear() {
         </main>
 
         {/* Shopping Cart Sidebar */}
-        <aside className={`${styles.cartSidebar} ${isCartOpen && cart.length > 0 ? styles.open : ''}`}>
+        <aside className={`${styles.cartSidebar} ${cart.length > 0 ? styles.open : ''}`}>
           <div className={styles.cartHeader}>
             <h3 className={styles.cartTitle}>Shopping Cart ({cart.length})</h3>
-            <button className={styles.closeCart} onClick={() => setIsCartOpen(false)} aria-label="Close cart">×</button>
+            <button className={styles.closeCart} onClick={() => setCart([])}>×</button>
           </div>
           <div className={styles.cartItems}>
             {cart.map((item, index) => (
@@ -395,8 +373,8 @@ export default function ReadyToWear() {
 
       {/* Cart Toggle Button */}
       {cart.length > 0 && (
-        <button className={styles.cartToggle} onClick={() => setIsCartOpen((open) => !open)}>
-          Cart ({cart.length})
+        <button className={styles.cartToggle} onClick={() => setCart([])}>
+          🛒 {cart.length}
         </button>
       )}
     </div>

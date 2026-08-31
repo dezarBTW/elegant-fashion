@@ -44,6 +44,13 @@ export default function ProductsAdmin() {
     e.preventDefault();
     setSubmitted(false);
 
+    // Guard against null user
+    if (!user) {
+      console.error("User is null in handleSubmit");
+      alert("Authentication error. Please sign in again.");
+      return;
+    }
+
     const rateLimit = consumeRateLimit(`admin-product-write:${user.id}`, 30, 60 * 1000);
     if (!rateLimit.allowed) {
       alert(formatRetryMessage(rateLimit.retryAfterMs));
@@ -110,6 +117,13 @@ export default function ProductsAdmin() {
 
   const handleDelete = async (productId) => {
     if (!confirm("Are you sure you want to delete this product?")) {
+      return;
+    }
+
+    // Guard against null user
+    if (!user) {
+      console.error("User is null in handleDelete");
+      alert("Authentication error. Please sign in again.");
       return;
     }
 
