@@ -77,6 +77,33 @@
     outline: none;
 }
 
+.password-field {
+    position: relative;
+}
+
+.password-field .input {
+    padding-right: 74px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    color: var(--gold-deep);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.password-toggle:hover {
+    color: var(--ink);
+}
+
 .input:focus {
     border-color: var(--gold-deep);
     box-shadow: 0 0 0 3px rgba(161, 122, 70, 0.15);

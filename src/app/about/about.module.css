@@ -1,24 +1,32 @@
 .page {
   min-height: 100vh;
-  background: var(--paper);
+  background:
+    radial-gradient(circle at top, rgba(201, 169, 98, 0.12), transparent 28%),
+    linear-gradient(180deg, #f8f4ee 0%, var(--paper) 32%, #f2ebdf 100%);
   padding: 130px 2rem 0;
 }
 
 .hero {
-  max-width: 760px;
+  max-width: 900px;
   margin: 0 auto;
-  padding-bottom: 4rem;
+  padding: 4rem 2rem 4.5rem;
   text-align: center;
+  background: rgba(255, 255, 255, 0.38);
+  border: 1px solid rgba(18, 15, 13, 0.06);
+  border-radius: 32px;
+  box-shadow: var(--shadow-card);
 }
 
 .eyebrow {
   display: inline-block;
   margin-bottom: 1.25rem;
-  padding: 0.4rem 0.9rem;
-  border: 1px dashed var(--gold-deep);
+  padding: 0.5rem 0.9rem;
+  border: 1px solid rgba(154, 116, 66, 0.35);
+  border-radius: 999px;
+  background: rgba(201, 169, 98, 0.08);
   color: var(--gold-deep);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
 }
@@ -26,28 +34,28 @@
 .heroTitle {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
-  line-height: 1.2;
+  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  line-height: 0.98;
   color: var(--ink);
-  margin-bottom: 5.5rem;
+  margin-bottom: 1.5rem;
   text-wrap: balance;
+  letter-spacing: -0.04em;
 }
 
 .heroText {
-  font-size: 1.05rem;
+  max-width: 740px;
+  margin: 0 auto;
+  font-size: 1.08rem;
   line-height: 1.85;
   color: var(--stone);
   text-wrap: balance;
 }
 
-/* A seam-line divider: a dashed rule with a tick at each end,
-   standing in for the stitching that runs through everything the
-   house makes. Used between every major section on this page. */
 .stitchLine {
   max-width: 1400px;
   margin: 0 auto;
   height: 1px;
-  border-top: 1px dashed var(--line);
+  border-top: 1px dashed rgba(18, 15, 13, 0.18);
   position: relative;
 }
 
@@ -79,18 +87,21 @@
 }
 
 .pillarCard {
-  background: var(--white);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(18, 15, 13, 0.06);
+  border-radius: 22px;
   padding: 2.25rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  transition: border-color 0.3s ease, transform 0.3s ease;
+  box-shadow: var(--shadow-card);
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .pillarCard:hover {
-  border-color: var(--gold-deep);
+  border-color: rgba(201, 169, 98, 0.5);
   transform: translateY(-4px);
+  box-shadow: var(--shadow-soft);
 }
 
 .pillarTag {
@@ -103,15 +114,15 @@
 
 .pillarCard h2 {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   font-weight: 500;
   color: var(--ink);
   margin-bottom: 0.85rem;
 }
 
 .pillarCard p {
-  font-size: 0.95rem;
-  line-height: 1.7;
+  font-size: 0.96rem;
+  line-height: 1.75;
   color: var(--stone);
   margin-bottom: 1.5rem;
   flex-grow: 1;
@@ -119,10 +130,11 @@
 
 .pillarLink {
   font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--ink);
-  border-bottom: 1px solid var(--gold);
+  border-bottom: 1px solid rgba(201, 169, 98, 0.8);
   padding-bottom: 2px;
   transition: color 0.3s ease, border-color 0.3s ease;
 }
@@ -141,33 +153,42 @@
 .sectionTitle {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-size: clamp(2rem, 3vw, 2.8rem);
   text-align: center;
   color: var(--ink);
   margin-bottom: 3rem;
+  letter-spacing: -0.03em;
 }
 
 .valuesGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 2.5rem;
+  gap: 1.5rem;
+}
+
+.valueCard {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(18, 15, 13, 0.06);
+  border-radius: 22px;
+  padding: 1.75rem 1.5rem;
+  box-shadow: var(--shadow-card);
 }
 
 .valueCard h3 {
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   font-weight: 600;
   color: var(--ink);
   margin-bottom: 0.6rem;
 }
 
 .valueCard p {
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   line-height: 1.7;
   color: var(--stone);
 }
 
 .ctaBand {
-  background: var(--ink);
+  background: linear-gradient(180deg, #120f0d 0%, #1a1714 100%);
   color: var(--paper);
   text-align: center;
   padding: 5rem 2rem;
@@ -188,19 +209,22 @@
 
 .partnerCard {
   position: relative;
-  min-height: 280px;
-  background-color: var(--ink);
-  border: 1px solid var(--line);
+  min-height: 300px;
+  background: linear-gradient(180deg, rgba(18, 15, 13, 0.96), rgba(28, 23, 19, 0.85));
+  border: 1px solid rgba(201, 169, 98, 0.18);
+  border-radius: 22px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  transition: border-color 0.3s ease, transform 0.3s ease;
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: var(--shadow-card);
 }
 
 .partnerCard:hover {
-  border-color: var(--gold-deep);
+  border-color: rgba(201, 169, 98, 0.5);
   transform: translateY(-4px);
+  box-shadow: var(--shadow-soft);
 }
 
 .partnerOverlay {
@@ -210,7 +234,7 @@
 
 .partnerOverlay h3 {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.18rem;
   font-weight: 500;
   color: var(--gold-bright);
   margin-bottom: 0.75rem;
@@ -218,39 +242,44 @@
 }
 
 .partnerOverlay p {
-  font-size: 0.9rem;
-  line-height: 1.7;
-  color: var(--stone-light);
+  font-size: 0.92rem;
+  line-height: 1.75;
+  color: rgba(255, 253, 249, 0.72);
 }
 
 .ctaBand h2 {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(1.75rem, 3vw, 2.5rem);
+  font-size: clamp(2rem, 3vw, 2.7rem);
   margin-bottom: 0.75rem;
+  letter-spacing: -0.03em;
 }
 
 .ctaBand p {
-  color: var(--stone-light);
+  color: rgba(255, 253, 249, 0.72);
   margin-bottom: 2rem;
 }
 
 .ctaButton {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 3rem;
   padding: 0 2.25rem;
   background: var(--gold);
+  border-radius: 999px;
   color: var(--ink);
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  transition: background 0.3s ease;
+  text-decoration: none;
+  transition: background 0.3s ease, transform 0.3s ease;
 }
 
 .ctaButton:hover {
   background: var(--gold-bright);
+  transform: translateY(-2px);
 }
 
 @media (max-width: 768px) {

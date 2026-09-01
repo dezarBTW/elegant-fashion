@@ -10,6 +10,8 @@ export default function SignUp() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [username, setUsername] = useState("");
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -201,11 +203,21 @@ export default function SignUp() {
                     </div>
                     <div className="form-group">
                         <label htmlFor="password">Password</label>
-                        <input id="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} type="password" autoComplete="new-password" minLength="6" required />
+                        <div className="password-field">
+                            <input id="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? "text" : "password"} autoComplete="new-password" minLength="6" required />
+                            <button type="button" className="password-toggle" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword((prev) => !prev)}>
+                                {showPassword ? "Hide" : "Show"}
+                            </button>
+                        </div>
                     </div>
                     <div className="form-group">
                         <label htmlFor="confirm-password">Confirm password</label>
-                        <input id="confirm-password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type="password" autoComplete="new-password" minLength="6" required />
+                        <div className="password-field">
+                            <input id="confirm-password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" minLength="6" required />
+                            <button type="button" className="password-toggle" aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"} onClick={() => setShowConfirmPassword((prev) => !prev)}>
+                                {showConfirmPassword ? "Hide" : "Show"}
+                            </button>
+                        </div>
                     </div>
                     <button className="sign-up-button" type="submit" disabled={isDisabled}>
                         {loading ? "Creating Account..." : "Create account"}

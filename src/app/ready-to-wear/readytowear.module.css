@@ -2,7 +2,9 @@
 
 .container {
   min-height: 100vh;
-  background: var(--cream);
+  background:
+    radial-gradient(circle at top, rgba(201, 169, 98, 0.12), transparent 28%),
+    linear-gradient(180deg, #f8f4ee 0%, var(--paper) 32%, #f2ebdf 100%);
 }
 
 /* ====================== LOADING STATE ====================== */
@@ -58,8 +60,9 @@
 .skeletonCard,
 .skeletonSidebar {
   overflow: hidden;
-  background: var(--white);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(18, 15, 13, 0.06);
+  border-radius: 20px;
 }
 
 .skeletonInfo,
@@ -70,8 +73,8 @@
 .skeleton {
   position: relative;
   overflow: hidden;
-  background: var(--paper-dim);
-  border-radius: 3px;
+  background: rgba(201, 169, 98, 0.08);
+  border-radius: 12px;
 }
 
 .skeleton::after {
@@ -96,7 +99,6 @@
   100% { transform: translateX(100%); }
 }
 
-/* ====================== UNAVAILABLE STATE ====================== */
 .unavailableContainer {
   display: flex;
   align-items: center;
@@ -109,8 +111,10 @@
   text-align: center;
   max-width: 500px;
   padding: 3.5rem 3rem;
-  background: var(--white);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(18, 15, 13, 0.06);
+  border-radius: 28px;
+  box-shadow: var(--shadow-card);
 }
 
 .unavailableIcon {
@@ -120,61 +124,62 @@
 
 .unavailableTitle {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 2.25rem;
   font-weight: 500;
-  color: var(--black);
+  color: var(--ink);
   margin-bottom: 1rem;
-  letter-spacing: 0;
+  letter-spacing: -0.04em;
 }
 
 .unavailableMessage {
   font-size: 1.05rem;
-  color: var(--gray);
+  color: var(--stone);
   margin-bottom: 2rem;
   line-height: 1.6;
 }
 
 .backButton {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 1rem 2.25rem;
   background: var(--gold);
-  color: var(--black);
+  color: var(--ink);
   text-decoration: none;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  border-radius: 999px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   transition: all 0.3s ease;
 }
 
 .backButton:hover {
-  background: var(--black);
-  color: var(--white);
+  background: var(--gold-bright);
 }
 
-/* ====================== ADMIN TOOLBAR ====================== */
 .adminToolbar {
-  background: var(--black);
+  background: linear-gradient(180deg, #120f0d 0%, #171310 100%);
   padding: 0.9rem 2rem;
   margin-top: 86px;
   display: flex;
   justify-content: flex-end;
 }
 
-/* When the admin toolbar is present it owns the space below the fixed navbar,
-   so the search section no longer needs its own top offset. */
 .adminToolbar + .searchSection {
   margin-top: 0;
 }
 
 .manageProductsButton {
   display: inline-block;
-  padding: 0.65rem 1.5rem;
+  padding: 0.7rem 1.5rem;
   background: var(--gold);
-  color: var(--black);
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-decoration: none;
-  border-radius: var(--radius);
+  border-radius: 999px;
+  text-transform: uppercase;
   transition: all 0.3s ease;
 }
 
@@ -182,11 +187,10 @@
   background: var(--white);
 }
 
-/* ====================== SEARCH SECTION ====================== */
 .searchSection {
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.5);
   padding: 1.5rem 2rem;
-  border-bottom: 1px solid var(--lightGray);
+  border-bottom: 1px solid rgba(18, 15, 13, 0.08);
   margin-top: 86px;
 }
 
@@ -200,37 +204,40 @@
 .searchInput {
   flex: 1;
   padding: 1rem 1.5rem;
-  border: 1px solid var(--lightGray);
-  border-radius: var(--radius);
+  border: 1px solid rgba(18, 15, 13, 0.08);
+  border-radius: 999px;
   font-size: 1rem;
-  color: var(--black);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
 }
 
 .searchInput:focus {
   outline: none;
-  border-color: var(--gold);
+  border-color: rgba(201, 169, 98, 0.6);
+  box-shadow: 0 0 0 4px rgba(201, 169, 98, 0.12);
 }
 
 .searchButton {
   padding: 1rem 2rem;
   background: var(--gold);
   border: none;
-  border-radius: var(--radius);
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--black);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink);
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .searchButton:hover {
-  background: var(--black);
+  background: var(--ink);
   color: var(--white);
 }
 
-/* ====================== PROMOTIONAL BANNER ====================== */
 .promoBanner {
-  background: var(--ink);
+  background: linear-gradient(180deg, #120f0d 0%, #171310 100%);
   padding: 2.5rem 2rem;
   text-align: center;
 }
@@ -252,21 +259,19 @@
 
 .promoTitle {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: clamp(2rem, 3vw, 3rem);
   font-weight: 500;
-  letter-spacing: 0;
+  letter-spacing: -0.04em;
   color: var(--white);
   margin-bottom: 0.5rem;
 }
 
 .promoSubtitle {
-  font-size: 1.1rem;
+  font-size: 1.08rem;
   font-weight: 300;
-  color: var(--white);
-  opacity: 0.9;
+  color: rgba(255, 253, 249, 0.78);
 }
 
-/* ====================== MAIN CONTENT ====================== */
 .mainContent {
   display: grid;
   grid-template-columns: 250px 1fr 300px;
@@ -276,14 +281,15 @@
   margin: 0 auto;
 }
 
-/* ====================== SIDEBAR FILTERS ====================== */
 .sidebar {
-  background: var(--white);
+  background: rgba(255, 255, 255, 0.7);
   padding: 2rem;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(18, 15, 13, 0.06);
+  border-radius: 24px;
   height: fit-content;
   position: sticky;
   top: 100px;
+  box-shadow: var(--shadow-card);
 }
 
 .filterSection {
@@ -295,11 +301,12 @@
 }
 
 .filterTitle {
-  font-size: 1.2rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   margin-bottom: 1rem;
-  color: var(--black);
+  color: var(--ink);
 }
 
 .categoryList {
@@ -309,20 +316,20 @@
 }
 
 .categoryButton {
-  padding: 0.75rem 1rem;
+  padding: 0.8rem 1rem;
   background: transparent;
-  border: 1px solid var(--lightGray);
-  border-radius: var(--radius);
+  border: 1px solid rgba(18, 15, 13, 0.08);
+  border-radius: 12px;
   font-size: 0.9rem;
-  color: var(--gray);
+  color: var(--stone);
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: left;
 }
 
 .categoryButton:hover {
-  border-color: var(--gold);
-  color: var(--gold);
+  border-color: rgba(201, 169, 98, 0.6);
+  color: var(--gold-deep);
 }
 
 .categoryButton.active {
@@ -342,7 +349,7 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.9rem;
-  color: var(--gray);
+  color: var(--stone);
   cursor: pointer;
 }
 
@@ -350,7 +357,6 @@
   accent-color: var(--gold);
 }
 
-/* ====================== PRODUCT GRID ====================== */
 .productGrid {
   min-width: 0;
 }
@@ -363,19 +369,19 @@
 }
 
 .gridTitle {
-  font-size: 1.5rem;
-  font-weight: 400;
-  letter-spacing: 0.05em;
-  color: var(--black);
+  font-size: 1.75rem;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: var(--ink);
 }
 
 .sortSelect {
   padding: 0.75rem 1rem;
-  border: 1px solid var(--lightGray);
-  border-radius: var(--radius);
+  border: 1px solid rgba(18, 15, 13, 0.08);
+  border-radius: 12px;
   font-size: 0.9rem;
-  color: var(--gray);
-  background: var(--white);
+  color: var(--stone);
+  background: rgba(255, 255, 255, 0.7);
   cursor: pointer;
 }
 
@@ -385,17 +391,19 @@
   gap: 2rem;
 }
 
-/* ====================== PRODUCT CARD ====================== */
 .productCard {
-  background: var(--white);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(18, 15, 13, 0.06);
+  border-radius: 22px;
   overflow: hidden;
+  box-shadow: var(--shadow-card);
   transition: all 0.3s ease;
 }
 
 .productCard:hover {
-  border-color: var(--gold-deep);
+  border-color: rgba(201, 169, 98, 0.5);
   transform: translateY(-4px);
+  box-shadow: var(--shadow-soft);
 }
 
 .productImage {
@@ -424,10 +432,10 @@
   color: var(--black);
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  border-radius: var(--radius);
+  border-radius: 999px;
 }
 
 .productOverlay {
@@ -436,7 +444,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(18, 15, 13, 0.42);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -452,9 +460,9 @@
   padding: 1rem 2rem;
   background: var(--white);
   border: none;
-  border-radius: var(--radius);
-  font-size: 0.9rem;
-  font-weight: 500;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--black);
   cursor: pointer;
@@ -470,18 +478,18 @@
 }
 
 .productCategory {
-  font-size: 0.8rem;
-  font-weight: 400;
+  font-size: 0.75rem;
+  font-weight: 700;
   letter-spacing: 0.15em;
-  color: var(--gold);
+  color: var(--gold-deep);
   text-transform: uppercase;
   margin-bottom: 0.5rem;
 }
 
 .productName {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
   font-weight: 500;
-  color: var(--black);
+  color: var(--ink);
   margin-bottom: 0.5rem;
 }
 
@@ -505,19 +513,20 @@
 .productPrice {
   font-size: 1.2rem;
   font-weight: 600;
-  color: var(--black);
+  color: var(--ink);
   margin-bottom: 1rem;
 }
 
 .addToCartButton {
   width: 100%;
   padding: 1rem;
-  background: var(--black);
+  background: var(--ink);
   border: none;
-  border-radius: var(--radius);
+  border-radius: 12px;
   font-size: 0.9rem;
   font-weight: 500;
   letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--white);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -525,7 +534,7 @@
 
 .addToCartButton:hover {
   background: var(--gold);
-  color: var(--black);
+  color: var(--ink);
 }
 
 /* ====================== PAGINATION ====================== */

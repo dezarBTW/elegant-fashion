@@ -1,7 +1,7 @@
 /* ======================================================================
    Design tokens — single source of truth for color, type, and spacing.
-   Every page in the project reads these instead of hardcoding values,
-   so a change here propagates everywhere automatically.
+   This premium visual refresh keeps the brand warmth while elevating the
+   experience with richer depth, softer contrast, and a more polished rhythm.
    ====================================================================== */
 @font-face {
   font-family: "Ragick";
@@ -12,49 +12,44 @@
 }
 
 :root {
-  /* Ink / paper — the site's two base surfaces */
-  --ink: #14120d;
-  --ink-soft: #221f19;
-  --paper: #f6f1e8;
-  --paper-dim: #ece4d3;
-  --white: #ffffff;
+  --ink: #120f0d;
+  --ink-soft: #1d1915;
+  --paper: #f4efe7;
+  --paper-deep: #e7dec8;
+  --paper-warm: #efe7d8;
+  --white: #fffdf9;
 
-  /* Accent ramp — brass gold is the one accent color in the system */
   --gold: #c9a962;
-  --gold-bright: #dabb7a;
-  --gold-deep: #a17a46;
-  --roseGold: #b76e79;
+  --gold-bright: #d8b77a;
+  --gold-deep: #9a7442;
+  --roseGold: #b97873;
+  --emerald: #0d5d4f;
 
-  /* Secondary accent, used sparingly (bespoke section, success states) */
-  --emerald: #046b4a;
+  --stone: #6a625a;
+  --stone-light: #938a7e;
+  --lightGray: #e9e0d9;
+  --line: rgba(18, 15, 13, 0.12);
+  --line-dark: rgba(255, 253, 249, 0.16);
 
-  /* Text + line weights */
-  --stone: #6b675e;
-  --stone-light: #948f83;
-  --lightGray: #e4ddcf;
-  --line: rgba(20, 18, 13, 0.12);
-  --line-dark: rgba(246, 241, 232, 0.16);
+  --danger: #ad4338;
+  --danger-bg: #f8eae6;
+  --success: #2d6a4b;
+  --success-bg: #e9f1ea;
 
-  /* Functional colors, warmed to sit inside the palette */
-  --danger: #a3402c;
-  --danger-bg: #f6e9e4;
-  --success: #3f7d52;
-  --success-bg: #e9f1e7;
-
-  /* Legacy aliases already referenced throughout the codebase */
   --black: var(--ink);
   --cream: var(--paper);
   --gray: var(--stone);
   --background: var(--paper);
   --foreground: var(--ink);
 
-  /* Type */
   --font-display: var(--font-playfair), Georgia, 'Times New Roman', serif;
   --font-sans: var(--font-geist-sans), 'Helvetica Neue', Arial, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', Consolas, monospace;
 
-  --radius: 4px;
-  --radius-lg: 10px;
+  --radius: 14px;
+  --radius-lg: 28px;
+  --shadow-soft: 0 22px 56px rgba(18, 15, 13, 0.12);
+  --shadow-card: 0 18px 42px rgba(18, 15, 13, 0.08);
 }
 
 html {
@@ -73,17 +68,29 @@ body {
   display: flex;
   flex-direction: column;
   color: var(--foreground);
-  background: var(--background);
+  background:
+    radial-gradient(circle at top, rgba(201, 169, 98, 0.18), transparent 30%),
+    linear-gradient(180deg, #f8f4ee 0%, var(--paper) 36%, #f2ebdf 100%);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;
+  letter-spacing: -0.01em;
+}
+
+img {
+  display: block;
+  max-width: 100%;
 }
 
 * {
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+}
+
+a {
+  color: inherit;
 }
 
 button,
@@ -96,6 +103,10 @@ textarea {
 button:not(:disabled),
 select:not(:disabled) {
   cursor: pointer;
+}
+
+::selection {
+  background: rgba(201, 169, 98, 0.3);
 }
 
 a {
