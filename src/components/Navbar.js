@@ -327,7 +327,7 @@ function Navbar() {
       <div className={styles.navContent}>
         <div className={styles.logoSection}>
           <Link href="/" className={styles.logo} onClick={closeMenu}>
-            ELEGANT STYLE FASHION
+            ELEGANT STYLE
           </Link>
         </div>
 

@@ -113,7 +113,7 @@
 .hero {
   min-height: min(860px, 100vh);
   margin-top: 60px;
-  background: var(--black);
+  background: var(--paper);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -128,7 +128,7 @@
 }
 
 .heroSlides {
-  background: var(--black);
+  background: var(--paper);
 }
 
 .heroSlide {
