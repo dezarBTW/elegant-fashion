@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { consumeRateLimit, formatRetryMessage, sanitizeEmail } from "@/lib/sanitizeInput";
@@ -14,7 +14,30 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [isDeactivated, setIsDeactivated] = useState(false);
+  const [checkingExistingSession, setCheckingExistingSession] = useState(true);
   const router = useRouter();
+
+  // If the user already has a valid session (e.g. they landed here right
+  // after Google OAuth finished establishing a session in the background),
+  // skip the form and send them straight in — avoids a race where this
+  // page renders before the OAuth exchange has fully completed.
+  useEffect(() => {
+    let mounted = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      if (data.session) {
+        router.replace("/");
+        router.refresh();
+        return;
+      }
+      setCheckingExistingSession(false);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, [router]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -99,7 +122,7 @@ export default function SignIn() {
     }
   };
 
-  if (loading) {
+  if (loading || checkingExistingSession) {
     return (
       <main className="sign-in-page sign-in-loading-page">
         <div className="spinner" aria-hidden="true" />
