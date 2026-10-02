@@ -5,7 +5,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { consumeRateLimit, formatRetryMessage, sanitizeEmail } from "@/lib/sanitizeInput";
-import "./signin.css";
+import Image from "next/image";
+import "../auth-atelier.css";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -124,15 +125,15 @@ export default function SignIn() {
 
   if (loading || checkingExistingSession) {
     return (
-      <main className="sign-in-page sign-in-loading-page">
+      <main className="auth-page auth-loading">
         <div className="spinner" aria-hidden="true" />
         <p>Signing you in...</p>
       </main>
     );
   }
 
-    return (
-    <main className="sign-in-page">
+  return (
+    <main className="auth-page">
       {isDeactivated && (
         <div className="deactivated-overlay" role="presentation">
           <section className="deactivated-modal" role="alertdialog" aria-modal="true" aria-labelledby="deactivated-title">
@@ -152,18 +153,33 @@ export default function SignIn() {
         </div>
       )}
 
-      <section className="sign-in-panel" aria-labelledby="sign-in-heading">
-        <p className="eyebrow">Welcome back</p>
-        <h1 id="sign-in-heading">Sign In</h1>
+      <section className="auth-media" aria-hidden="true">
+        <Image
+          src="/images/Hero/image%20%2823%29.jpg"
+          alt=""
+          fill
+          priority
+          sizes="50vw"
+        />
+        <div className="auth-media-veil" />
+        <div className="auth-media-copy">
+          <p>Welcome back</p>
+          <h2>Designed for the way you live.</h2>
+        </div>
+      </section>
 
+      <section className="auth-panel" aria-labelledby="sign-in-heading">
+        <div className="auth-panel-inner">
+          <h1 id="sign-in-heading">Sign In</h1>
+          <p className="auth-lede">Enter your details to access your account.</p>
 
-        {message && (
-          <div className="error-message" role="alert">
-            {message}
-          </div>
-        )}
+          {message && (
+            <div className="error-message" role="alert">
+              {message}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -200,12 +216,12 @@ export default function SignIn() {
             </div>
           </div>
 
-          <button className="sign-in-button" type="submit" disabled={loading}>
-            {loading ? "Signing In..." : "Sign In"}
-          </button>
-        </form>
+            <button className="auth-submit" type="submit" disabled={loading}>
+              {loading ? "Signing In..." : "Sign In"}
+            </button>
+          </form>
 
-        <div className="divider">or</div>
+          <div className="auth-divider">or</div>
 
         <button
           type="button"
@@ -219,12 +235,13 @@ export default function SignIn() {
             <path fill="#FBBC05" d="M3.98 10.71c-.18-.55-.28-1.13-.28-1.71s.1-1.16.28-1.71V4.95H.96A8.99 8.99 0 000 9c0 1.45.35 2.83.96 4.05l3.02-2.34z" />
             <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.6-2.6C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.95l3.02 2.34C4.69 5.16 6.67 3.58 9 3.58z" />
           </svg>
-          {loading ? "Please wait..." : "Continue with Google"}
-        </button>
+            {loading ? "Please wait..." : "Continue with Google"}
+          </button>
 
-        <p className="sign-up-prompt">
-          New to Elegant Fashion? <Link href="/sign-up">Create an account</Link>
-        </p>
+          <p className="auth-switch">
+            New to Elegant Fashion? <Link href="/sign-up">Create an account</Link>
+          </p>
+        </div>
       </section>
     </main>
   );

@@ -1,80 +1,123 @@
 .sign-up-page {
-    min-height: calc(100vh - 70px);
+    min-height: calc(100dvh - 70px);
     display: grid;
     place-items: center;
-    padding: 3rem 1.25rem;
-    background: var(--paper);
+    padding: 2rem 1.5rem;
+    background: linear-gradient(135deg, var(--paper) 0%, #faf8f3 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.sign-up-page::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 60%;
+    height: 100%;
+    background: radial-gradient(ellipse, rgba(161, 122, 70, 0.04) 0%, transparent 70%);
+    pointer-events: none;
 }
 
 .logpage {
-    max-width: 430px;
+    max-width: 420px;
     width: 100%;
     margin: 0;
-    padding: 42px;
+    padding: 3rem 3.5rem;
     background: var(--white);
-    border: 1px solid var(--line);
-    box-shadow: 0 18px 45px rgba(20, 18, 13, 0.08);
+    border: 1px solid rgba(18, 15, 13, 0.04);
+    border-radius: 20px;
+    box-shadow: 0 12px 32px rgba(18, 15, 13, 0.06), 0 24px 48px rgba(18, 15, 13, 0.04);
+    position: relative;
+    animation: signup-slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes signup-slide-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .eyebrow {
-    margin: 0 0 0.65rem;
+    margin: 0 0 0.5rem;
     color: var(--gold-deep);
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 600;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.18em;
     text-align: center;
     text-transform: uppercase;
 }
 
 .logpage h1 {
-    text-align: center;
+    margin: 0 0 0.4rem;
     color: var(--ink);
     font-family: var(--font-display);
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
     font-weight: 500;
-    margin-bottom: 8px;
-    font-size: 2rem;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    text-align: center;
 }
 
 .subtitle {
-    text-align: center;
+    max-width: 32ch;
+    margin: 0 auto 2rem;
     color: var(--stone);
-    margin-bottom: 30px;
-    font-size: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    text-align: center;
+}
+
+.logpage form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .form-group label {
     display: flex;
     justify-content: space-between;
+    align-items: baseline;
     gap: 0.75rem;
-    margin-bottom: 0.5rem;
     color: var(--ink);
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     font-weight: 600;
 }
 
 .form-group label span {
     color: var(--stone);
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 400;
 }
 
 .input {
     box-sizing: border-box;
     width: 100%;
-    padding: 13px 15px;
-    background: var(--paper);
+    min-height: 52px;
+    padding: 0.9rem 1rem;
     border: 1px solid var(--line);
-    border-radius: var(--radius);
-    font-size: 1rem;
-    font: inherit;
+    border-radius: 12px;
+    background: var(--paper);
     color: var(--ink);
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    font: inherit;
     outline: none;
+    transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.input:hover {
+    border-color: rgba(161, 122, 70, 0.35);
+}
+
+.input:focus-visible {
+    border-color: var(--gold-deep);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(161, 122, 70, 0.14);
 }
 
 .password-field {
@@ -82,79 +125,92 @@
 }
 
 .password-field .input {
-    padding-right: 74px;
+    padding-right: 5rem;
 }
 
 .password-toggle {
     position: absolute;
     top: 50%;
-    right: 10px;
-    transform: translateY(-50%);
-    border: none;
+    right: 0.35rem;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 0.65rem;
+    border: 0;
+    border-radius: 8px;
     background: transparent;
     color: var(--gold-deep);
     cursor: pointer;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     font-weight: 700;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
+    transform: translateY(-50%);
 }
 
 .password-toggle:hover {
     color: var(--ink);
+    background: rgba(161, 122, 70, 0.06);
 }
 
-.input:focus {
-    border-color: var(--gold-deep);
-    box-shadow: 0 0 0 3px rgba(161, 122, 70, 0.15);
+.password-toggle:focus-visible,
+.sign-up-button:focus-visible,
+.google-button:focus-visible {
+    outline: 2px solid var(--gold-deep);
+    outline-offset: 2px;
+}
+
+.field-hint,
+.field-error {
+    margin: 0;
+    font-size: 0.76rem;
+    line-height: 1.4;
 }
 
 .field-hint {
-    margin: 6px 0 0;
     color: var(--stone);
-    font-size: 0.78rem;
 }
 
 .field-error {
-    margin: 6px 0 0;
     color: var(--danger);
-    font-size: 0.78rem;
     font-weight: 500;
 }
 
 .sign-up-button {
     width: 100%;
-    padding: 14px;
+    min-height: 52px;
+    margin-top: 0.25rem;
+    padding: 0.9rem 1rem;
+    border: 0;
+    border-radius: 12px;
     background: var(--ink);
-    color: var(--paper);
-    border: none;
-    border-radius: var(--radius);
-    font-size: 1rem;
-    font-weight: 600;
+    color: var(--white);
     cursor: pointer;
-    transition: background 0.25s ease;
-    margin-bottom: 20px;
+    font: inherit;
+    font-size: 0.96rem;
+    font-weight: 600;
+    transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
 }
 
-.sign-up-button:hover {
-    background: var(--gold-deep);
-    color: var(--ink);
+.sign-up-button:hover:not(:disabled) {
+    background: var(--ink-soft);
+    box-shadow: 0 6px 14px rgba(18, 15, 13, 0.12);
+    transform: translateY(-1px);
 }
 
 .sign-up-button:disabled {
-    opacity: 0.6;
     cursor: not-allowed;
+    opacity: 0.55;
 }
 
 .divider {
     display: flex;
     align-items: center;
-    gap: 12px;
-    margin: 22px 0;
+    gap: 1rem;
+    margin: 1.5rem 0;
     color: var(--stone);
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
 }
 
@@ -170,114 +226,91 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 0.75rem;
     width: 100%;
-    padding: 13px;
+    min-height: 52px;
+    margin-bottom: 1.5rem;
+    padding: 0.9rem 1rem;
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: 12px;
     background: var(--white);
     color: var(--ink);
     cursor: pointer;
     font: inherit;
+    font-size: 0.95rem;
     font-weight: 600;
-    transition: background 0.2s ease, border-color 0.2s ease;
-    margin-bottom: 20px;
+    transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
 }
 
-.google-button:hover {
+.google-button:hover:not(:disabled) {
     border-color: var(--gold-deep);
     background: var(--paper);
+    transform: translateY(-1px);
 }
 
 .google-button:disabled {
     cursor: wait;
-    opacity: 0.65;
+    opacity: 0.55;
+}
+
+.google-button svg {
+    flex-shrink: 0;
 }
 
 .sign-in-prompt {
     margin: 1.25rem 0 0;
     color: var(--stone);
     font-size: 0.9rem;
+    line-height: 1.6;
     text-align: center;
 }
 
 .sign-in-prompt a {
     color: var(--gold-deep);
     font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.sign-in-prompt a:hover {
+    color: var(--ink);
 }
 
 .error-message {
+    margin-bottom: 1rem;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(173, 67, 56, 0.2);
+    border-radius: 12px;
     background: var(--danger-bg);
-    border: 1px solid var(--danger);
     color: var(--danger);
-    padding: 12px;
-    border-radius: var(--radius);
-    margin-bottom: 20px;
-    font-size: 0.9rem;
-    text-align: center;
+    font-size: 0.88rem;
+    line-height: 1.5;
 }
 
-.confirmation-message {
-    text-align: center;
-    padding: 30px 10px;
-}
+@media (max-width: 640px) {
+    .sign-up-page {
+        min-height: 100dvh;
+        padding: 1.25rem 1rem;
+    }
 
-.confirmation-message .success-icon {
-    margin-bottom: 20px;
-}
-
-.confirmation-message h2 {
-    font-size: 1.75rem;
-    color: var(--ink);
-    margin-bottom: 15px;
-}
-
-.confirmation-message p {
-    color: var(--stone);
-    font-size: 1rem;
-    margin-bottom: 10px;
-    line-height: 1.6;
-}
-
-.confirmation-message .countdown {
-    color: var(--gold-deep);
-    font-weight: 600;
-    font-size: 1.05rem;
-    margin: 20px 0;
-}
-
-@media (max-width: 768px) {
     .logpage {
-        width: 90%;
-        padding: 30px;
+        padding: 2rem 1.5rem;
+        border-radius: 16px;
     }
 
-    .logpage h1 {
-        font-size: 1.6rem;
-    }
-
-    .subtitle {
-        font-size: 0.95rem;
-        margin-bottom: 25px;
-    }
-
-    .input {
-        padding: 12px 16px;
-        font-size: 0.95rem;
+    .input,
+    .sign-up-button,
+    .google-button {
+        min-height: 50px;
     }
 }
 
-@media (max-width: 480px) {
-    .logpage {
-        width: 92%;
-        padding: 24px;
-    }
-
-    .logpage h1 {
-        font-size: 1.4rem;
-    }
-
-    .form-group {
-        margin-bottom: 15px;
+@media (prefers-reduced-motion: reduce) {
+    .logpage,
+    .input,
+    .sign-up-button,
+    .google-button {
+        animation: none;
+        transition: none;
     }
 }

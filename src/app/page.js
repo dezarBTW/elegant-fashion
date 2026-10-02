@@ -2,15 +2,13 @@
 import styles from "./page.module.css";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const heroSlides = [
-  { src: "/images/Hero/female-ankara-burgundy-midi_v2.jpg", alt: "Elegant burgundy Ankara midi dress" },
-  { src: "/images/Hero/female-ankara-peplum-gown_v2.jpg", alt: "Ankara peplum fashion gown" },
-  { src: "/images/Hero/Gemini_Generated_Image_6mf0bm6mf0bm6mf0.jfif", alt: "Editorial African fashion look" },
-  { src: "/images/Hero/Gemini_Generated_Image_88v5an88v5an88v5.jfif", alt: "Contemporary Nigerian fashion design" },
-  { src: "/images/Hero/Gemini_Generated_Image_p6lm3pp6lm3pp6lm.jfif", alt: "Tailored fashion collection portrait" },
-  { src: "/images/Hero/male-agbada-cream-stripes_v2.jpg", alt: "Cream striped agbada attire" },
+  { src: "/images/Hero/image%20%2820%29.jpg", alt: "Jeweled blue Ankara evening gown" },
+  { src: "/images/Hero/image%20%2821%29.jpg", alt: "Powder-blue lace outfit with a matching gele" },
+  { src: "/images/Hero/image%20%2822%29.jpg", alt: "Gold beaded occasion gown with a matching gele" },
+  { src: "/images/Hero/image%20%2823%29.jpg", alt: "Dark green lace gown with matching gele and coral accessories" },
 ];
 
 const collectionSlides = [
@@ -36,6 +34,8 @@ const servicePillars = [
 
 export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
+  const [carouselIndex, setCarouselIndex] = useState(0);
+  const carouselRef = useRef(null);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -48,24 +48,45 @@ export default function Home() {
     return () => window.clearInterval(slideTimer);
   }, []);
 
+  useEffect(() => {
+    const carousel = carouselRef.current;
+    if (!carousel) return;
+
+    const handleScroll = () => {
+      const scrollLeft = carousel.scrollLeft;
+      const itemWidth = carousel.querySelector('.carouselItem')?.offsetWidth || 320;
+      const index = Math.round(scrollLeft / itemWidth);
+      setCarouselIndex(index);
+    };
+
+    carousel.addEventListener('scroll', handleScroll);
+    return () => carousel.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className={styles.container}>
       <a className={styles.skipLink} href="#main-content">Skip to content</a>
 
       <section className={styles.hero} aria-label="Featured fashion collections">
-        <div className={styles.heroSlides} aria-live="polite">
-          {heroSlides.map((slide, index) => (
-            <div
-              key={slide.src}
-              className={`${styles.heroSlide} ${index === activeSlide ? styles.heroSlideActive : ""}`}
-              style={{ backgroundImage: `url(${slide.src})` }}
-              role="img"
-              aria-label={slide.alt}
-              aria-hidden={index !== activeSlide}
-            />
-          ))}
+        <div className={styles.heroVisual}>
+          <div className={styles.heroSlides} aria-live="polite">
+            {heroSlides.map((slide, index) => (
+              <div
+                key={slide.src}
+                className={`${styles.heroSlide} ${index === activeSlide ? styles.heroSlideActive : ""}`}
+                style={{ backgroundImage: `url(${slide.src})` }}
+                role="img"
+                aria-label={slide.alt}
+                aria-hidden={index !== activeSlide}
+              />
+            ))}
+          </div>
+          <div className={styles.slideProgress} aria-label={`Slide ${activeSlide + 1} of ${heroSlides.length}`}>
+            {heroSlides.map((slide, index) => (
+              <span key={slide.src} className={`${styles.slideDot} ${index === activeSlide ? styles.slideDotActive : ""}`} aria-hidden="true" />
+            ))}
+          </div>
         </div>
-        <div className={styles.heroGlow} aria-hidden="true" />
 
         <div className={styles.heroOverlay}>
           <h1 className={styles.heroTitle}>Designed for the way you live.</h1>
@@ -87,11 +108,6 @@ export default function Home() {
             ))}
           </div>
 
-          <div className={styles.slideProgress} aria-label={`Slide ${activeSlide + 1} of ${heroSlides.length}`}>
-            {heroSlides.map((slide, index) => (
-              <span key={slide.src} className={`${styles.slideDot} ${index === activeSlide ? styles.slideDotActive : ""}`} aria-hidden="true" />
-            ))}
-          </div>
         </div>
       </section>
 
@@ -106,21 +122,64 @@ export default function Home() {
               Thoughtful silhouettes, premium fabrics, and an unmistakable point of view. Our limited-edition collections are built for people who want unmistakable style without the compromise of fast fashion.
             </p>
 
-            <div className={styles.collectionGrid}>
-              {collectionSlides.map((item, index) => (
-                <div key={item.name}>
-                  <article className={styles.collectionCard}>
-                    <div className={styles.collectionImage}>
-                      <Image src={item.src} alt={item.alt} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
-                    </div>
-                    <div className={styles.collectionMeta}>
-                      <p>Collection</p>
-                      <h3>{item.name}</h3>
-                    </div>
-                    <Link className={`${styles.btn} ${styles.btnSmall} ${styles.btnOutline}`} href="/ready-to-wear">Shop collection</Link>
-                  </article>
-                </div>
-              ))}
+            <div className={styles.carouselContainer}>
+              <button 
+                className={`${styles.carouselBtn} ${styles.carouselPrev}`} 
+                onClick={() => {
+                  if (carouselRef.current) {
+                    carouselRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+                  }
+                }}
+                aria-label="Previous items"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              
+              <div className={styles.collectionGrid} ref={carouselRef}>
+                {collectionSlides.map((item, index) => (
+                  <div key={item.name} className={styles.carouselItem}>
+                    <article className={styles.collectionCard}>
+                      <div className={styles.collectionImage}>
+                        <Image src={item.src} alt={item.alt} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+                      </div>
+                      <div className={styles.collectionMeta}>
+                        <p>Collection</p>
+                        <h3>{item.name}</h3>
+                      </div>
+                      <Link className={`${styles.btn} ${styles.btnSmall} ${styles.btnOutline}`} href="/ready-to-wear">Shop collection</Link>
+                    </article>
+                  </div>
+                ))}
+              </div>
+
+              <button 
+                className={`${styles.carouselBtn} ${styles.carouselNext}`}
+                onClick={() => {
+                  if (carouselRef.current) {
+                    carouselRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+                  }
+                }}
+                aria-label="Next items"
+              >
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+
+              <div className={styles.carouselPagination} aria-label="Carousel navigation">
+                {collectionSlides.map((_, index) => (
+                  <button
+                    key={index}
+                    className={`${styles.carouselDot} ${index === carouselIndex ? styles.carouselDotActive : ''}`}
+                    onClick={() => {
+                      if (carouselRef.current) {
+                        const itemWidth = carouselRef.current.querySelector('.carouselItem')?.offsetWidth || 320;
+                        carouselRef.current.scrollTo({ left: index * itemWidth, behavior: 'smooth' });
+                      }
+                    }}
+                    aria-label={`Go to item ${index + 1}`}
+                    aria-current={index === carouselIndex ? 'true' : undefined}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </section>

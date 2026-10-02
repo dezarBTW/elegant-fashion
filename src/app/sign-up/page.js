@@ -3,7 +3,9 @@ import React from "react"
 import { supabase } from "@/lib/supabaseClient";
 import {useState, useEffect, useRef} from "react";
 import { useRouter} from "next/navigation";
-import styles from "./signup.css";
+import Image from "next/image";
+import Link from "next/link";
+import "../auth-atelier.css";
 import { consumeRateLimit, formatRetryMessage, sanitizeEmail, sanitizeText } from "@/lib/sanitizeInput";
 
 export default function SignUp() {
@@ -206,22 +208,38 @@ export default function SignUp() {
         !confirmPassword;
 
     return (
-        <main className="sign-up-page">
-            <section className="logpage" aria-labelledby="sign-up-heading">
-                <p className="eyebrow">Create your account</p>
+        <main className="auth-page auth-signup-page">
+            <section className="auth-media" aria-hidden="true">
+                <Image
+                    src="/images/Hero/image%20%2823%29.jpg"
+                    alt=""
+                    fill
+                    priority
+                    sizes="50vw"
+                />
+                <div className="auth-media-veil" />
+                <div className="auth-media-copy">
+                    <p>Elegant Fashion</p>
+                    <h2>A wardrobe with a point of view.</h2>
+                </div>
+            </section>
+
+            <section className="auth-panel" aria-labelledby="sign-up-heading">
+                <div className="auth-panel-inner">
+                <p className="auth-signup-eyebrow">Create your account</p>
                 <h1 id="sign-up-heading">Join Elegant Fashion</h1>
-                <p className="subtitle">Save your details and begin your fashion journey.</p>
+                <p className="auth-lede">Save your details and begin your fashion journey.</p>
                 {message && <div className="error-message" role="alert">{message}</div>}
-                <form onSubmit={(event) => { event.preventDefault(); createUser(); }}>
+                <form className="auth-form" onSubmit={(event) => { event.preventDefault(); createUser(); }}>
                     <div className="form-group">
-                        <label htmlFor="username">Username <span>Cannot be changed later</span></label>
-                        <input id="username" className="input" value={username} onChange={(e) => setUsername(sanitizeText(e.target.value))} type="text" autoComplete="username" required />
+                        <label htmlFor="username">Username <span className="label-note">Cannot be changed later</span></label>
+                        <input id="username" className="input" value={username} onChange={(e) => setUsername(sanitizeText(e.target.value))} type="text" autoComplete="username" aria-invalid={!!usernameMessage} required />
                         {checkingUsername && <p className="field-hint">Checking username...</p>}
                         {!checkingUsername && usernameMessage && <p className="field-error">{usernameMessage}</p>}
                     </div>
                     <div className="form-group">
                         <label htmlFor="email">Email address</label>
-                        <input id="email" className="input" value={email} onChange={(e) => setEmail(sanitizeEmail(e.target.value))} type="email" autoComplete="email" required />
+                        <input id="email" className="input" value={email} onChange={(e) => setEmail(sanitizeEmail(e.target.value))} type="email" autoComplete="email" aria-invalid={!!emailMessage} required />
                         {checkingEmail && <p className="field-hint">Checking email...</p>}
                         {!checkingEmail && emailMessage && <p className="field-error">{emailMessage}</p>}
                     </div>
@@ -243,12 +261,12 @@ export default function SignUp() {
                             </button>
                         </div>
                     </div>
-                    <button className="sign-up-button" type="submit" disabled={isDisabled}>
+                    <button className="auth-submit" type="submit" disabled={isDisabled}>
                         {loading ? "Creating Account..." : "Create account"}
                     </button>
                 </form>
 
-                <div className="divider">or</div>
+                <div className="auth-divider">or</div>
 
                 <button
                     type="button"
@@ -265,7 +283,8 @@ export default function SignUp() {
                     {loading ? "Please wait..." : "Continue with Google"}
                 </button>
 
-                <p className="sign-in-prompt">Already have an account? <a href="/sign-in">Sign in</a></p>
+                <p className="auth-switch">Already have an account? <Link href="/sign-in">Sign in</Link></p>
+                </div>
             </section>
         </main>
     )

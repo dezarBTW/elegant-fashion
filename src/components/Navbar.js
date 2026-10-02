@@ -394,7 +394,7 @@ function Navbar() {
                 >
                   <LoginIcon />
                   Sign In
-                </Link>
+                </Link> 
                 <Link
                   className={`${styles.authLink} ${styles.authLinkPrimary}`}
                   href="/sign-up"
