@@ -1,0 +1,23 @@
+- generic [active] [ref=f6e1]:
+  - navigation [ref=f6e2]:
+    - generic [ref=f6e3]:
+      - link "ELEGANT STYLE" [ref=f6e5] [cursor=pointer]:
+        - /url: /
+      - button "Toggle menu" [ref=f6e6] [cursor=pointer]
+      - generic [ref=f6e10]:
+        - generic [ref=f6e11]:
+          - link "HOME" [ref=f6e12] [cursor=pointer]:
+            - /url: /
+          - link "READY-TO-WEAR" [ref=f6e17] [cursor=pointer]:
+            - /url: /ready-to-wear
+          - link "FASHION ACADEMY" [ref=f6e21] [cursor=pointer]:
+            - /url: /course
+          - link "ABOUT US" [ref=f6e25] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=f6e28]:
+          - link "Sign In" [ref=f6e29] [cursor=pointer]:
+            - /url: /sign-in
+          - link "Sign Up" [ref=f6e33] [cursor=pointer]:
+            - /url: /sign-up
+  - paragraph [ref=f6e40]: Loading shop...
+  - button "Open Next.js Dev Tools" [ref=f6e46] [cursor=pointer]

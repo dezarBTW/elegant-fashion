@@ -6,7 +6,7 @@ import { useRouter} from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import "../auth-atelier.css";
-import { consumeRateLimit, formatRetryMessage, sanitizeEmail, sanitizeText } from "@/lib/sanitizeInput";
+import { consumeRateLimit, formatRetryMessage, sanitizeEmail } from "@/lib/sanitizeInput";
 
 export default function SignUp() {
     const [email, setEmail] = useState("");
@@ -14,83 +14,51 @@ export default function SignUp() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [username, setUsername] = useState("");
-    const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [emailMessage, setEmailMessage] = useState("");
-    const [usernameMessage, setUsernameMessage] = useState("");
     const [checkingEmail, setCheckingEmail] = useState(false);
-    const [checkingUsername, setCheckingUsername] = useState(false);
     const router = useRouter();
 
     // Monotonically increasing request ids so a slow, older response can never
     // clobber the result of a newer one (fixes race condition on fast typing).
     const emailRequestId = useRef(0);
-    const usernameRequestId = useRef(0);
 
-    // Real-time availability check for email and username (debounced).
+    // Real-time email availability check (debounced).
     useEffect(() => {
         const safeEmail = sanitizeEmail(email);
-        const safeUsername = sanitizeText(username);
 
-        // Clear stale results the instant a field becomes empty, instead of
-        // only when BOTH fields are empty.
         if (!safeEmail) {
             setEmailMessage("");
             setCheckingEmail(false);
         }
-        if (!safeUsername) {
-            setUsernameMessage("");
-            setCheckingUsername(false);
-        }
 
-        if (!safeEmail && !safeUsername) {
-            return;
-        }
+        if (!safeEmail) return;
 
         const timer = setTimeout(async () => {
-            if (safeEmail) {
-                const thisRequestId = ++emailRequestId.current;
-                setCheckingEmail(true);
-                const { data, error } = await supabase.rpc("check_email_exists", { check_email: safeEmail });
-                // Only apply this result if it's still the latest request AND
-                // the field hasn't changed to a different value in the meantime.
-                if (thisRequestId === emailRequestId.current && sanitizeEmail(email) === safeEmail) {
-                    if (error) {
-                        console.error(error);
-                        setEmailMessage("Unable to verify email right now.");
-                    } else {
-                        setEmailMessage(data ? "This email is already in use." : "");
-                    }
-                    setCheckingEmail(false);
+            const thisRequestId = ++emailRequestId.current;
+            setCheckingEmail(true);
+            const { data, error } = await supabase.rpc("check_email_exists", { check_email: safeEmail });
+            // Only apply this result if it's still the latest request AND
+            // the field hasn't changed to a different value in the meantime.
+            if (thisRequestId === emailRequestId.current && sanitizeEmail(email) === safeEmail) {
+                if (error) {
+                    console.error(error);
+                    setEmailMessage("Unable to verify email right now.");
+                } else {
+                    setEmailMessage(data ? "This email is already in use." : "");
                 }
-            }
-
-            if (safeUsername) {
-                const thisRequestId = ++usernameRequestId.current;
-                setCheckingUsername(true);
-                const { data, error } = await supabase.rpc("check_username_exists", { check_username: safeUsername });
-                if (thisRequestId === usernameRequestId.current && sanitizeText(username) === safeUsername) {
-                    if (error) {
-                        console.error(error);
-                        setUsernameMessage("Unable to verify username right now.");
-                    } else {
-                        setUsernameMessage(data ? "This username is already taken." : "");
-                    }
-                    setCheckingUsername(false);
-                }
+                setCheckingEmail(false);
             }
         }, 400);
 
         return () => clearTimeout(timer);
-    }, [email, username]);
+    }, [email]);
 
     const createUser = async () => {
         const safeEmail = sanitizeEmail(email);
-        const safeUsername = sanitizeText(username);
 
-        if (!safeEmail || !password || !safeUsername || !confirmPassword) {
+        if (!safeEmail || !password || !confirmPassword) {
             setMessage("Please fill in all fields");
             return;
         }
@@ -114,12 +82,9 @@ export default function SignUp() {
         setLoading(true);
         setMessage("");
 
-        // Final authoritative check for existing email or username right before
-        // signup — this is the real safety net regardless of what the real-time
-        // UI check showed, since it can't be bypassed by fast typing/network lag.
-        const { data: conflicts, error: lookupError } = await supabase
-            .rpc("check_signup_conflicts", { check_email: safeEmail, check_username: safeUsername })
-            .single();
+        // Check email availability again immediately before signup.
+        const { data: emailTaken, error: lookupError } = await supabase
+            .rpc("check_email_exists", { check_email: safeEmail });
 
         if (lookupError) {
             console.error(lookupError);
@@ -128,14 +93,8 @@ export default function SignUp() {
             return;
         }
 
-        if (conflicts?.email_taken || conflicts?.username_taken) {
-            if (conflicts.email_taken && conflicts.username_taken) {
-                setMessage("Both that email and username are already in use.");
-            } else if (conflicts.email_taken) {
-                setMessage("An account with that email already exists.");
-            } else {
-                setMessage("That username is already taken.");
-            }
+        if (emailTaken) {
+            setMessage("An account with that email already exists.");
             setLoading(false);
             return;
         }
@@ -146,9 +105,6 @@ export default function SignUp() {
                 password,
                 options: {
                     emailRedirectTo: `${window.location.origin}/sign-in`,
-                    data: {
-                        username: safeUsername,
-                    },
                 }
             });
 
@@ -156,7 +112,6 @@ export default function SignUp() {
                 console.error(error);
                 setMessage(error.message || "Error creating account");
             } else {
-                setUser(data.user);
                 router.push("/sign-in");
             }
         } catch (error) {
@@ -191,19 +146,13 @@ export default function SignUp() {
         }
     };
 
-    // Button stays disabled while a check is in flight, if either field has
-    // a known conflict, or if either field is still empty — this prevents
-    // submission before real-time verification has had a chance to run.
+    // Keep submission disabled while email verification is pending or invalid.
     const safeEmailValue = sanitizeEmail(email);
-    const safeUsernameValue = sanitizeText(username);
     const isDisabled =
         loading ||
         checkingEmail ||
-        checkingUsername ||
         !!emailMessage ||
-        !!usernameMessage ||
         !safeEmailValue ||
-        !safeUsernameValue ||
         !password ||
         !confirmPassword;
 
@@ -231,12 +180,6 @@ export default function SignUp() {
                 <p className="auth-lede">Save your details and begin your fashion journey.</p>
                 {message && <div className="error-message" role="alert">{message}</div>}
                 <form className="auth-form" onSubmit={(event) => { event.preventDefault(); createUser(); }}>
-                    <div className="form-group">
-                        <label htmlFor="username">Username <span className="label-note">Cannot be changed later</span></label>
-                        <input id="username" className="input" value={username} onChange={(e) => setUsername(sanitizeText(e.target.value))} type="text" autoComplete="username" aria-invalid={!!usernameMessage} required />
-                        {checkingUsername && <p className="field-hint">Checking username...</p>}
-                        {!checkingUsername && usernameMessage && <p className="field-error">{usernameMessage}</p>}
-                    </div>
                     <div className="form-group">
                         <label htmlFor="email">Email address</label>
                         <input id="email" className="input" value={email} onChange={(e) => setEmail(sanitizeEmail(e.target.value))} type="email" autoComplete="email" aria-invalid={!!emailMessage} required />

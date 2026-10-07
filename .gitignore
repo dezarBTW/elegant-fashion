@@ -24,6 +24,17 @@
 .DS_Store
 *.pem
 
+# local setup and planning notes
+/EXECUTE_NOW.md
+/IMPLEMENTATION_STATUS.md
+/MIGRATION_COMPLETE.md
+/PHASE1_PLAN.md
+/PHASE1_PROGRESS.md
+/PHASE1_STATUS.md
+/QUICK_START.txt
+/SUPABASE_CLI_SETUP.md
+/setup-supabase-cli.bat
+
 # debug
 npm-debug.log*
 yarn-debug.log*

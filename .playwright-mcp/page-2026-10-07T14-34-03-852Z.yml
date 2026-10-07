@@ -1,0 +1,22 @@
+- generic [active] [ref=f5e1]:
+  - navigation [ref=f5e2]:
+    - generic [ref=f5e3]:
+      - link "ELEGANT STYLE" [ref=f5e5] [cursor=pointer]:
+        - /url: /
+      - button "Toggle menu" [ref=f5e6] [cursor=pointer]
+      - generic [ref=f5e10]:
+        - generic [ref=f5e11]:
+          - link "HOME" [ref=f5e12] [cursor=pointer]:
+            - /url: /
+          - link "READY-TO-WEAR" [ref=f5e17] [cursor=pointer]:
+            - /url: /ready-to-wear
+          - link "FASHION ACADEMY" [ref=f5e21] [cursor=pointer]:
+            - /url: /course
+          - link "ABOUT US" [ref=f5e25] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=f5e28]:
+          - link "Sign In" [ref=f5e29] [cursor=pointer]:
+            - /url: /sign-in
+          - link "Sign Up" [ref=f5e33] [cursor=pointer]:
+            - /url: /sign-up
+  - paragraph [ref=f5e40]: Loading shop...

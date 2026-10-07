@@ -15,6 +15,9 @@ export default function ReadyToWear() {
   const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState("featured");
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [cartNotice, setCartNotice] = useState("");
   const itemsPerPage = 10;
 
   // Products are public (see "Public can view products" RLS policy), so
@@ -24,6 +27,12 @@ export default function ReadyToWear() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    if (!cartNotice) return undefined;
+    const timeout = window.setTimeout(() => setCartNotice(""), 2400);
+    return () => window.clearTimeout(timeout);
+  }, [cartNotice]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -44,24 +53,38 @@ export default function ReadyToWear() {
                       (priceRange === "low" && product.price <= 40000) ||
                       (priceRange === "medium" && product.price > 40000 && product.price <= 60000) ||
                       (priceRange === "high" && product.price > 60000);
-    const searchMatch = searchQuery === "" || product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchContent = [
+      product.name,
+      product.category,
+      product.description,
+      JSON.stringify(product.specifications || {}),
+    ].filter(Boolean).join(" ").toLowerCase();
+    const searchMatch = searchQuery === "" || searchContent.includes(searchQuery.trim().toLowerCase());
     return categoryMatch && priceMatch && searchMatch;
   });
 
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const sortedProducts = [...filteredProducts].sort((first, second) => {
+    if (sortOrder === "price-ascending") return first.price - second.price;
+    if (sortOrder === "price-descending") return second.price - first.price;
+    if (sortOrder === "newest") return new Date(second.created_at) - new Date(first.created_at);
+    return 0;
+  });
+
+  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+  const currentProducts = sortedProducts.slice(startIndex, endIndex);
 
   const addToCart = (product) => {
-    setCart([...cart, product]);
+    setCart((currentCart) => [...currentCart, product]);
+    setCartNotice(`${product.name} added to your bag`);
   };
 
   const removeFromCart = (index) => {
     setCart(cart.filter((_, i) => i !== index));
   };
 
-  const cartTotal = cart.reduce((total, item) => total + item.price, 0);
+  const cartTotal = cart.reduce((total, item) => total + Number(item.sale_price || item.price), 0);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -74,29 +97,6 @@ export default function ReadyToWear() {
         <div className={styles.loadingContainer}>
           <div className={styles.spinner} aria-hidden="true" />
           <p>Loading shop...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.unavailableContainer}>
-          <div className={styles.unavailableContent}>
-            <div className={styles.unavailableIcon}>
-              <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#c9a962" strokeWidth="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <line x1="12" y1="8" x2="12" y2="12"></line>
-                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-              </svg>
-            </div>
-            <h2 className={styles.unavailableTitle}>Coming Soon</h2>
-            <p className={styles.unavailableMessage}>Ready to wear products are still unavailable at this moment.</p>
-            <Link href="/" className={styles.backButton}>
-              Return to Home
-            </Link>
-          </div>
         </div>
       </div>
     );
@@ -136,246 +136,153 @@ export default function ReadyToWear() {
 
   return (
     <div className={styles.container}>
-      {/* Admin Toolbar - only visible to admins */}
       {isAdmin && (
-        <section className={styles.adminToolbar}>
-          <Link href="/admin" className={styles.manageProductsButton}>
-            Product Management
-          </Link>
-        </section>
+        <Link href="/admin" className={styles.adminLink}>
+          Product management <span aria-hidden="true">↗</span>
+        </Link>
       )}
 
-      {/* Search Bar Section */}
-      <section className={styles.searchSection}>
-        <div className={styles.searchContainer}>
-          <input
-            type="text"
-            placeholder="Search for products..."
-            className={styles.searchInput}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          <button className={styles.searchButton}>Search</button>
-        </div>
-      </section>
-
-      {/* Promotional Banner */}
-      <section className={styles.promoBanner}>
-        <div className={styles.promoContent}>
-          <h2 className={styles.promoTitle}>Summer Sale - Up to 30% Off</h2>
-          <p className={styles.promoSubtitle}>Limited time offer on selected items</p>
-        </div>
-      </section>
-
-      {/* Main Content */}
-      <div className={styles.mainContent}>
-        {/* Sidebar Filters */}
-        <aside className={styles.sidebar}>
-          <div className={styles.filterSection}>
-            <h3 className={styles.filterTitle}>Categories</h3>
-            <div className={styles.categoryList}>
-              {categories.map(category => (
-                <button
-                  key={category}
-                  className={`${styles.categoryButton} ${selectedCategory === category ? styles.active : ''}`}
-                  onClick={() => {
-                    setSelectedCategory(category);
+      <main className={styles.shop}>
+        <section className={styles.collection} id="collection" aria-label="Shop the collection">
+          <div className={styles.collectionHeading}>
+            <div>
+              <h2>Find your next favourite</h2>
+            </div>
+            <div className={styles.searchPanel}>
+              <label className={styles.searchField}>
+                <span className={styles.srOnly}>Search products by name, category, or details</span>
+                <input
+                  type="search"
+                  placeholder="Name, category or details"
+                  value={searchQuery}
+                  onChange={(event) => {
+                    setSearchQuery(event.target.value);
                     setCurrentPage(1);
                   }}
-                >
-                  {category}
-                </button>
-              ))}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className={styles.clearSearch}
+                    aria-label="Clear product search"
+                    onClick={() => { setSearchQuery(''); setCurrentPage(1); }}
+                  >
+                    Clear <span aria-hidden="true">×</span>
+                  </button>
+                )}
+              </label>
             </div>
           </div>
 
-          <div className={styles.filterSection}>
-            <h3 className={styles.filterTitle}>Price Range</h3>
-            <div className={styles.priceOptions}>
-              <label className={styles.priceOption}>
-                <input
-                  type="radio"
-                  name="price"
-                  value="all"
-                  checked={priceRange === "all"}
-                  onChange={(e) => {
-                    setPriceRange(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                />
-                All Prices
+          <nav className={styles.categoryRail} aria-label="Product categories">
+            {categories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                className={`${styles.categoryButton} ${selectedCategory === category ? styles.categoryActive : ''}`}
+                aria-pressed={selectedCategory === category}
+                onClick={() => {
+                  setSelectedCategory(category);
+                  setCurrentPage(1);
+                }}
+              >
+                {category}
+              </button>
+            ))}
+          </nav>
+
+          <div className={styles.resultsBar}>
+            <div className={styles.resultControls}>
+              <label>
+                <span className={styles.srOnly}>Filter by price</span>
+                <select value={priceRange} onChange={(event) => { setPriceRange(event.target.value); setCurrentPage(1); }}>
+                  <option value="all">All prices</option>
+                  <option value="low">Under ₦40,000</option>
+                  <option value="medium">₦40,000–₦60,000</option>
+                  <option value="high">Over ₦60,000</option>
+                </select>
               </label>
-              <label className={styles.priceOption}>
-                <input
-                  type="radio"
-                  name="price"
-                  value="low"
-                  checked={priceRange === "low"}
-                  onChange={(e) => {
-                    setPriceRange(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                />
-                Under ₦40,000
-              </label>
-              <label className={styles.priceOption}>
-                <input
-                  type="radio"
-                  name="price"
-                  value="medium"
-                  checked={priceRange === "medium"}
-                  onChange={(e) => {
-                    setPriceRange(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                />
-                ₦40,000 - ₦60,000
-              </label>
-              <label className={styles.priceOption}>
-                <input
-                  type="radio"
-                  name="price"
-                  value="high"
-                  checked={priceRange === "high"}
-                  onChange={(e) => {
-                    setPriceRange(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                />
-                Over ₦60,000
+              <label>
+                <span className={styles.srOnly}>Sort products</span>
+                <select value={sortOrder} onChange={(event) => { setSortOrder(event.target.value); setCurrentPage(1); }}>
+                  <option value="featured">Featured</option>
+                  <option value="newest">New arrivals</option>
+                  <option value="price-ascending">Price: low to high</option>
+                  <option value="price-descending">Price: high to low</option>
+                </select>
               </label>
             </div>
           </div>
-        </aside>
 
-        {/* Product Grid */}
-        <main className={styles.productGrid}>
-          <div className={styles.gridHeader}>
-            <h2 className={styles.gridTitle}>{filteredProducts.length} Products</h2>
-            <select className={styles.sortSelect}>
-              <option>Sort by: Featured</option>
-              <option>Price: Low to High</option>
-              <option>Price: High to Low</option>
-              <option>Newest</option>
-              <option>Top Rated</option>
-            </select>
-          </div>
-
-          <div className={styles.products}>
-            {currentProducts.map(product => (
-              <div key={product.id} className={styles.productCard}>
-                <div className={styles.productImage}>
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={300}
-                    height={400}
-                    className={styles.image}
-                  />
-                  <div className={styles.productBadge}>New</div>
-                  <div className={styles.productOverlay}>
-                    <button
-                      className={styles.quickViewButton}
-                      onClick={() => addToCart(product)}
-                    >
-                      Add to Cart
+          {currentProducts.length ? (
+            <div className={styles.products}>
+              {currentProducts.map((product, index) => (
+                <article key={product.id} className={styles.productCard} style={{ '--item-index': index }}>
+                  <div className={styles.productImage}>
+                    {product.image ? (
+                      <Image src={product.image} alt={product.name} fill priority={index === 0} sizes="(max-width: 600px) 50vw, (max-width: 1000px) 33vw, 25vw" className={styles.image} />
+                    ) : (
+                      <div className={styles.imageFallback} aria-label="Product image coming soon">E</div>
+                    )}
+                    {product.sale_price && product.sale_price < product.price && <span className={styles.productBadge}>Special price</span>}
+                    <button className={styles.quickAdd} type="button" onClick={() => addToCart(product)} aria-label={`Add ${product.name} to cart`}>
+                      Quick add <span aria-hidden="true">+</span>
                     </button>
                   </div>
-                </div>
-                <div className={styles.productInfo}>
-                  <span className={styles.productCategory}>{product.category}</span>
-                  <h3 className={styles.productName}>{product.name}</h3>
-                  <div className={styles.productRating}>
-                    <span className={styles.stars}>{"★".repeat(Math.floor(product.rating))}</span>
-                    <span className={styles.reviews}>({product.reviews})</span>
+                  <div className={styles.productInfo}>
+                    <span className={styles.productCategory}>{product.category || 'Ready to wear'}</span>
+                    <h3 className={styles.productName}>{product.name}</h3>
+                    <div className={styles.productMeta}>
+                      <span className={styles.productPrice}>₦{Number(product.sale_price || product.price).toLocaleString('en-NG')}</span>
+                      {product.sale_price && product.sale_price < product.price && <del className={styles.oldPrice}>₦{Number(product.price).toLocaleString('en-NG')}</del>}
+                    </div>
                   </div>
-                  <p className={styles.productPrice}>₦{product.price.toLocaleString()}</p>
-                  <button
-                    className={styles.addToCartButton}
-                    onClick={() => addToCart(product)}
-                  >
-                    Add to Cart
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className={styles.pagination}>
-              <button
-                className={styles.paginationButton}
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <button
-                  key={page}
-                  className={`${styles.paginationButton} ${currentPage === page ? styles.active : ''}`}
-                  onClick={() => handlePageChange(page)}
-                >
-                  {page}
-                </button>
+                </article>
               ))}
-              <button
-                className={styles.paginationButton}
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
+            </div>
+          ) : (
+            <div className={styles.emptyState}>
+              <p className={styles.eyebrow}>NOTHING IN THIS EDIT</p>
+              <h3>No pieces found</h3>
+              <p>Try another category or clear your search.</p>
+              <button type="button" onClick={() => { setSearchQuery(''); setSelectedCategory('All'); setPriceRange('all'); }}>Clear filters</button>
             </div>
           )}
-        </main>
 
-        {/* Shopping Cart Sidebar */}
-        <aside className={`${styles.cartSidebar} ${cart.length > 0 ? styles.open : ''}`}>
-          <div className={styles.cartHeader}>
-            <h3 className={styles.cartTitle}>Shopping Cart ({cart.length})</h3>
-            <button className={styles.closeCart} onClick={() => setCart([])}>×</button>
-          </div>
-          <div className={styles.cartItems}>
-            {cart.map((item, index) => (
-              <div key={index} className={styles.cartItem}>
-                <div className={styles.cartItemImage}>
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    width={60}
-                    height={80}
-                  />
-                </div>
-                <div className={styles.cartItemInfo}>
-                  <h4 className={styles.cartItemName}>{item.name}</h4>
-                  <p className={styles.cartItemPrice}>₦{item.price.toLocaleString()}</p>
-                </div>
-                <button
-                  className={styles.removeCartItem}
-                  onClick={() => removeFromCart(index)}
-                >
-                  Remove
-                </button>
-              </div>
-            ))}
-          </div>
-          <div className={styles.cartFooter}>
-            <div className={styles.cartTotal}>
-              <span>Total:</span>
-              <span>₦{cartTotal.toLocaleString()}</span>
+          {totalPages > 1 && (
+            <nav className={styles.pagination} aria-label="Product pages">
+              <button type="button" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
+              <span>{currentPage} <span aria-hidden="true">/</span> {totalPages}</span>
+              <button type="button" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
+            </nav>
+          )}
+        </section>
+      </main>
+
+      <button className={styles.cartToggle} type="button" onClick={() => setIsCartOpen(true)} aria-label={`Open cart, ${cart.length} items`}>
+        Cart <span>{cart.length}</span>
+      </button>
+      {cartNotice && <p className={styles.cartNotice} role="status" aria-live="polite">{cartNotice}</p>}
+
+      {isCartOpen && (
+        <div className={styles.cartOverlay} role="presentation" onClick={() => setIsCartOpen(false)}>
+          <aside className={styles.cartDrawer} role="dialog" aria-modal="true" aria-labelledby="cart-title" onClick={(event) => event.stopPropagation()}>
+            <div className={styles.cartHeader}>
+              <div><p className={styles.eyebrow}>CART DETAILS</p><h2 id="cart-title">Your cart <span>({cart.length})</span></h2></div>
+              <button type="button" className={styles.closeCart} aria-label="Close cart" onClick={() => setIsCartOpen(false)}>×</button>
             </div>
-            <button className={styles.checkoutButton}>Proceed to Checkout</button>
-          </div>
-        </aside>
-      </div>
-
-      {/* Cart Toggle Button */}
-      {cart.length > 0 && (
-        <button className={styles.cartToggle} onClick={() => setCart([])}>
-          🛒 {cart.length}
-        </button>
+            <div className={styles.cartItems}>
+              {cart.length ? cart.map((item, index) => (
+                <article key={`${item.id}-${index}`} className={styles.cartItem}>
+                  {item.image && <Image src={item.image} alt="" width={76} height={96} />}
+                  <div className={styles.cartItemInfo}><h3>{item.name}</h3><p>₦{Number(item.sale_price || item.price).toLocaleString('en-NG')}</p></div>
+                  <button type="button" className={styles.removeCartItem} onClick={() => removeFromCart(index)}>Remove</button>
+                </article>
+              )) : <p className={styles.emptyCart}>Your cart is empty.</p>}
+            </div>
+            {cart.length > 0 && <div className={styles.cartFooter}><p><span>Subtotal</span><strong>₦{cartTotal.toLocaleString('en-NG')}</strong></p><span>Shipping and taxes calculated at checkout.</span><button type="button" disabled>Continue to checkout</button></div>}
+          </aside>
+        </div>
       )}
     </div>
   );

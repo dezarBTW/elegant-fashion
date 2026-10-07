@@ -252,11 +252,6 @@ function Navbar() {
       </button>
       {openProfileMenu === (mobile ? 'mobile' : 'desktop') && (
         <div className={styles.profileMenu} role="menu">
-          <button type="button" role="menuitem" onClick={() => setOpenProfileMenu(null)}>
-            <CollectionIcon />
-            My Cart
-            <span className={styles.cartCount}>0</span>
-          </button>
           <button type="button" role="menuitem" onClick={openPasswordModal}>
             <UserIcon />
             Change password

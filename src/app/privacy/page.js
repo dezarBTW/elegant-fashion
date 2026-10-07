@@ -23,7 +23,6 @@ export default function PrivacyPolicy() {
             <p>When you create an account, we collect:</p>
             <ul>
               <li>Email address</li>
-              <li>Username</li>
               <li>Encrypted password (managed by Supabase Auth)</li>
             </ul>
 

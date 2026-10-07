@@ -17,9 +17,7 @@ export default function ProductsAdmin() {
     name: "",
     price: "",
     category: "",
-    image: "",
-    rating: "4.5",
-    reviews: "0"
+    image: ""
   });
   const [editMode, setEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -61,9 +59,7 @@ export default function ProductsAdmin() {
       name: sanitizeText(formData.name),
       price: parseFloat(formData.price),
       category: sanitizeText(formData.category),
-      image: formData.image || "/images/placeholder.jpg",
-      rating: parseFloat(formData.rating),
-      reviews: parseInt(formData.reviews)
+      image: formData.image || "/images/placeholder.jpg"
     };
 
     if (editMode && editId) {
@@ -109,9 +105,7 @@ export default function ProductsAdmin() {
       name: product.name,
       price: product.price,
       category: product.category,
-      image: product.image,
-      rating: product.rating,
-      reviews: product.reviews
+      image: product.image
     });
   };
 
@@ -157,9 +151,7 @@ export default function ProductsAdmin() {
       name: "",
       price: "",
       category: "",
-      image: "",
-      rating: "4.5",
-      reviews: "0"
+      image: ""
     });
   };
 
@@ -313,32 +305,6 @@ export default function ProductsAdmin() {
             )}
           </div>
 
-          <div className="form-row">
-            <div className="form-group">
-              <label>Rating (1-5)</label>
-              <input
-                type="number"
-                name="rating"
-                value={formData.rating}
-                onChange={handleChange}
-                min="1"
-                max="5"
-                step="0.1"
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Reviews Count</label>
-              <input
-                type="number"
-                name="reviews"
-                value={formData.reviews}
-                onChange={handleChange}
-                min="0"
-              />
-            </div>
-          </div>
-
           <div className="form-actions">
             <button type="submit" className="submit-btn">
               {editMode ? "Update Product" : "Add Product"}
@@ -371,9 +337,6 @@ export default function ProductsAdmin() {
                 <h3>{product.name}</h3>
                 <p className="product-category">{product.category}</p>
                 <p className="product-price">₦{product.price?.toLocaleString()}</p>
-                <p className="product-rating">
-                  ★ {product.rating} ({product.reviews} reviews)
-                </p>
               </div>
               <div className="product-actions">
                 <button

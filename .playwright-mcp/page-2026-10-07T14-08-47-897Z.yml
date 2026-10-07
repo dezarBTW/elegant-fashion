@@ -1,0 +1,96 @@
+- generic [ref=f3e1]:
+  - navigation [ref=f3e2]:
+    - generic [ref=f3e3]:
+      - link "ELEGANT STYLE" [ref=f3e5] [cursor=pointer]:
+        - /url: /
+      - button "Toggle menu" [ref=f3e6] [cursor=pointer]
+      - generic [ref=f3e10]:
+        - generic [ref=f3e11]:
+          - link "HOME" [ref=f3e12] [cursor=pointer]:
+            - /url: /
+          - link "READY-TO-WEAR" [ref=f3e17] [cursor=pointer]:
+            - /url: /ready-to-wear
+          - link "FASHION ACADEMY" [ref=f3e21] [cursor=pointer]:
+            - /url: /course
+          - link "ABOUT US" [ref=f3e25] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=f3e28]:
+          - link "Sign In" [ref=f3e29] [cursor=pointer]:
+            - /url: /sign-in
+          - link "Sign Up" [ref=f3e33] [cursor=pointer]:
+            - /url: /sign-up
+  - generic [ref=f3e37]:
+    - main [ref=f3e50]:
+      - generic [ref=f3e51]: Home / Ready to wear
+      - region "Shop the collection" [ref=f3e52]:
+        - generic [ref=f3e53]:
+          - generic [ref=f3e54]:
+            - paragraph [ref=f3e55]: THE ELEGANT STYLE INDEX / 01
+            - heading "Find your next favourite" [level=2] [ref=f3e56]
+          - generic [ref=f3e57]:
+            - generic [ref=f3e58]:
+              - generic [ref=f3e59]: Search products by name, category, or details
+              - generic [aria-hidden] [ref=f3e60]: ES 01
+              - searchbox "Search products by name, category, or details" [ref=f3e61]
+            - paragraph [ref=f3e62]:
+              - text: LIVE LOOKUP
+              - generic [ref=f3e63]: 02 PIECES
+        - navigation "Product categories" [ref=f3e64]:
+          - button "All" [pressed] [ref=f3e65] [cursor=pointer]
+          - button "Dresses" [ref=f3e66] [cursor=pointer]
+          - button "Skirts" [ref=f3e67] [cursor=pointer]
+          - button "Trousers" [ref=f3e68] [cursor=pointer]
+          - button "Tops" [ref=f3e69] [cursor=pointer]
+          - button "Jackets" [ref=f3e70] [cursor=pointer]
+          - button "Accessories" [ref=f3e71] [cursor=pointer]
+        - generic [ref=f3e72]:
+          - paragraph [ref=f3e73]:
+            - strong [ref=f3e74]: "2"
+            - text: pieces
+          - generic [ref=f3e75]:
+            - generic [ref=f3e76]:
+              - generic [ref=f3e77]: Filter by price
+              - combobox "Filter by price" [ref=f3e78] [cursor=pointer]:
+                - option "All prices" [selected]
+                - option "Under ₦40,000"
+                - option "₦40,000–₦60,000"
+                - option "Over ₦60,000"
+            - generic [ref=f3e79]:
+              - generic [ref=f3e80]: Sort products
+              - combobox "Sort products" [ref=f3e81] [cursor=pointer]:
+                - option "Featured" [selected]
+                - option "New arrivals"
+                - 'option "Price: low to high"'
+                - 'option "Price: high to low"'
+                - option "Top rated"
+        - generic [ref=f3e82]:
+          - article [ref=f3e83]:
+            - generic [ref=f3e84]:
+              - img "Gown" [ref=f3e85]
+              - button "Add Gown to cart" [ref=f3e86] [cursor=pointer]:
+                - text: Quick add
+                - generic [aria-hidden] [ref=f3e87]: +
+            - generic [ref=f3e88]:
+              - generic [ref=f3e89]: Dresses
+              - heading "Gown" [level=3] [ref=f3e90]
+              - generic [ref=f3e91]:
+                - generic [ref=f3e92]: ₦50,000
+                - generic [ref=f3e93]: ★ 4.5
+          - article [ref=f3e94]:
+            - generic [ref=f3e95]:
+              - img "Peplon dress" [ref=f3e96]
+              - button "Add Peplon dress to cart" [active] [ref=f3e97] [cursor=pointer]:
+                - text: Quick add
+                - generic [aria-hidden] [ref=f3e98]: +
+            - generic [ref=f3e99]:
+              - generic [ref=f3e100]: Dresses
+              - heading "Peplon dress" [level=3] [ref=f3e101]
+              - generic [ref=f3e102]:
+                - generic [ref=f3e103]: ₦100,000
+                - generic [ref=f3e104]: ★ 4.5
+    - button "Open shopping bag, 2 items" [ref=f3e110] [cursor=pointer]:
+      - text: Bag
+      - generic [ref=f3e106]: "2"
+    - status [ref=f3e111]: Peplon dress added to your bag
+  - button "Open Next.js Dev Tools" [ref=f3e46] [cursor=pointer]
+  - alert [ref=f3e107]
