@@ -46,7 +46,7 @@ export interface ProductVariant {
 }
 
 export interface ProductCategory {
-  categories: Category;
+  categories: Category | Category[];
 }
 
 export interface Category {
@@ -86,9 +86,9 @@ export async function getProducts(options: {
     .select(`
       id, name, slug, description, price, sale_price, is_active, is_featured,
       rating, reviews, created_at,
-      product_images(url, position, alt_text),
-      product_variants(id, size, color, color_hex, sku, price_modifier),
-      product_categories!inner(categories!inner(id, name, slug))
+      product_images(id, product_id, variant_id, url, position, alt_text, width, height),
+      product_variants(id, product_id, sku, size, color, color_hex, price_modifier, is_active),
+      product_categories!inner(categories!inner(id, name, slug, parent_id))
     `)
     .eq('is_active', true)
     .order('created_at', { ascending: false })
@@ -149,9 +149,9 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     .select(`
       id, name, slug, description, price, sale_price, is_active, is_featured,
       rating, reviews, created_at,
-      product_images(url, position, alt_text, width, height),
-      product_variants(id, sku, size, color, color_hex, price_modifier, is_active),
-      product_categories!inner(categories!inner(id, name, slug))
+      product_images(id, product_id, variant_id, url, position, alt_text, width, height),
+      product_variants(id, product_id, sku, size, color, color_hex, price_modifier, is_active),
+      product_categories!inner(categories!inner(id, name, slug, parent_id))
     `)
     .eq('slug', slug)
     .eq('is_active', true)
@@ -236,7 +236,7 @@ export async function getFeaturedProducts(limit = 6): Promise<Product[]> {
     .select(`
       id, name, slug, description, price, sale_price, is_active, is_featured,
       rating, reviews, created_at,
-      product_images(url, position, alt_text)
+      product_images(id, product_id, variant_id, url, position, alt_text, width, height)
     `)
     .eq('is_active', true)
     .eq('is_featured', true)
@@ -267,8 +267,8 @@ export async function searchProducts(options: {
       `
       id, name, slug, description, price, sale_price, is_active, is_featured,
       rating, reviews, created_at,
-      product_images(url, position, alt_text),
-      product_categories!inner(categories!inner(id, name, slug))
+      product_images(id, product_id, variant_id, url, position, alt_text, width, height),
+      product_categories!inner(categories!inner(id, name, slug, parent_id))
     `,
       { count: 'exact' }
     )
