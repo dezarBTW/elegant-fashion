@@ -110,12 +110,9 @@ function FieldError({ message }) {
 }
 
 export default function Course() {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [checkingRegistration, setCheckingRegistration] = useState(true);
-  const [pendingStudents, setPendingStudents] = useState([]);
-  const [acceptingStudent, setAcceptingStudent] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
 
   const [formData, setFormData] = useState(initialFormData);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -129,20 +126,11 @@ export default function Course() {
 
   useEffect(() => {
     if (user) {
-      if (isAdmin) {
-        // Admins manage the academy from this page; they should never be
-        // redirected to the student registration form, even if this
-        // account also happens to have a row in `students` (e.g. from
-        // registering before becoming an admin).
-        setCheckingRegistration(false);
-        fetchPendingStudents();
-      } else {
-        checkExistingRegistration();
-      }
+      checkExistingRegistration();
     } else if (!loading) {
       setCheckingRegistration(false);
     }
-  }, [user, loading, isAdmin]);
+  }, [user, loading]);
 
   useEffect(() => {
     if (!user) return;
@@ -156,52 +144,6 @@ export default function Course() {
     const { passport_photo, ...draft } = formData;
     setCachedValue(`registration-draft:${user.id}`, draft, REGISTRATION_DRAFT_TTL_MS);
   }, [formData, user, draftLoaded]);
-
-  const fetchPendingStudents = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("students")
-        .select("*")
-        .eq("accepted", false)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Error fetching pending students:", error);
-      } else {
-        setPendingStudents(data || []);
-      }
-    } catch (error) {
-      console.error("Error fetching pending students:", error);
-    }
-  };
-
-  const handleAcceptStudent = async (studentId) => {
-    setAcceptingStudent(studentId);
-    try {
-      const { error } = await supabase
-        .from("students")
-        .update({ accepted: true })
-        .eq("id", studentId);
-
-      if (error) {
-        console.error("Error accepting student:", error);
-        alert("Error accepting student. Please try again.");
-      } else {
-        // Remove from pending list
-        setPendingStudents((prev) => prev.filter((s) => s.id !== studentId));
-      }
-    } catch (error) {
-      console.error("Error accepting student:", error);
-      alert("Error accepting student. Please try again.");
-    } finally {
-      setAcceptingStudent(null);
-    }
-  };
-
-  const filteredStudents = pendingStudents.filter((student) => {
-    const fullName = `${student.first_name} ${student.surname} ${student.middle_name || ""}`.toLowerCase();
-    return fullName.includes(searchQuery.toLowerCase());
-  });
 
   const checkExistingRegistration = async () => {
     try {
@@ -427,61 +369,7 @@ export default function Course() {
 
   return (
     <div className="body">
-      {isAdmin ? (
-        <div className="admin-panel">
-          <div className="admin-header">
-            <h2>Admin Panel</h2>
-            <Link href="/course/accepted-students" className="admin-link-btn">
-              View Accepted Students
-            </Link>
-          </div>
-          <div className="search-container">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="enter student name"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          {filteredStudents.length > 0 ? (
-            <div className="pending-students">
-              <h3>Pending Students ({filteredStudents.length})</h3>
-              <div className="students-list">
-                {filteredStudents.map((student) => (
-                  <div key={student.id} className="student-card">
-                    <div className="student-info">
-                      <h4>{student.first_name} {student.surname}</h4>
-                      <p>{student.email}</p>
-                      <p>{student.chosen_programme}</p>
-                    </div>
-                    <div className="student-actions">
-                      <Link
-                        href={`/course/registration/${student.id}`}
-                        className="view-btn"
-                      >
-                        View Application
-                      </Link>
-                      <button
-                        onClick={() => handleAcceptStudent(student.id)}
-                        className="accept-btn"
-                        disabled={acceptingStudent === student.id}
-                      >
-                        {acceptingStudent === student.id ? "Accepting..." : "Accept"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : (
-            <div className="no-pending">
-              <p>{searchQuery ? "No students found matching your search." : "No pending students to review."}</p>
-            </div>
-          )}
-        </div>
-      ) : (
-        <>
+      <>
           <h1 className="header">STUDENT REGISTRATION FORM</h1>
           <Link href="/curriculum" className="curriculum-card">
             <h2>View Our Curriculum</h2>
@@ -857,7 +745,6 @@ export default function Course() {
         </form>
       </div>
         </>
-      )}
 
       {/* Success Modal */}
       {showSuccessModal && (

@@ -393,7 +393,7 @@ export default function BespokeRequestPage() {
             name="description"
             value={formData.description}
             onChange={handleChange}
-            placeholder="Describe your desired outfit: style, occasion, fit, colors, fabric, and any details you have in mind..."
+            placeholder="Describe your desired outfit: Measurements, Style, Occasion, Fit, Colors, Fabric, and any details you have in mind"
             rows={7}
             maxLength={MAX_DESCRIPTION}
             required

@@ -1,13 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import styles from "./readytowear.module.css";
-import Link from "next/link";
 import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 
 export default function ReadyToWear() {
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { loading: authLoading } = useAuth();
   const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState("all");
@@ -136,12 +135,6 @@ export default function ReadyToWear() {
 
   return (
     <div className={styles.container}>
-      {isAdmin && (
-        <Link href="/admin" className={styles.adminLink}>
-          Product management <span aria-hidden="true">↗</span>
-        </Link>
-      )}
-
       <main className={styles.shop}>
         <section className={styles.collection} id="collection" aria-label="Shop the collection">
           <div className={styles.collectionHeading}>

@@ -70,6 +70,13 @@ const HomeIcon = () => (
   </svg>
 );
 
+const AdminIcon = () => (
+  <svg className={styles.navIcon} viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 3 4 6v6c0 4.5 3.2 8.2 8 9 4.8-.8 8-4.5 8-9V6l-8-3Z" />
+    <path d="m9 12 2 2 4-4" />
+  </svg>
+);
+
 const getEmailInitials = (email) => {
   const localPart = email?.split('@')[0]?.trim() || '';
   const parts = localPart.split(/[._-]+/).filter(Boolean);
@@ -82,7 +89,7 @@ const getEmailInitials = (email) => {
 };
 
 function Navbar() {
-  const { user, logout } = useAuth();
+  const { user, logout, isAdmin } = useAuth();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openProfileMenu, setOpenProfileMenu] = useState(null);
@@ -366,6 +373,13 @@ function Navbar() {
               <AboutIcon />
               ABOUT US
             </Link>
+            {/* Only people with an admin account ever see this link. */}
+            {user && isAdmin && (
+              <Link href="/admin" onClick={closeMenu}>
+                <AdminIcon />
+                ADMIN
+              </Link>
+            )}
           </div>
 
           <div className={styles.authSection}>
