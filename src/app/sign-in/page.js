@@ -140,7 +140,7 @@ export default function SignIn() {
             <h2 id="deactivated-title">Account deactivated</h2>
             <p>
               Your account is no longer active and you cannot access it. Contact
-              Elegant Style to resolve this issue.
+              Elegant styles to resolve this issue.
             </p>
             <button
               type="button"
@@ -239,7 +239,7 @@ export default function SignIn() {
           </button>
 
           <p className="auth-switch">
-            New to Elegant Fashion? <Link href="/sign-up">Create an account</Link>
+            New to Elegant styles? <Link href="/sign-up">Create an account</Link>
           </p>
         </div>
       </section>

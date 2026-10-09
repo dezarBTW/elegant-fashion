@@ -21,7 +21,7 @@ const playfairDisplay = Playfair_Display({
 });
 
 export const metadata = {
-  title: "Elegant Fashion",
+  title: "Elegant styles",
   description: "Ready-to-wear, bespoke tailoring, and fashion design training.",
 };
 

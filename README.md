@@ -52,3 +52,16 @@ prefix, be imported by client components, or be committed to the repository:
 ```text
 SUPABASE_SERVICE_ROLE_KEY=your-server-only-service-role-key
 ```
+
+The bespoke request form also needs Resend configured with a verified sender
+domain. The recipient is kept server-side:
+
+```text
+RESEND_API_KEY=your-resend-api-key
+BESPOKE_NOTIFY_EMAIL=your-notification-email@example.com
+RESEND_FROM_EMAIL=Elegant Styles <requests@your-verified-domain.com>
+```
+
+Apply `supabase/migrations/20250101_bespoke_requests.sql` and then
+`supabase/migrations/20261008_bespoke_request_security.sql` to create the
+requests table, private image bucket, and server-side rate limiter.

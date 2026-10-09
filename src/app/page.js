@@ -96,7 +96,7 @@ export default function Home() {
 
           <div className={styles.heroCTA}>
             <Link className={`${styles.btn} ${styles.btnPrimary}`} href="/ready-to-wear">Shop With Us</Link>
-            <Link className={`${styles.btn} ${styles.btnSecondary}`} href="/contact">Book a fitting</Link>
+            <Link className={`${styles.btn} ${styles.btnSecondary}`} href="/bespoke/request">Book a fitting</Link>
           </div>
 
           <div className={styles.statsRow} aria-label="Brand statistics">
@@ -209,12 +209,12 @@ export default function Home() {
                 <p className={styles.sectionText}>
                   Our bespoke studio pairs traditional garment construction with modern styling to create pieces built around your shape, your routine, and your identity. Every detail is measured, considered, and finished with care.
                 </p>
-                <Link href="/contact" className={`${styles.btn} ${styles.btnPrimary}`}>Book a consultation</Link>
+                <Link href="/bespoke/request" className={`${styles.btn} ${styles.btnPrimary}`}>Book a consultation</Link>
               </div>
 
               <div className={styles.bespokeImage}>
                 <div className={styles.bespokeFrame}>
-                  <Image className={styles.bespokePhoto} src="/images/bespoke-CUbywJn6.jpg" alt="Elegant Fashion bespoke tailoring detail" width={900} height={675} sizes="(max-width: 768px) 100vw, 50vw" />
+                  <Image className={styles.bespokePhoto} src="/images/bespoke-CUbywJn6.jpg" alt="Elegant styles bespoke tailoring detail" width={900} height={675} sizes="(max-width: 768px) 100vw, 50vw" />
                 </div>
               </div>
             </div>
@@ -224,7 +224,7 @@ export default function Home() {
         <section id="about" className={`${styles.section} ${styles.sectionPanel}`}>
           <div className={styles.innerWrap}>
             <div className={styles.sectionHeader}>
-              <p className={styles.eyebrow}>Why Elegant Fashion</p>
+              <p className={styles.eyebrow}>Why Elegant styles</p>
               <h2 className={styles.sectionTitle}>Our promise is quiet confidence.</h2>
             </div>
 
@@ -284,13 +284,13 @@ export default function Home() {
         <div className={styles.innerWrap}>
           <div className={styles.footerContent}>
             <div className={styles.footerSection}>
-              <h3>Elegant Style Fashion</h3>
+              <h3>Elegant styles</h3>
               <p>Where individuality is refined.</p>
             </div>
             <div className={styles.footerSection}>
               <h4>Quick links</h4>
               <Link href="/ready-to-wear">Ready-to-wear</Link>
-              <Link href="/contact">Bespoke</Link>
+              <Link href="/bespoke/request">Bespoke</Link>
               <Link href="/course">Fashion school</Link>
               <Link href="/about">About us</Link>
             </div>
@@ -303,11 +303,11 @@ export default function Home() {
               <h4>Contact</h4>
               <p className={styles.footerAddress}>No 27 Biobgblo Isaac Boro Express Way,<br />Opposite Charismatic Church, Beside Rogas Plant,<br />Bayelsa State, Nigeria</p>
               <Link href="/contact">Get in touch</Link>
-              <Link href="https://wa.me/2348166361710" target="_blank" rel="noopener noreferrer">Book consultation</Link>
+              <Link href="/bespoke/request">Book consultation</Link>
             </div>
           </div>
 
-          <div className={styles.copyright}>© 2026 Elegant Style Fashion. All rights reserved.</div>
+          <div className={styles.copyright}>© 2026 Elegant styles. All rights reserved.</div>
         </div>
       </footer>
     </div>

@@ -168,7 +168,7 @@ export default function SignUp() {
                 />
                 <div className="auth-media-veil" />
                 <div className="auth-media-copy">
-                    <p>Elegant Fashion</p>
+                    <p>Elegant styles</p>
                     <h2>A wardrobe with a point of view.</h2>
                 </div>
             </section>
@@ -176,7 +176,7 @@ export default function SignUp() {
             <section className="auth-panel" aria-labelledby="sign-up-heading">
                 <div className="auth-panel-inner">
                 <p className="auth-signup-eyebrow">Create your account</p>
-                <h1 id="sign-up-heading">Join Elegant Fashion</h1>
+                <h1 id="sign-up-heading">Join Elegant styles</h1>
                 <p className="auth-lede">Save your details and begin your fashion journey.</p>
                 {message && <div className="error-message" role="alert">{message}</div>}
                 <form className="auth-form" onSubmit={(event) => { event.preventDefault(); createUser(); }}>

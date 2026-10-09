@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 000_security_hardening.sql
 -- Critical security fixes - APPLY FIRST before any other migrations
--- Project: Elegant Style Fashion (yrzvqvdrahfmmoprgukd)
+-- Project: Elegant styles (yrzvqvdrahfmmoprgukd)
 -- =============================================================================
 
 BEGIN;

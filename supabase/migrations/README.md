@@ -1,6 +1,6 @@
 # E-Commerce Database Migrations
 
-**Project:** Elegant Style Fashion (yrzvqvdrahfmmoprgukd)  
+**Project:** Elegant styles (yrzvqvdrahfmmoprgukd)  
 **Region:** eu-west-1  
 **Created:** 2026-10-07
 
@@ -15,6 +15,17 @@ These migrations **must** be run in order. Do not skip or reorder them.
 003_customer_ratings.sql   → FOURTH (removes the default 4.5 rating)
 004_remove_username.sql    → FIFTH (removes username from profiles and signup)
 ```
+
+The bespoke request flow uses a separate pair of migrations:
+
+```
+20250101_bespoke_requests.sql → creates the bespoke request table
+20261008_bespoke_request_security.sql → configures private uploads and rate limits
+```
+
+Run both in that order. The second migration removes any legacy public insert
+policy, makes the image bucket private, and adds the server-only 5-per-hour
+rate limiter.
 
 ---
 

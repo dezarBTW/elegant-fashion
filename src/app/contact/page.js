@@ -34,7 +34,7 @@ export default function Contact() {
           </div>
           <h3>Facebook</h3>
           <a href="https://web.facebook.com/elegantstylefashionacademy" target="_blank" rel="noopener noreferrer" className={styles.cardLink}>
-            elegantstylefashionacademy
+            Elegant styles
           </a>
         </div>
 

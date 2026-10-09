@@ -16,7 +16,7 @@ export default function TermsOfService() {
           <section className={styles.section}>
             <h2>1. Who May Use the Services</h2>
             <p>
-              Elegant Fashion provides ready-to-wear clothing, bespoke tailoring services, and fashion design training through this website and our physical locations in Bayelsa State, Nigeria.
+              Elegant styles provides ready-to-wear clothing, bespoke tailoring services, and fashion design training through this website and our physical locations in Bayelsa State, Nigeria.
             </p>
             <p>
               You may use our services if you are at least 13 years of age. If you are under 18, you may only use our services under the supervision of a parent or legal guardian. By creating an account, registering for courses, or placing an order, you represent that you meet these age requirements.
@@ -49,7 +49,7 @@ export default function TermsOfService() {
           <section className={styles.section}>
             <h2>3. Content on the Services</h2>
             <p>
-              All content provided through our services is owned by Elegant Fashion or our licensors and is protected by copyright, trademark, and other intellectual property laws. This includes:
+              All content provided through our services is owned by Elegant styles or our licensors and is protected by copyright, trademark, and other intellectual property laws. This includes:
             </p>
             <ul>
               <li>Product images, descriptions, and prices</li>
@@ -110,7 +110,7 @@ export default function TermsOfService() {
 
             <h3>Limitation of Liability</h3>
             <p>
-              To the fullest extent permitted by applicable law, Elegant Fashion shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or goodwill, arising from your use of our services.
+              To the fullest extent permitted by applicable law, Elegant styles shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or goodwill, arising from your use of our services.
             </p>
             <p>
               Our total liability to you for any claims arising from these terms or your use of our services shall not exceed the amount you paid us in the twelve (12) months preceding the claim, or one thousand Nigerian Naira (&#8358;1,000), whichever is greater.

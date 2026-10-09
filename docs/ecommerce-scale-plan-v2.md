@@ -3,7 +3,7 @@
 **Last updated:** 2026-10-07
 **Scope:** Products → Cart (stops before checkout/payment)
 **Stack:** Next.js 16 + React 19 + Supabase (Postgres 17, Auth, Storage) + Upstash Redis + Vercel
-**Database checked:** project "Elegant Style Fashion" (`eu-west-1`), read-only inspection on 2026-10-07
+**Database checked:** project "Elegant styles" (`eu-west-1`), read-only inspection on 2026-10-07
 **Companion files (apply in order):** `000_security_hardening.sql`, `001_catalog_and_cart.sql`, `002_backfill_and_constraints.sql`
 
 ---

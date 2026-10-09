@@ -127,13 +127,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  height: 38px;
-  padding: 0 1.1rem;
+  gap: 5px;
+  height: 30px;
+  padding: 0 0.8rem;
   border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.9);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   letter-spacing: 0.05em;
   text-decoration: none;
   transition: all 0.3s ease;
@@ -160,22 +160,24 @@
 
 .authIcon {
   flex-shrink: 0;
+  width: 13px;
+  height: 13px;
 }
 
 .navLogout {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  height: 38px;
-  padding: 0 1.1rem;
+  gap: 5px;
+  height: 30px;
+  padding: 0 0.8rem;
   background: transparent;
   border: 1px solid rgba(201, 169, 98, 0.45);
   border-radius: 6px;
   color: var(--gold);
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 400;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: none;
   cursor: pointer;
   transition: all 0.3s ease;

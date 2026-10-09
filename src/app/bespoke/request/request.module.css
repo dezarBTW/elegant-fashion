@@ -1,0 +1,444 @@
+.container {
+  min-height: 100dvh;
+  padding: 8.5rem 1.25rem 5rem;
+  background:
+    radial-gradient(circle at 50% 0, rgba(201, 169, 98, 0.12), transparent 28rem),
+    linear-gradient(180deg, #f8f4ee 0%, var(--paper) 42%, #f2ebdf 100%);
+}
+
+.header {
+  width: min(100%, 760px);
+  margin: 0 auto 3rem;
+  text-align: center;
+}
+
+.eyebrow {
+  margin-bottom: 1rem;
+  color: var(--gold-deep);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.header h1,
+.successContainer h1 {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  line-height: 1.12;
+}
+
+.header > p:last-child {
+  max-width: 36rem;
+  margin: 1rem auto 0;
+  color: var(--stone);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+
+.form {
+  display: grid;
+  width: min(100%, 680px);
+  gap: 2rem;
+  margin: 0 auto;
+}
+
+.field {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.field label {
+  color: var(--ink);
+  font-size: 0.96rem;
+  font-weight: 650;
+}
+
+.field label > span:not(.optional) {
+  color: var(--danger);
+}
+
+.optional {
+  color: var(--stone);
+  font-size: 0.88rem;
+  font-weight: 400;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  min-height: 3.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(18, 15, 13, 0.24);
+  border-radius: 12px;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.field textarea {
+  min-height: 11rem;
+  resize: vertical;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: #6d655c;
+  opacity: 1;
+}
+
+.field input:focus-visible,
+.field textarea:focus-visible {
+  border-color: var(--gold-deep);
+  outline: 3px solid rgba(154, 116, 66, 0.28);
+  outline-offset: 1px;
+}
+
+.field input:disabled,
+.field textarea:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.fieldHelper {
+  color: #625a52;
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.fieldFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.error {
+  color: #8e2e27;
+  font-size: 0.88rem;
+  font-weight: 550;
+  line-height: 1.45;
+}
+
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+.uploadZone {
+  display: flex;
+  width: 100%;
+  min-height: 10.5rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 1.5rem;
+  border: 1px dashed rgba(18, 15, 13, 0.34);
+  border-radius: 12px;
+  background: rgba(255, 253, 249, 0.62);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+
+.fileInput:focus-visible + .uploadZone,
+.uploadZone:focus-visible {
+  outline: 3px solid rgba(154, 116, 66, 0.32);
+  outline-offset: 3px;
+}
+
+.uploadZone:hover:not(:disabled),
+.uploadZoneDragging {
+  border-color: var(--gold-deep);
+  background: rgba(255, 253, 249, 0.95);
+}
+
+.uploadZone:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.uploadZone:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.uploadIcon {
+  width: 2rem;
+  height: 2rem;
+  margin-bottom: 0.2rem;
+  color: var(--gold-deep);
+}
+
+.uploadIcon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.uploadTitle {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.uploadHint {
+  color: #625a52;
+  font-size: 0.84rem;
+}
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.4rem;
+  list-style: none;
+}
+
+.imagePreview {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(18, 15, 13, 0.15);
+  border-radius: 12px;
+  background: var(--paper-deep);
+}
+
+.imagePreview img {
+  object-fit: cover;
+}
+
+.removeBtn {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid rgba(255, 253, 249, 0.9);
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--white);
+  cursor: pointer;
+  font-size: 1.45rem;
+  line-height: 1;
+  transition: transform 180ms ease, background-color 180ms ease;
+}
+
+.removeBtn:hover:not(:disabled) {
+  transform: scale(1.06);
+  background: var(--gold-deep);
+}
+
+.removeBtn:focus-visible {
+  outline: 3px solid var(--white);
+  outline-offset: 2px;
+}
+
+.removeBtn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.submitError {
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(142, 46, 39, 0.38);
+  border-radius: 12px;
+  background: var(--danger-bg);
+  color: #74251f;
+  font-size: 0.92rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 0.25rem;
+}
+
+.btn {
+  display: inline-flex;
+  min-height: 3.35rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.75rem;
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  background: var(--gold);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 0.96rem;
+  font-weight: 650;
+  text-align: center;
+  transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: var(--gold-bright);
+  background: var(--gold-bright);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn:focus-visible {
+  outline: 3px solid rgba(154, 116, 66, 0.36);
+  outline-offset: 3px;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.successContainer {
+  display: grid;
+  width: min(100%, 600px);
+  justify-items: center;
+  gap: 1.25rem;
+  margin: 3rem auto;
+  padding: clamp(2.5rem, 7vw, 4rem) 1.5rem;
+  border: 1px solid rgba(18, 15, 13, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 253, 249, 0.66);
+  text-align: center;
+}
+
+.successIcon {
+  display: grid;
+  width: 4rem;
+  height: 4rem;
+  place-items: center;
+  border: 1px solid rgba(45, 106, 75, 0.22);
+  border-radius: 50%;
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.successIcon svg {
+  width: 2rem;
+  height: 2rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.successContainer > p {
+  max-width: 30rem;
+  color: var(--stone);
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 7rem 1.1rem 3rem;
+  }
+
+  .header {
+    margin-bottom: 2rem;
+  }
+
+  .form {
+    gap: 1.6rem;
+  }
+
+  .actions,
+  .btn {
+    width: 100%;
+  }
+
+  .imageGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.loadingOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(20, 18, 13, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.loadingCard {
+  display: grid;
+  width: min(100%, 360px);
+  justify-items: center;
+  gap: 0.9rem;
+  padding: 2.25rem 1.75rem;
+  border: 1px solid rgba(18, 15, 13, 0.1);
+  border-radius: 16px;
+  background: var(--paper);
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid rgba(154, 116, 66, 0.22);
+  border-top-color: var(--gold-deep);
+  border-radius: 50%;
+  animation: bespokeSpin 0.9s linear infinite;
+}
+
+.loadingTitle {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.loadingHint {
+  color: var(--stone);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+@keyframes bespokeSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field input,
+  .field textarea,
+  .uploadZone,
+  .removeBtn,
+  .btn {
+    transition: none;
+  }
+
+  .spinner {
+    animation-duration: 2.4s;
+  }
+}

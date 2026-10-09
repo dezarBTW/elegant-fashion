@@ -1,5 +1,5 @@
 -- 000_security_hardening.sql
--- Fixes issues found by reading the live project "Elegant Style Fashion" on 2026-10-07.
+-- Fixes issues found by reading the live project "Elegant styles" on 2026-10-07.
 -- APPLY FIRST. Test on a branch (or a copy) before production, then check:
 --   sign-up, editing your own profile, admin product create/edit, admin product-image upload.
 

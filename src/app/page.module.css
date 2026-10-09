@@ -111,7 +111,7 @@
 
 /* ====================== HERO SECTION ====================== */
 .hero {
-  min-height: min(860px, 100dvh);
+  min-height: min(760px, 100dvh);
   padding-top: 60px;
   background: var(--paper);
   display: grid;
@@ -168,7 +168,7 @@
   grid-column: 1;
   align-self: center;
   max-width: 700px;
-  padding: 3rem 4rem 3.5rem clamp(2rem, 6vw, 5.5rem);
+  padding: 2.5rem 4rem 2.5rem clamp(2rem, 6vw, 5.5rem);
 }
 
 .heroTitle {
@@ -361,7 +361,7 @@
 
 /* ====================== SECTIONS ====================== */
 .section {
-  padding: clamp(5rem, 10vw, 9rem) 2rem;
+  padding: clamp(3rem, 6vw, 5rem) 2rem;
   margin-top: 0;
 }
 
@@ -438,7 +438,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 4rem;
+  margin-top: 2.5rem;
 }
 
 .carouselPagination {
@@ -599,7 +599,7 @@
   display: flex;
   gap: 1rem 2rem;
   justify-content: center;
-  margin-top: 3rem;
+  margin-top: 2rem;
   flex-wrap: wrap;
 }
 
@@ -608,7 +608,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.5rem;
-  margin-top: 4rem;
+  margin-top: 2.5rem;
 }
 
 .featureCard {
@@ -650,7 +650,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 2rem;
-  margin-top: 4rem;
+  margin-top: 2.5rem;
 }
 
 .testimonialCard {
@@ -721,12 +721,33 @@
 
 .bespokeText {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.bespokeText .eyebrow1 {
+  margin: 0 0 1rem;
+  text-align: left;
+}
+
+.bespokeText .sectionTitle {
+  max-width: 18ch;
+  margin: 0;
+  font-size: clamp(2rem, 3.4vw, 2.75rem);
+  line-height: 1.15;
+  text-align: left;
 }
 
 .bespokeText .sectionText {
-  margin-left: 0;
-  margin-right: 0;
+  max-width: 34rem;
+  margin: 1.25rem 0 0;
   text-align: left;
+}
+
+.bespokeText .btn {
+  margin-top: 2rem;
 }
 
 .bespokeImage {
@@ -766,14 +787,14 @@
 .footer {
   background: var(--black);
   color: var(--cream);
-  padding: 5rem 2rem 2rem;
+  padding: 3.5rem 2rem 1.5rem;
 }
 
 .footerContent {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 3rem;
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .footerSection h3,
@@ -925,7 +946,7 @@
     grid-row: 2;
     max-width: none;
     margin-top: 0;
-    padding: 2.25rem 1.5rem 3rem;
+    padding: 2rem 1.5rem 2.25rem;
   }
 
   .heroTitle {
@@ -944,7 +965,7 @@
   }
 
   .section {
-    padding: 5rem 1.25rem;
+    padding: 3rem 1.25rem;
   }
 
   .sectionTitle {
@@ -977,8 +998,25 @@
     align-items: stretch;
   }
 
+  .bespokeText {
+    align-items: center;
+    text-align: center;
+  }
+
+  .bespokeText .eyebrow1,
+  .bespokeText .sectionTitle,
   .bespokeText .sectionText {
     text-align: center;
+  }
+
+  .bespokeText .sectionTitle {
+    max-width: 20ch;
+    font-size: 1.9rem;
+  }
+
+  .bespokeText .sectionText {
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .bespokePhoto {
@@ -990,7 +1028,7 @@
   }
 
   .footer {
-    padding: 4rem 1.5rem 2rem;
+    padding: 3rem 1.5rem 1.5rem;
   }
 
   .footerContent {

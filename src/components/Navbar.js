@@ -322,7 +322,7 @@ function Navbar() {
       <div className={styles.navContent}>
         <div className={styles.logoSection}>
           <Link href="/" className={styles.logo} onClick={closeMenu}>
-            ELEGANT STYLE
+            Elegant styles
           </Link>
         </div>
 

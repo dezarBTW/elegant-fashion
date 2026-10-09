@@ -14,7 +14,7 @@ const pillars = [
     tag: "N\u00b0 02",
     title: "Bespoke couture",
     text: "Garments drafted from your own measurements and hand-finished, from first muslin to final stitch.",
-    href: "/contact",
+    href: "/bespoke/request",
     cta: "Book a consultation",
   },
   {
@@ -52,7 +52,7 @@ const partners = [
   },
   {
     name: "Industrial Training Fund (ITF)",
-    text: "Elegant Style has been an Implementing Partner with ITF since 2021 and have trained well over 250 students in fashion and designing. We have been active in the ITF SUPA-Skill-up programme till date.",
+    text: "Elegant styles has been an Implementing Partner with ITF since 2021 and have trained well over 250 students in fashion and designing. We have been active in the ITF SUPA-Skill-up programme till date.",
   },
   {
     name: "Technical and Vocational Education and Training (TVET)",
@@ -79,7 +79,7 @@ export default function About() {
         <span className={styles.eyebrow}>Our story</span>
         <h1 className={styles.heroTitle}>Where creativity is mastered</h1>
         <p className={styles.heroText}>
-          Elegant Fashion is a Bayelsa-based house that was founded in 2018 by our CEO Mrs Esther Patrick working across three
+          Elegant styles is a Bayelsa-based house that was founded in 2018 by our CEO Mrs Esther Patrick working across three
           disciplines that share one workroom: ready-to-wear, bespoke
           tailoring, and a fashion school that trains the next generation of
           designers on the same techniques we use in our own organization.
@@ -144,7 +144,7 @@ export default function About() {
       <section className={styles.ctaBand} data-reveal>
         <h2>Have a piece in mind?</h2>
         <p>Tell us what you&apos;re looking for and we&apos;ll take it from there.</p>
-        <Link href="/contact" className={styles.ctaButton}>
+        <Link href="/bespoke/request" className={styles.ctaButton}>
           Get in touch
         </Link>
       </section>

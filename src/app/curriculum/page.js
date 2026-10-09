@@ -293,7 +293,7 @@ export default function Curriculum() {
         {/* CTA Banner */}
         <div className={styles.ctaBanner} data-reveal>
           <h3>Ready to start your fashion journey?</h3>
-          <p>Register now for our upcoming cohort at Elegant Style Fashion Academy.</p>
+          <p>Register now for our upcoming cohort at Elegant styles Academy.</p>
           <Link href="/course" className={styles.ctaButton}>
             Enroll in Fashion School
           </Link>

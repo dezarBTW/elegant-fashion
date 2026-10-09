@@ -835,7 +835,7 @@ export default function Course() {
 
           <div className="declaration">
             <div className="declaration-text">
-              I hereby apply for training at <strong>ELEGANTSTYLE FASHION AND DESIGN</strong> and have completed this form to the best of my knowledge.
+              I hereby apply for training at <strong>Elegant styles</strong> and have completed this form to the best of my knowledge.
             </div>
             <label className="agree-checkbox">
               <input type="checkbox" id="agree" checked={formData.agreed} onChange={handleAgreementChange} required />
