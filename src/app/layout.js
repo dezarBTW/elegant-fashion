@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
+import CookieConsent from "@/components/CookieConsent";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 const geistSans = Geist({
@@ -38,6 +39,7 @@ export default function RootLayout({ children }) {
           <Navbar />
           {children}
         </AuthProvider>
+        <CookieConsent />
       </body>
     </html>
   );

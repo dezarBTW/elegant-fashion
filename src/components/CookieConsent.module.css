@@ -1,0 +1,301 @@
+/* Cookie consent: a dark card in the corner on the first visit, a light settings dialog, and a small
+   button to reopen it. Colours come from the design tokens in globals.css. */
+
+.banner {
+  position: fixed;
+  left: 1.25rem;
+  bottom: 1.25rem;
+  z-index: 1200;
+  width: min(440px, calc(100vw - 2.5rem));
+  padding: 1.4rem 1.45rem 1.25rem;
+  border: 1px solid var(--line-dark);
+  border-radius: 18px;
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 0 24px 60px rgba(18, 15, 13, 0.35);
+  animation: cookieRise 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.title {
+  margin-bottom: 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.text {
+  color: rgba(244, 239, 231, 0.78);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.link {
+  color: var(--gold-bright);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 1.1rem;
+}
+
+.btn {
+  min-height: 42px;
+  padding: 0 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btnPrimary {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.btnPrimary:hover {
+  background: var(--gold-bright);
+}
+
+.btnOutline {
+  border-color: rgba(244, 239, 231, 0.4);
+  background: transparent;
+  color: var(--paper);
+}
+
+.btnOutline:hover {
+  border-color: var(--paper);
+}
+
+.customise {
+  padding: 0.4rem 0.3rem;
+  border: 0;
+  background: none;
+  color: rgba(244, 239, 231, 0.78);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.customise:hover {
+  color: var(--paper);
+}
+
+/* Settings dialog */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(18, 15, 13, 0.55);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.panel {
+  width: min(540px, 100%);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1.6rem 1.6rem 1.3rem;
+  border-radius: 20px;
+  background: var(--white);
+  color: var(--ink);
+  box-shadow: 0 30px 80px rgba(18, 15, 13, 0.35);
+  outline: none;
+  animation: cookieRise 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.panelTitle {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 500;
+}
+
+.close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink);
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.close:hover {
+  background: var(--paper);
+}
+
+.panelText {
+  margin: 0.6rem 0 1rem;
+  color: var(--stone);
+  font-size: 0.9rem;
+}
+
+.option {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding: 1rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.optionTitle {
+  margin-bottom: 0.25rem;
+  font-size: 0.98rem;
+  font-weight: 600;
+}
+
+.optionText {
+  color: var(--stone);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+.alwaysOn {
+  flex-shrink: 0;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 46px;
+  height: 26px;
+  border: 0;
+  border-radius: 999px;
+  background: #cfc6b8;
+  transition: background 0.2s ease;
+}
+
+.switchOn {
+  background: var(--emerald);
+}
+
+.knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.switchOn .knob {
+  transform: translateX(20px);
+}
+
+.panelActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--line);
+}
+
+.btnDark {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.btnDark:hover {
+  background: var(--gold-deep);
+}
+
+.btnOutlineDark {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--ink);
+}
+
+.btnOutlineDark:hover {
+  border-color: var(--ink);
+}
+
+.panelFoot {
+  margin-top: 0.9rem;
+  font-size: 0.82rem;
+}
+
+.footLink {
+  color: var(--stone);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@keyframes cookieRise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 560px) {
+  .banner {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    width: auto;
+    padding: 1.15rem 1.1rem 1rem;
+  }
+
+  .actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .panel {
+    padding: 1.3rem 1.15rem 1.1rem;
+  }
+
+  .panelActions .btn {
+    flex: 1 1 100%;
+  }
+}
+
+@media print {
+  .banner,
+  .overlay {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banner,
+  .panel {
+    animation: none;
+  }
+}

@@ -163,6 +163,28 @@
   transform: translateY(-2px);
 }
 
+.cookieButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.8rem 1.6rem;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.84rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.cookieButton:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 @media (max-width: 768px) {
   .page {
     padding: 100px 1.25rem 3rem;
