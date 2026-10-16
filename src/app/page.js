@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { businessStructuredData } from "@/lib/seo.mjs";
+import { watchCopyrightYear } from "@/lib/copyrightYear.mjs";
 
 const heroSlides = [
   { src: "/images/Hero/image%20%2820%29.jpg", alt: "Jeweled blue Ankara evening gown" },
@@ -36,7 +37,11 @@ const servicePillars = [
 export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [carouselIndex, setCarouselIndex] = useState(0);
+  const [copyrightYear, setCopyrightYear] = useState(null);
   const carouselRef = useRef(null);
+  const carouselStep = useRef(0);
+
+  useEffect(() => watchCopyrightYear(setCopyrightYear), []);
 
   useEffect(() => {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -53,15 +58,37 @@ export default function Home() {
     const carousel = carouselRef.current;
     if (!carousel) return;
 
-    const handleScroll = () => {
-      const scrollLeft = carousel.scrollLeft;
-      const itemWidth = carousel.querySelector('.carouselItem')?.offsetWidth || 320;
-      const index = Math.round(scrollLeft / itemWidth);
-      setCarouselIndex(index);
+    let frame = null;
+    let lastIndex = 0;
+    const updateIndex = () => {
+      frame = null;
+      const index = Math.max(0, Math.min(collectionSlides.length - 1,
+        Math.round(carousel.scrollLeft / (carouselStep.current || 1))));
+      if (index !== lastIndex) {
+        lastIndex = index;
+        setCarouselIndex(index);
+      }
     };
 
-    carousel.addEventListener('scroll', handleScroll);
-    return () => carousel.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => {
+      if (frame === null) frame = window.requestAnimationFrame(updateIndex);
+    };
+    const measure = () => {
+      const item = carousel.firstElementChild;
+      if (!item) return;
+      carouselStep.current = item.getBoundingClientRect().width +
+        (parseFloat(window.getComputedStyle(carousel).columnGap) || 0);
+      handleScroll();
+    };
+    const resizeObserver = new ResizeObserver(measure);
+    resizeObserver.observe(carousel);
+    measure();
+    carousel.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      carousel.removeEventListener('scroll', handleScroll);
+      resizeObserver.disconnect();
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   return (
@@ -132,7 +159,7 @@ export default function Home() {
                 className={`${styles.carouselBtn} ${styles.carouselPrev}`} 
                 onClick={() => {
                   if (carouselRef.current) {
-                    carouselRef.current.scrollBy({ left: -400, behavior: 'smooth' });
+                    carouselRef.current.scrollBy({ left: -carouselStep.current, behavior: 'auto' });
                   }
                 }}
                 aria-label="Previous items"
@@ -161,7 +188,7 @@ export default function Home() {
                 className={`${styles.carouselBtn} ${styles.carouselNext}`}
                 onClick={() => {
                   if (carouselRef.current) {
-                    carouselRef.current.scrollBy({ left: 400, behavior: 'smooth' });
+                    carouselRef.current.scrollBy({ left: carouselStep.current, behavior: 'auto' });
                   }
                 }}
                 aria-label="Next items"
@@ -176,8 +203,7 @@ export default function Home() {
                     className={`${styles.carouselDot} ${index === carouselIndex ? styles.carouselDotActive : ''}`}
                     onClick={() => {
                       if (carouselRef.current) {
-                        const itemWidth = carouselRef.current.querySelector('.carouselItem')?.offsetWidth || 320;
-                        carouselRef.current.scrollTo({ left: index * itemWidth, behavior: 'smooth' });
+                        carouselRef.current.scrollTo({ left: index * carouselStep.current, behavior: 'auto' });
                       }
                     }}
                     aria-label={`Go to item ${index + 1}`}
@@ -312,7 +338,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className={styles.copyright}>© 2026 Elegant Style. All rights reserved.</div>
+          <div className={styles.copyright}>© {copyrightYear} Elegant Style. All rights reserved.</div>
         </div>
       </footer>
     </div>

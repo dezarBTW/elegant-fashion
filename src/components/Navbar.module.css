@@ -50,13 +50,13 @@
 
 .logoImage {
   display: block;
-  width: clamp(110px, 12vw, 148px);
+  width: clamp(82.5px, 9vw, 111px);
   height: auto;
 }
 
 @media (max-width: 768px) {
   .logoImage {
-    width: 144px;
+    width: 108px;
   }
 }
 
@@ -205,13 +205,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   border: 1px solid var(--gold);
   border-radius: 50%;
   background: var(--gold);
   color: #000;
-  font-size: 0.8rem;
+  font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   line-height: 1;
@@ -577,12 +577,12 @@
   .mobileProfileIcon {
     display: inline-flex;
     margin-left: auto;
-    margin-right: 1rem;
+    margin-right: -0.25rem;
   }
 
   .mobileProfileMenuWrapper {
     margin-left: auto;
-    margin-right: 1rem;
+    margin-right: -0.25rem;
   }
 
   .mobileProfileMenuWrapper .mobileProfileIcon {
@@ -682,10 +682,10 @@
   }
 
   .profileIcon {
-    width: 42px;
-    height: 42px;
+    width: 32.5px;
+    height: 32.5px;
     align-self: center;
-    font-size: 0.85rem;
+    font-size: 0.65rem;
   }
 
   .navMenu a::after {

@@ -1,0 +1,81 @@
+/* Skeletons for /ready-to-wear and its child pages.
+   Layout classes (container, shop, collectionHeading, categoryRail,
+   resultsBar, products) come from readytowear.module.css so the skeleton
+   occupies exactly the same space as the real content (no layout shift). */
+
+.bone {
+  position: relative;
+  overflow: hidden;
+  background: #ebe8e2;
+  border-radius: 3px;
+}
+
+.visual {
+  /* Animate the group once instead of a separate layer for every placeholder. */
+  animation: skeletonPulse 1.8s ease-in-out infinite alternate;
+}
+
+@keyframes skeletonPulse {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visual { animation: none; }
+}
+
+.srOnly { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.reserved { visibility: hidden; }
+
+/* ---------- shop listing ---------- */
+.headingTitle { min-width: 0; }
+.searchBone { width: 100%; height: 44px; border-radius: 4px; }
+
+.railItem { display: flex; align-items: center; cursor: default; }
+
+.selectBone { display: inline-block; width: 110px; max-width: 100%; height: 14px; vertical-align: middle; }
+
+.card.card { animation: none; }
+.cardCategory, .cardName, .cardPrice { display: inline-block; height: 1em; vertical-align: middle; }
+.cardCategory { width: 38%; }
+.cardName { width: 82%; }
+.cardPrice { width: 34%; }
+
+/* ---------- product detail (/ready-to-wear/product/[slug]) ---------- */
+.detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(24px, 5vw, 72px);
+  align-items: start;
+  padding-top: 8px;
+}
+
+.crumb { width: 220px; height: 11px; margin-bottom: 24px; }
+.gallery { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; }
+.thumbs { display: grid; gap: 10px; align-content: start; }
+.thumb { width: 100%; aspect-ratio: 3 / 4; border-radius: 3px; }
+.mainImage { width: 100%; aspect-ratio: 3 / 4; border-radius: 4px; }
+
+.detailInfo { display: grid; gap: 16px; padding-top: 6px; }
+.dCategory { width: 90px; height: 10px; }
+.dTitle { width: 85%; height: clamp(30px, 3.4vw, 44px); }
+.dTitleShort { width: 55%; height: clamp(30px, 3.4vw, 44px); }
+.dPrice { width: 140px; height: 24px; margin-top: 4px; }
+.dLine { width: 100%; height: 12px; }
+.dLineShort { width: 72%; height: 12px; }
+.dLabel { width: 70px; height: 10px; margin-top: 10px; }
+.optionRow { display: flex; flex-wrap: wrap; gap: 10px; }
+.option { width: 48px; height: 44px; border-radius: 4px; }
+.swatch { width: 34px; height: 34px; border-radius: 50%; }
+.dButton { width: 100%; height: 52px; margin-top: 14px; border-radius: 4px; }
+.dButtonGhost { width: 100%; height: 48px; border-radius: 4px; }
+
+@media (max-width: 960px) {
+  .detail { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 680px) {
+  .searchBone { height: 42px; }
+  .gallery { grid-template-columns: 1fr; }
+  .thumbs { grid-template-columns: repeat(4, 1fr); order: 2; }
+}

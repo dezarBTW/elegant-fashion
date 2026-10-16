@@ -53,7 +53,7 @@ export default function ProductsAdmin() {
 
   const goToPage = (nextPage) => {
     setPage(nextPage);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
 
   // Supabase returns at most 1000 rows per request, so keep asking until every product is loaded.
@@ -149,7 +149,7 @@ export default function ProductsAdmin() {
       category: product.category,
       image: product.image
     });
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
 
   const handleDelete = async (productId) => {

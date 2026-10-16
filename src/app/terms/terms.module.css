@@ -109,15 +109,6 @@
   line-height: 1.8;
   color: var(--stone);
   margin-bottom: 0.5rem;
-  position: relative;
-  padding-left: 0.75rem;
-}
-
-.section li::before {
-  content: '\2014';
-  position: absolute;
-  left: 0;
-  color: var(--gold-deep);
 }
 
 .internalLink {

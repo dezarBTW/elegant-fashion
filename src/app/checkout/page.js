@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { deliveryFeeMinor, priceCart, readCart, PICKUP_ADDRESS } from "@/lib/checkout.mjs";
 import styles from "./checkout.module.css";
+import { CheckoutSkeleton } from "./CheckoutSkeleton";
 
 const formatMoney = (minor) => `₦${(minor / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`;
 
@@ -91,12 +92,14 @@ export default function Checkout() {
   };
   const shipping = deliveryFeeMinor(delivery.method);
 
+  if (loading) return <CheckoutSkeleton />;
+
   return (
     <main className={styles.page}>
       <Link className={styles.back} href="/ready-to-wear">← Back to the shop</Link>
       <h1>Checkout</h1>
       <p className={styles.lede}>Your pieces, your details, and a secure payment.</p>
-      {loading ? <p role="status">Loading your cart…</p> : <>
+      <>
         {cancelled && <p className={styles.notice} role="status">You returned from payment. Your cart is saved. If you already paid, check your order status before starting another payment.</p>}
         {error && <p className={styles.error} role="alert">{error}</p>}
         {reference && <p className={styles.reference}>Order reference: {reference}. <Link href={`/checkout/success?order_id=${reference}`}>Check order status</Link></p>}
@@ -133,7 +136,7 @@ export default function Checkout() {
               <p className={styles.hint}>Prices are checked again before payment. Your payment details are handled by Bachs.</p>
             </aside>
           </div>}
-      </>}
+      </>
     </main>
   );
 }

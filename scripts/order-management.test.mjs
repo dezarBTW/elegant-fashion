@@ -151,7 +151,7 @@ test("both emails are attempted independently with recipient fallback and stable
   const calls = [];
   const logs = [];
   const options = {
-    env: { RESEND_API_KEY: "fake", RESEND_FROM_EMAIL: "Elegant Styles <requests@elegantstyle.com.ng>", BESPOKE_NOTIFY_EMAIL: "fallback@example.invalid", ORDER_NOTIFY_EMAIL: " " },
+    env: { RESEND_API_KEY: "fake", RESEND_FROM_EMAIL: "Elegant Style <requests@elegantstyle.com.ng>", BESPOKE_NOTIFY_EMAIL: "fallback@example.invalid", ORDER_NOTIFY_EMAIL: " " },
     fetchImpl: async (url, init) => { calls.push({ url, ...init, body: JSON.parse(init.body) }); return new Response(null, { status: calls.length === 1 ? 503 : 200 }); },
     logger: { info() {}, error: (...args) => logs.push(args) },
   };

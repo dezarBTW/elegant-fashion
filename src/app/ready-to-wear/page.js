@@ -5,10 +5,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { CART_KEY, readCart } from "@/lib/checkout.mjs";
 import { supabase } from "@/lib/supabaseClient";
-import { useAuth } from "@/contexts/AuthContext";
+import { ShopSkeleton } from "./ShopSkeleton";
 
 export default function ReadyToWear() {
-  const { loading: authLoading } = useAuth();
   const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState("all");
@@ -102,51 +101,10 @@ export default function ReadyToWear() {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
-  if (authLoading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loadingContainer}>
-          <div className={styles.spinner} aria-hidden="true" />
-          <p>Loading shop...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.skeletonPage}>
-          <div className={styles.skeletonBanner} />
-          <div className={styles.skeletonLayout}>
-            <aside className={styles.skeletonSidebar}>
-              <div className={`${styles.skeleton} ${styles.skeletonSidebarTitle}`} />
-              <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
-              <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
-              <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
-              <div className={`${styles.skeleton} ${styles.skeletonSidebarLine}`} />
-            </aside>
-            <div className={styles.skeletonGrid}>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className={styles.skeletonCard}>
-                  <div className={`${styles.skeleton} ${styles.skeletonImage}`} />
-                  <div className={styles.skeletonInfo}>
-                    <div className={`${styles.skeleton} ${styles.skeletonCategory}`} />
-                    <div className={`${styles.skeleton} ${styles.skeletonTitle}`} />
-                    <div className={`${styles.skeleton} ${styles.skeletonPrice}`} />
-                    <div className={`${styles.skeleton} ${styles.skeletonButton}`} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <ShopSkeleton count={itemsPerPage} />;
 
   return (
     <div className={styles.container}>

@@ -5,7 +5,7 @@ This document contains every changed or added application, configuration, migrat
 ## Setup and deployment
 
 1. The SQL migration below is already applied to the linked Supabase project; do not run it again. For a separate environment, apply it **before deploying the new application code**. It adds the atomic email claim, supports the new fulfilment states, and removes direct browser-role access to shop_orders. If existing rows contain fulfilment states outside new, processing, ready, shipped and completed, the transaction will fail safely; inspect and reconcile those rows before rerunning.
-2. Configure Vercel's server environment: RESEND_API_KEY, RESEND_FROM_EMAIL, and ORDER_NOTIFY_EMAIL. Use `Elegant Styles <requests@elegantstyle.com.ng>` as the sender once that domain is verified in Resend. ORDER_NOTIFY_EMAIL falls back to BESPOKE_NOTIFY_EMAIL when absent or blank. These variables must never use a NEXT_PUBLIC_ prefix.
+2. Configure Vercel's server environment: RESEND_API_KEY, RESEND_FROM_EMAIL, and ORDER_NOTIFY_EMAIL. Use `Elegant Style <requests@elegantstyle.com.ng>` as the sender once that domain is verified in Resend. ORDER_NOTIFY_EMAIL falls back to BESPOKE_NOTIFY_EMAIL when absent or blank. These variables must never use a NEXT_PUBLIC_ prefix.
 3. Deploy the code. Existing Supabase server credentials and BACHS_WEBHOOK_SECRET are reused.
 4. Complete the provider sandbox and authenticated browser checks below.
 
@@ -82,7 +82,7 @@ RESEND_API_KEY=your-resend-api-key
 BESPOKE_NOTIFY_EMAIL=your-notification-email@example.com
 # Optional shop order recipient; falls back to BESPOKE_NOTIFY_EMAIL.
 ORDER_NOTIFY_EMAIL=
-RESEND_FROM_EMAIL="Elegant Styles <requests@elegantstyle.com.ng>"
+RESEND_FROM_EMAIL="Elegant Style <requests@elegantstyle.com.ng>"
 # Optional: content value from the Google Search Console HTML verification tag.
 GOOGLE_SITE_VERIFICATION=
 # Bachs checkout: server-only secrets. Start with a sandbox key.
@@ -704,7 +704,7 @@ test("both emails are attempted independently with recipient fallback and stable
   const calls = [];
   const logs = [];
   const options = {
-    env: { RESEND_API_KEY: "fake", RESEND_FROM_EMAIL: "Elegant Styles <requests@elegantstyle.com.ng>", BESPOKE_NOTIFY_EMAIL: "fallback@example.invalid", ORDER_NOTIFY_EMAIL: " " },
+    env: { RESEND_API_KEY: "fake", RESEND_FROM_EMAIL: "Elegant Style <requests@elegantstyle.com.ng>", BESPOKE_NOTIFY_EMAIL: "fallback@example.invalid", ORDER_NOTIFY_EMAIL: " " },
     fetchImpl: async (url, init) => { calls.push({ url, ...init, body: JSON.parse(init.body) }); return new Response(null, { status: calls.length === 1 ? 503 : 200 }); },
     logger: { info() {}, error: (...args) => logs.push(args) },
   };

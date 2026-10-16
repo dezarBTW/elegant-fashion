@@ -306,7 +306,9 @@ function NavbarContent({ user, logout, isAdmin }) {
 
   // Hide navbar on scroll down, show on scroll up
   useEffect(() => {
-    const handleScroll = () => {
+    let frame = null;
+    const updateNavbar = () => {
+      frame = null;
       if (isMenuOpen || isPasswordModalOpen || isDeactivateModalOpen) return;
 
       const currentScrollY = window.scrollY;
@@ -319,9 +321,15 @@ function NavbarContent({ user, logout, isAdmin }) {
       }
       lastScrollY.current = currentScrollY;
     };
+    const handleScroll = () => {
+      if (frame === null) frame = window.requestAnimationFrame(updateNavbar);
+    };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
   }, [isMenuOpen, isPasswordModalOpen, isDeactivateModalOpen]);
 
   return (
@@ -335,7 +343,7 @@ function NavbarContent({ user, logout, isAdmin }) {
               width={1900}
               height={636}
               className={styles.logoImage}
-              sizes="148px"
+              sizes="111px"
               priority
             />
           </Link>

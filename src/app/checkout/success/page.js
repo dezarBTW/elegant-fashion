@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CART_KEY, readCart, PICKUP_ADDRESS } from "@/lib/checkout.mjs";
 import styles from "../checkout.module.css";
+import { PaymentStatusSkeleton } from "../CheckoutSkeleton";
 
 const money = (minor) => `₦${(Number(minor) / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`;
 
@@ -53,6 +54,8 @@ export default function OrderStatus() {
   }, [reload]);
 
   const paid = order?.paymentStatus === "paid";
+  if (checking && !order && !error) return <PaymentStatusSkeleton />;
+
   return (
     <main className={`${styles.page} ${styles.receipt}`}>
       <Link className={styles.back} href="/ready-to-wear">← Back to the shop</Link>
