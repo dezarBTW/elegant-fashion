@@ -210,7 +210,7 @@ export default function PrivacyPolicy() {
             <ul>
               <li>Email: <a href="mailto:patrickesther26@gmail.com" className={styles.internalLink}>patrickesther26@gmail.com</a></li>
               <li>WhatsApp: <a href="https://wa.me/2348166361710" className={styles.internalLink} target="_blank" rel="noopener noreferrer">08166361710</a></li>
-              <li>Address: No 27 Biobgblo Issac Boro Express Way, Opposite Charismatic Church, Beside Rogas Plant, Bayelsa State, Nigeria</li>
+              <li>Address: Km 4 Isaac Boro Express Way, Yenagoa, Bayelsa State.</li>
             </ul>
           </section>
         </div>

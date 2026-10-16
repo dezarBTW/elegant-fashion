@@ -219,7 +219,7 @@ export default function ReadyToWear() {
                     )}
                     {product.sale_price && product.sale_price < product.price && <span className={styles.productBadge}>Special price</span>}
                     <button className={styles.quickAdd} type="button" onClick={() => addToCart(product)} aria-label={`Add ${product.name} to cart`}>
-                      Quick add <span aria-hidden="true">+</span>
+                      Add item <span aria-hidden="true">+</span>
                     </button>
                   </div>
                   <div className={styles.productInfo}>

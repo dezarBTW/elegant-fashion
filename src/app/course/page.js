@@ -682,7 +682,19 @@ export default function Course() {
                   onBlur={handleFieldBlur}
                   required
                 />
-                6 Months Programme <span style={{color: 'black'}}>(₦250,000)</span>
+                6 Months Programme <span style={{color: 'black'}}>(₦200,000)</span>
+              </label>
+              <label className="radio-option">
+                <input
+                  type="radio"
+                  name="chosen_programme"
+                  value="1 Year Programme"
+                  checked={formData.chosen_programme === "1 Year Programme"}
+                  onChange={handleInputChange}
+                  onBlur={handleFieldBlur}
+                  required
+                />
+                1 Year Programme <span style={{color: 'black'}}>(₦300,000)</span>
               </label>
             </div>
             {touchedFields.chosen_programme && <FieldError message={fieldErrors.chosen_programme} />}

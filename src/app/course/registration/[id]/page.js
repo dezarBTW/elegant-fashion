@@ -39,7 +39,9 @@ export default function RegistrationDetails() {
     if (programme === "3 Months Programme") {
       return "₦150,000";
     } else if (programme === "6 Months Programme") {
-      return "₦250,000";
+      return "₦200,000";
+    } else if (programme === "1 Year Programme") {
+      return "₦300,000";
     }
     return "";
   };

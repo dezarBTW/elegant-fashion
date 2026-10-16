@@ -21,9 +21,8 @@ export default function Contact() {
             </svg>
           </div>
           <h3>Our location</h3>
-          <p>No 27 Biobgblo Issac Boro Express Way,</p>
-          <p>Opp Charismatic Church,</p>
-          <p>Beside Rogas Plant</p>
+          <p>Km 4 Isaac Boro Express Way,</p>
+          <p>Yenagoa, Bayelsa State.</p>
         </div>
 
         <div className={styles.card} data-reveal data-reveal-delay="160">

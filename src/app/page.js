@@ -301,7 +301,7 @@ export default function Home() {
             </div>
             <div className={styles.footerSection}>
               <h4>Contact</h4>
-              <p className={styles.footerAddress}>No 27 Biobgblo Isaac Boro Express Way,<br />Opposite Charismatic Church, Beside Rogas Plant,<br />Bayelsa State, Nigeria</p>
+              <p className={styles.footerAddress}>Km 4 Isaac Boro Express Way,<br />Yenagoa, Bayelsa State.</p>
               <Link href="/contact">Get in touch</Link>
               <Link href="/bespoke/request">Book consultation</Link>
             </div>

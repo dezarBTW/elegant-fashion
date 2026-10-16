@@ -953,7 +953,7 @@
 .collection { padding-top: 8px; scroll-margin-top: 84px; }
 .collectionHeading { display: flex; align-items: center; justify-content: space-between; gap: 34px; margin-bottom: 28px; }
 .collectionHeading .eyebrow { margin-bottom: 9px; }
-.collectionHeading h2 { margin: 0; color: var(--shop-ink); font-family: var(--font-sans); font-size: clamp(34px, 4vw, 58px); font-weight: 400; letter-spacing: 0; line-height: 1.08; }
+.collectionHeading h2 { margin: 0; color: var(--shop-ink); font-family: var(--font-sans); font-size: clamp(34px, 4vw, 58px); font-weight: 700; letter-spacing: 0; line-height: 1.08; }
 
 .searchPanel { width: min(100%, 352px); flex: 0 0 352px; }
 .searchField { display: flex; align-items: stretch; width: 100%; min-height: 44px; overflow: hidden; border: 1px solid var(--shop-ink); border-radius: 4px; color: var(--shop-ink); background: #fffefa; transition: border-color 220ms cubic-bezier(.2,.7,.2,1), background 220ms cubic-bezier(.2,.7,.2,1); }

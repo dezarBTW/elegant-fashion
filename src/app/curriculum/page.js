@@ -260,7 +260,7 @@ export default function Curriculum() {
               <span className={styles.programBadge}>Advanced</span>
               <h2 className={styles.programTitle}>6-Month Programme</h2>
             </div>
-            <p className={styles.programFee}>&#8358;250,000</p>
+            <p className={styles.programFee}>&#8358;200,000</p>
           </div>
           <p className={styles.programDescription} data-reveal data-reveal-delay="80">
             Everything in the 3-month foundation track, plus specialized couture techniques, professional fashion illustration, and comprehensive business modules to launch your fashion career.
@@ -276,6 +276,18 @@ export default function Curriculum() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className={styles.programSection}>
+          <div className={styles.programHeader} data-reveal>
+            <div className={styles.titleWrapper}>
+              <h2 className={styles.programTitle}>1-Year Programme</h2>
+            </div>
+            <p className={styles.programFee}>&#8358;300,000</p>
+          </div>
+          <p className={styles.programDescription} data-reveal>
+            A full year of fashion training. Contact the academy for the detailed training schedule.
+          </p>
         </section>
 
         {/* Benefits Section */}
