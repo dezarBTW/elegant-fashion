@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { verifyBachsSignature, paymentMatchesOrder } from "@/lib/bachs.mjs";
 import { checkoutDatabase } from "@/lib/checkoutServer";
+import { sendOrderEmails } from "@/lib/orderEmails.mjs";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request) {
   const secret = process.env.BACHS_WEBHOOK_SECRET;
@@ -28,11 +30,18 @@ export async function POST(request) {
     if (order.checkout_id && order.checkout_id !== data.checkout_id) return NextResponse.json({ error: "Checkout reference mismatch." }, { status: 409 });
     if (order.payment_status === "paid") return NextResponse.json({ received: true });
     const paid = paymentMatchesOrder(data, order.total_minor);
-    const { error: saveError } = await db.from("shop_orders").update({
+    const paidAt = new Date().toISOString();
+    const { data: changedOrder, error: saveError } = await db.from("shop_orders").update({
       payment_status: paid ? "paid" : "review",
-      ...(paid ? { paid_at: new Date().toISOString(), paid_event_id: event.id, payment_id: data.charge_id, checkout_id: data.checkout_id } : {}),
-    }).eq("id", order.id).neq("payment_status", "paid");
+      ...(paid ? { paid_at: paidAt, emails_claimed_at: paidAt, paid_event_id: event.id, payment_id: data.charge_id, checkout_id: data.checkout_id } : {}),
+    }).eq("id", order.id).neq("payment_status", "paid")
+      .select("id,customer_name,customer_email,customer_phone,delivery,items,subtotal_minor,shipping_minor,total_minor,emails_claimed_at")
+      .maybeSingle();
     if (saveError) throw saveError;
+    if (paid && changedOrder?.emails_claimed_at) {
+      try { await sendOrderEmails(changedOrder); }
+      catch (error) { console.error(`Order ${order.id}: email attempt failed`, error?.message); }
+    }
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Payment webhook failed", error?.code || error?.message);

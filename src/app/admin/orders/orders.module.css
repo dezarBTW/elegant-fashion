@@ -1,0 +1,15 @@
+.filter { display: grid; gap: 6px; font-size: 0.88rem; font-weight: 600; }
+.reference { overflow-wrap: anywhere; }
+.review { border-color: #b66c26; border-left-width: 5px; background: #fff8eb; }
+.reviewMessage { margin: 0; color: #85430d; font-weight: 600; }
+.details { border-top: 1px solid var(--line); padding-top: 12px; }
+.details summary { width: fit-content; cursor: pointer; font-weight: 600; padding: 4px 0; }
+.details summary:focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 4px; }
+.details dl { margin: 18px 0; }
+.tableWrap { overflow-x: auto; margin: 16px 0; }
+.table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
+.table caption { text-align: left; margin-bottom: 8px; font-weight: 600; }
+.table th, .table td { padding: 10px; border-bottom: 1px solid var(--line); }
+.table th { background: var(--paper); }
+.table td:not(:first-child) { white-space: nowrap; }
+.pagination { margin-top: 20px; }
