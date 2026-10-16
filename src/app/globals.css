@@ -42,9 +42,9 @@
   --background: var(--paper);
   --foreground: var(--ink);
 
-  --font-display: var(--font-playfair), Georgia, 'Times New Roman', serif;
-  --font-sans: var(--font-geist-sans), 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', Consolas, monospace;
+  --font-sans: "Segoe UI", SegoeUI, Arial, sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: var(--font-sans);
 
   --radius: 14px;
   --radius-lg: 28px;
@@ -72,6 +72,7 @@ body {
     radial-gradient(circle at top, rgba(201, 169, 98, 0.18), transparent 30%),
     linear-gradient(180deg, #f8f4ee 0%, var(--paper) 36%, #f2ebdf 100%);
   font-family: var(--font-sans);
+  font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.6;

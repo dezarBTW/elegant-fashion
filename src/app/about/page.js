@@ -52,7 +52,7 @@ const partners = [
   },
   {
     name: "Industrial Training Fund (ITF)",
-    text: "Elegant styles has been an Implementing Partner with ITF since 2021 and have trained well over 250 students in fashion and designing. We have been active in the ITF SUPA-Skill-up programme till date.",
+    text: "Elegant Style has been an Implementing Partner with ITF since 2021 and have trained well over 250 students in fashion and designing. We have been active in the ITF SUPA-Skill-up programme till date.",
   },
   {
     name: "Technical and Vocational Education and Training (TVET)",
@@ -79,7 +79,7 @@ export default function About() {
         <span className={styles.eyebrow}>Our story</span>
         <h1 className={styles.heroTitle}>Where creativity is mastered</h1>
         <p className={styles.heroText}>
-          Elegant styles is a Bayelsa-based house that was founded in 2018 by our CEO Mrs Esther Patrick working across three
+          Elegant Style is a Bayelsa-based house that was founded in 2018 by our CEO Mrs Esther Patrick working across three
           disciplines that share one workroom: ready-to-wear, bespoke
           tailoring, and a fashion school that trains the next generation of
           designers on the same techniques we use in our own organization.

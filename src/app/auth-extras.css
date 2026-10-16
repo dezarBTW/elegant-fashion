@@ -1,0 +1,72 @@
+/* Extra styles for email confirmation and password reset flows.
+   Layout comes from auth-atelier.css. */
+
+.auth-notice {
+  margin-bottom: 1rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid rgba(46, 125, 90, 0.28);
+  border-radius: 14px;
+  background: rgba(46, 125, 90, 0.07);
+  color: var(--success, #2e7d5a);
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.auth-link-button {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--gold-deep);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.auth-link-button:hover {
+  color: var(--ink);
+}
+
+.auth-link-button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.auth-check {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 1.25rem;
+  border-radius: 50%;
+  background: rgba(161, 122, 70, 0.12);
+  color: var(--gold-deep);
+}
+
+.auth-email-strong {
+  color: var(--ink);
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.auth-aside {
+  margin: 1.25rem 0 0;
+  color: var(--stone);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+@media (prefers-color-scheme: dark) {
+  .auth-email-strong,
+  .auth-link-button:hover {
+    color: var(--white);
+  }
+
+  .auth-aside {
+    color: #c7bfb4;
+  }
+}

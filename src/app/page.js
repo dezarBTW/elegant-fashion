@@ -214,7 +214,7 @@ export default function Home() {
 
               <div className={styles.bespokeImage}>
                 <div className={styles.bespokeFrame}>
-                  <Image className={styles.bespokePhoto} src="/images/bespoke-CUbywJn6.jpg" alt="Elegant styles bespoke tailoring detail" width={900} height={675} sizes="(max-width: 768px) 100vw, 50vw" />
+                  <Image className={styles.bespokePhoto} src="/images/bespoke-CUbywJn6.jpg" alt="Elegant Style bespoke tailoring detail" width={900} height={675} sizes="(max-width: 768px) 100vw, 50vw" />
                 </div>
               </div>
             </div>
@@ -224,7 +224,7 @@ export default function Home() {
         <section id="about" className={`${styles.section} ${styles.sectionPanel}`}>
           <div className={styles.innerWrap}>
             <div className={styles.sectionHeader}>
-              <p className={styles.eyebrow}>Why Elegant styles</p>
+              <p className={styles.eyebrow}>Why Elegant Style</p>
               <h2 className={styles.sectionTitle}>Our promise is quiet confidence.</h2>
             </div>
 
@@ -284,7 +284,7 @@ export default function Home() {
         <div className={styles.innerWrap}>
           <div className={styles.footerContent}>
             <div className={styles.footerSection}>
-              <h3>Elegant styles</h3>
+              <h3>Elegant Style</h3>
               <p>Where individuality is refined.</p>
             </div>
             <div className={styles.footerSection}>
@@ -307,7 +307,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className={styles.copyright}>© 2026 Elegant styles. All rights reserved.</div>
+          <div className={styles.copyright}>© 2026 Elegant Style. All rights reserved.</div>
         </div>
       </footer>
     </div>

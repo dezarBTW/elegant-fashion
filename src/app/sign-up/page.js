@@ -1,11 +1,13 @@
 'use client'
 import React from "react"
 import { supabase } from "@/lib/supabaseClient";
+import { CONFIRMATION_REDIRECT } from "@/lib/authLinks.mjs";
 import {useState, useEffect, useRef} from "react";
 import { useRouter} from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import "../auth-atelier.css";
+import "../auth-extras.css";
 import { consumeRateLimit, formatRetryMessage, sanitizeEmail } from "@/lib/sanitizeInput";
 
 export default function SignUp() {
@@ -18,6 +20,10 @@ export default function SignUp() {
     const [message, setMessage] = useState("");
     const [emailMessage, setEmailMessage] = useState("");
     const [checkingEmail, setCheckingEmail] = useState(false);
+    // Set once sign-up succeeds and the user must confirm their email.
+    const [sentTo, setSentTo] = useState("");
+    const [resending, setResending] = useState(false);
+    const [resendMessage, setResendMessage] = useState("");
     const router = useRouter();
 
     // Monotonically increasing request ids so a slow, older response can never
@@ -104,21 +110,61 @@ export default function SignUp() {
                 email: safeEmail,
                 password,
                 options: {
-                    emailRedirectTo: `${window.location.origin}/sign-in`,
+                    // The confirmation link brings the user back here, which
+                    // signs them in and sends them to the home page.
+                    emailRedirectTo: CONFIRMATION_REDIRECT,
                 }
             });
 
             if (error) {
                 console.error(error);
                 setMessage(error.message || "Error creating account");
-            } else {
+            } else if (data?.session) {
+                // Email confirmation is switched off in Supabase: the user is
+                // already signed in, so go straight through.
                 router.push("/sign-in");
+            } else {
+                // Confirmation required: ask the user to check their inbox.
+                setSentTo(safeEmail);
             }
         } catch (error) {
             console.error(error);
             setMessage("An error occurred. Please try again.");
         } finally {
             setLoading(false);
+        }
+    };
+
+    const resendConfirmation = async () => {
+        if (!sentTo) return;
+
+        const rateLimit = consumeRateLimit(`resend:${sentTo}`, 3, 60 * 60 * 1000);
+        if (!rateLimit.allowed) {
+            setResendMessage(formatRetryMessage(rateLimit.retryAfterMs));
+            return;
+        }
+
+        setResending(true);
+        setResendMessage("");
+
+        try {
+            const { error } = await supabase.auth.resend({
+                type: "signup",
+                email: sentTo,
+                options: {
+                    emailRedirectTo: CONFIRMATION_REDIRECT,
+                },
+            });
+
+            setResendMessage(
+                error
+                    ? (error.message || "We couldn't resend the email. Please try again shortly.")
+                    : "We've sent the confirmation email again."
+            );
+        } catch {
+            setResendMessage("We couldn't resend the email. Please try again shortly.");
+        } finally {
+            setResending(false);
         }
     };
 
@@ -168,15 +214,42 @@ export default function SignUp() {
                 />
                 <div className="auth-media-veil" />
                 <div className="auth-media-copy">
-                    <p>Elegant styles</p>
+                    <p>Elegant Style</p>
                     <h2>A wardrobe with a point of view.</h2>
                 </div>
             </section>
 
             <section className="auth-panel" aria-labelledby="sign-up-heading">
                 <div className="auth-panel-inner">
+                {sentTo ? (
+                    <>
+                        <div className="auth-check" aria-hidden="true">
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="5" width="18" height="14" rx="2" />
+                                <path d="m3.5 7 8.5 6 8.5-6" />
+                            </svg>
+                        </div>
+                        <h1 id="sign-up-heading">Check your email</h1>
+                        <p className="auth-lede">
+                            We&apos;ve sent a confirmation link to{" "}
+                            <span className="auth-email-strong">{sentTo}</span>. Open it to
+                            activate your account, then you&apos;re in.
+                        </p>
+                        <p className="auth-aside">You need to confirm your email before you can sign in.</p>
+                        {resendMessage && <div className="auth-notice" role="status">{resendMessage}</div>}
+                        <p className="auth-aside">
+                            Can&apos;t see it? Check your spam folder, or{" "}
+                            <button type="button" className="auth-link-button" onClick={resendConfirmation} disabled={resending}>
+                                {resending ? "Sending..." : "Resend confirmation email"}
+                            </button>
+                            .
+                        </p>
+                        <p className="auth-switch">Wrong address? <Link href="/sign-up" onClick={() => { setSentTo(""); setResendMessage(""); }}>Start again</Link></p>
+                    </>
+                ) : (
+                    <>
                 <p className="auth-signup-eyebrow">Create your account</p>
-                <h1 id="sign-up-heading">Join Elegant styles</h1>
+                <h1 id="sign-up-heading">Join Elegant Style</h1>
                 <p className="auth-lede">Save your details and begin your fashion journey.</p>
                 {message && <div className="error-message" role="alert">{message}</div>}
                 <form className="auth-form" onSubmit={(event) => { event.preventDefault(); createUser(); }}>
@@ -227,6 +300,8 @@ export default function SignUp() {
                 </button>
 
                 <p className="auth-switch">Already have an account? <Link href="/sign-in">Sign in</Link></p>
+                    </>
+                )}
                 </div>
             </section>
         </main>

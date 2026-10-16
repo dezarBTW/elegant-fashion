@@ -27,7 +27,7 @@
   color: var(--ink);
   font-family: var(--font-display);
   font-size: clamp(2.25rem, 5vw, 3.5rem);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.045em;
   line-height: 1.12;
 }
@@ -55,7 +55,7 @@
 .field label {
   color: var(--ink);
   font-size: 0.96rem;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .field label > span:not(.optional) {
@@ -121,7 +121,7 @@
 .error {
   color: #8e2e27;
   font-size: 0.88rem;
-  font-weight: 550;
+  font-weight: 600;
   line-height: 1.45;
 }
 
@@ -289,7 +289,7 @@
   color: var(--ink);
   cursor: pointer;
   font-size: 0.96rem;
-  font-weight: 650;
+  font-weight: 600;
   text-align: center;
   transition: transform 180ms ease, border-color 180ms ease, background-color 180ms ease;
 }
@@ -414,7 +414,7 @@
   color: var(--ink);
   font-family: var(--font-display);
   font-size: 1.25rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .loadingHint {

@@ -125,7 +125,7 @@
 .unavailableTitle {
   font-family: var(--font-display);
   font-size: 2.25rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--ink);
   margin-bottom: 1rem;
   letter-spacing: -0.04em;
@@ -260,7 +260,7 @@
 .promoTitle {
   font-family: var(--font-display);
   font-size: clamp(2rem, 3vw, 3rem);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.04em;
   color: var(--white);
   margin-bottom: 0.5rem;
@@ -268,7 +268,7 @@
 
 .promoSubtitle {
   font-size: 1.08rem;
-  font-weight: 300;
+  font-weight: 400;
   color: rgba(255, 253, 249, 0.78);
 }
 
@@ -370,7 +370,7 @@
 
 .gridTitle {
   font-size: 1.75rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.04em;
   color: var(--ink);
 }
@@ -488,7 +488,7 @@
 
 .productName {
   font-size: 1.2rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--ink);
   margin-bottom: 0.5rem;
 }
@@ -524,7 +524,7 @@
   border: none;
   border-radius: 12px;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--white);
@@ -553,7 +553,7 @@
   border: 1px solid var(--lightGray);
   border-radius: var(--radius);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--gray);
   cursor: pointer;
   transition: all 0.3s ease;
@@ -601,7 +601,7 @@
 
 .cartTitle {
   font-size: 1.2rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--black);
 }
@@ -644,7 +644,7 @@
 
 .cartItemName {
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--black);
   margin-bottom: 0.25rem;
 }
@@ -688,7 +688,7 @@
   border: none;
   border-radius: var(--radius);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.1em;
   color: var(--black);
   cursor: pointer;
@@ -953,7 +953,7 @@
 .collection { padding-top: 8px; scroll-margin-top: 84px; }
 .collectionHeading { display: flex; align-items: center; justify-content: space-between; gap: 34px; margin-bottom: 28px; }
 .collectionHeading .eyebrow { margin-bottom: 9px; }
-.collectionHeading h2 { margin: 0; color: var(--shop-ink); font-family: "Ragick", var(--font-geist-sans), sans-serif; font-size: clamp(34px, 4vw, 58px); font-weight: 400; letter-spacing: 0; line-height: 1.08; }
+.collectionHeading h2 { margin: 0; color: var(--shop-ink); font-family: var(--font-sans); font-size: clamp(34px, 4vw, 58px); font-weight: 400; letter-spacing: 0; line-height: 1.08; }
 
 .searchPanel { width: min(100%, 352px); flex: 0 0 352px; }
 .searchField { display: flex; align-items: stretch; width: 100%; min-height: 44px; overflow: hidden; border: 1px solid var(--shop-ink); border-radius: 4px; color: var(--shop-ink); background: #fffefa; transition: border-color 220ms cubic-bezier(.2,.7,.2,1), background 220ms cubic-bezier(.2,.7,.2,1); }
@@ -1016,9 +1016,9 @@
 .quickAdd:hover { background: #fff; }
 .productInfo { padding: 13px 1px; }
 .productCategory { display: block; margin-bottom: 6px; padding-left: 5px; color: var(--shop-muted); font-size: 9px; font-weight: 400; letter-spacing: .1em; }
-.productName { margin: 0 0 8px; padding-left: 5px; color: var(--shop-ink); font-size: 13px; font-weight: 450; line-height: 1.4; }
+.productName { margin: 0 0 8px; padding-left: 5px; color: var(--shop-ink); font-size: 13px; font-weight: 400; line-height: 1.4; }
 .productMeta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding-left: 5px; }
-.productPrice { margin: 0; color: var(--shop-ink); font-size: 12px; font-weight: 550; }
+.productPrice { margin: 0; color: var(--shop-ink); font-size: 12px; font-weight: 600; }
 .oldPrice { color: #928b84; font-size: 11px; }
 .reviews { margin-left: auto; color: var(--shop-muted); font-size: 10px; }
 
@@ -1048,7 +1048,7 @@
 .cartItems { flex: 1; overflow-y: auto; }
 .cartItem { display: grid; grid-template-columns: 76px minmax(0,1fr) auto; gap: 14px; align-items: center; padding: 18px 0; border-bottom: 1px solid var(--shop-line); }
 .cartItem img { width: 76px; height: 96px; object-fit: cover; }
-.cartItemInfo h3 { margin: 0 0 8px; font-size: 12px; font-weight: 500; }
+.cartItemInfo h3 { margin: 0 0 8px; font-size: 12px; font-weight: 600; }
 .cartItemInfo p { margin: 0; font-size: 11px; }
 .removeCartItem { border: 0; border-bottom: 1px solid #b8b1a9; color: var(--shop-muted); background: none; font: inherit; font-size: 10px; cursor: pointer; }
 .emptyCart { padding-top: 24px; color: var(--shop-muted); font-size: 13px; }

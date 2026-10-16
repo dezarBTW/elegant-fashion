@@ -59,9 +59,34 @@ domain. The recipient is kept server-side:
 ```text
 RESEND_API_KEY=your-resend-api-key
 BESPOKE_NOTIFY_EMAIL=your-notification-email@example.com
-RESEND_FROM_EMAIL=Elegant Styles <requests@your-verified-domain.com>
+RESEND_FROM_EMAIL=Elegant Style <requests@your-verified-domain.com>
 ```
 
 Apply `supabase/migrations/20250101_bespoke_requests.sql` and then
 `supabase/migrations/20261008_bespoke_request_security.sql` to create the
 requests table, private image bucket, and server-side rate limiter.
+
+## Email confirmation and password recovery rollout
+
+Deploy the authentication pages before enabling confirmation in the hosted
+Supabase project. Email links always return to `https://elegantstyle.com.ng`.
+
+1. Under Authentication → URL Configuration, set Site URL to
+   `https://elegantstyle.com.ng` and allow these exact Redirect URLs:
+   - `https://elegantstyle.com.ng/auth/callback`
+   - `https://elegantstyle.com.ng/reset-password`
+2. Keep the confirmation and recovery email templates linked to
+   `{{ .ConfirmationURL }}` so Supabase verifies the token before redirecting.
+   Configure a working SMTP sender for production delivery.
+3. After deployment, under Authentication → Sign In / Providers → Email,
+   enable **Confirm email**. This is the server-side setting that blocks
+   unconfirmed email/password sign-ins; deploying the UI alone does not enable it.
+4. Test with a fresh email: signup shows “Check your email”; sign-in before
+   confirmation is rejected and offers resend; the email link returns to the
+   production site and completes sign-in. Also test Forgot password, mismatched
+   passwords, a successful reset, and expired/used links. Confirm the old password
+   fails and the new password works.
+
+Run `node --test scripts/auth-links.test.mjs` for redirect and link-error checks.
+See [Supabase redirect configuration](https://supabase.com/docs/guides/auth/redirect-urls)
+and [password recovery](https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail).

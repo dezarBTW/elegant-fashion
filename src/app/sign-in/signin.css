@@ -74,7 +74,7 @@
 .auth-media-copy p {
   margin: 0 0 0.7rem;
   font-size: 0.72rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: rgba(255, 253, 249, 0.72);
@@ -114,7 +114,7 @@
   color: var(--ink);
   font-family: var(--font-display);
   font-size: clamp(2rem, 3vw, 2.6rem);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: -0.03em;
   line-height: 1.1;
   text-align: left;
@@ -158,7 +158,7 @@
 .field-label-row a {
   color: var(--gold-deep);
   font-size: 0.78rem;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -242,7 +242,7 @@
 
 .field-error {
   color: var(--danger);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .error-message {
@@ -297,7 +297,7 @@
   margin: 0.35rem 0;
   color: var(--stone-light);
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -400,7 +400,7 @@
   color: var(--ink);
   font-family: var(--font-display);
   font-size: 1.55rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .deactivated-modal p {
@@ -573,7 +573,7 @@
   color: var(--ink);
   font-family: var(--font-display);
   font-size: 2.3rem;
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -756,7 +756,7 @@
   color: var(--ink);
   font-family: var(--font-display);
   font-size: 1.7rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .deactivated-modal p {

@@ -46,7 +46,7 @@ export default function RegistrationDetails() {
 
   const getAdmissionMessage = (accepted) => {
     if (accepted) {
-      return "You have successfully been admitted into Elegant styles Academy";
+      return "You have successfully been admitted into Elegant Style Academy";
     }
     return null;
   };

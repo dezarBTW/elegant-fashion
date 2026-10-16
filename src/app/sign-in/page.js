@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { CONFIRMATION_REDIRECT } from "@/lib/authLinks.mjs";
 import { consumeRateLimit, formatRetryMessage, sanitizeEmail } from "@/lib/sanitizeInput";
 import Image from "next/image";
 import "../auth-atelier.css";
+import "../auth-extras.css";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -16,6 +18,10 @@ export default function SignIn() {
   const [message, setMessage] = useState("");
   const [isDeactivated, setIsDeactivated] = useState(false);
   const [checkingExistingSession, setCheckingExistingSession] = useState(true);
+  // Email address that signed in correctly but hasn't confirmed yet.
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
   const router = useRouter();
 
   // If the user already has a valid session (e.g. they landed here right
@@ -57,6 +63,8 @@ export default function SignIn() {
 
     setLoading(true);
     setMessage("");
+    setUnconfirmedEmail("");
+    setResendMessage("");
 
     try {
       const { data: signInData, error } = await supabase.auth.signInWithPassword({
@@ -65,7 +73,15 @@ export default function SignIn() {
       });
 
       if (error) {
-        setMessage(error.message || "Unable to sign in. Please try again.");
+        const notConfirmed =
+          error.code === "email_not_confirmed" || /not confirmed/i.test(error.message || "");
+
+        if (notConfirmed) {
+          setUnconfirmedEmail(safeEmail);
+          setMessage("Please confirm your email address first. We sent you a link when you signed up.");
+        } else {
+          setMessage(error.message || "Unable to sign in. Please try again.");
+        }
         setLoading(false);
         return;
       }
@@ -96,6 +112,39 @@ export default function SignIn() {
       console.error("Sign-in redirect error:", error);
       setMessage("Unable to complete sign-in. Please try again.");
       setLoading(false);
+    }
+  };
+
+  const resendConfirmation = async () => {
+    if (!unconfirmedEmail) return;
+
+    const rateLimit = consumeRateLimit(`resend:${unconfirmedEmail}`, 3, 60 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      setResendMessage(formatRetryMessage(rateLimit.retryAfterMs));
+      return;
+    }
+
+    setResending(true);
+    setResendMessage("");
+
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: unconfirmedEmail,
+        options: {
+          emailRedirectTo: CONFIRMATION_REDIRECT,
+        },
+      });
+
+      setResendMessage(
+        error
+          ? (error.message || "We couldn't resend the email. Please try again shortly.")
+          : "We've sent the confirmation email again. Check your inbox and spam folder."
+      );
+    } catch {
+      setResendMessage("We couldn't resend the email. Please try again shortly.");
+    } finally {
+      setResending(false);
     }
   };
 
@@ -140,7 +189,7 @@ export default function SignIn() {
             <h2 id="deactivated-title">Account deactivated</h2>
             <p>
               Your account is no longer active and you cannot access it. Contact
-              Elegant styles to resolve this issue.
+              Elegant Style to resolve this issue.
             </p>
             <button
               type="button"
@@ -179,6 +228,21 @@ export default function SignIn() {
             </div>
           )}
 
+          {unconfirmedEmail && (
+            <p className="auth-aside" style={{ marginTop: 0, marginBottom: "1rem" }}>
+              Didn&apos;t get it?{" "}
+              <button type="button" className="auth-link-button" onClick={resendConfirmation} disabled={resending}>
+                {resending ? "Sending..." : "Resend confirmation email"}
+              </button>
+            </p>
+          )}
+
+          {resendMessage && (
+            <div className="auth-notice" role="status">
+              {resendMessage}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email</label>
@@ -194,7 +258,10 @@ export default function SignIn() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="password">Password</label>
+            <div className="field-label-row">
+              <label htmlFor="password">Password</label>
+              <Link href="/forgot-password">Forgot password?</Link>
+            </div>
             <div className="password-field">
               <input
                 id="password"
@@ -239,7 +306,7 @@ export default function SignIn() {
           </button>
 
           <p className="auth-switch">
-            New to Elegant styles? <Link href="/sign-up">Create an account</Link>
+            New to Elegant Style? <Link href="/sign-up">Create an account</Link>
           </p>
         </div>
       </section>

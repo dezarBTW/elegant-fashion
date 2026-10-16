@@ -4,12 +4,12 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 60px;
-  background: rgba(20, 18, 13, 0.95);
-  backdrop-filter: blur(10px);
+  height: 70px;
+  background: #F7F2E9;
+  color: #000;
   z-index: 1000;
   padding: 0;
-  border-bottom: 1px solid var(--line-dark);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   transition: transform 0.3s ease, visibility 0.3s ease;
 }
 
@@ -38,14 +38,26 @@
 
 .logo {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
   gap: 0.5rem;
   font-family: var(--font-display);
   font-size: 1.3rem;
-  font-weight: 500;
-  color: var(--white);
+  font-weight: 600;
+  color: #000;
   text-decoration: none;
   white-space: nowrap;
+}
+
+.logoImage {
+  display: block;
+  width: clamp(110px, 12vw, 148px);
+  height: auto;
+}
+
+@media (max-width: 768px) {
+  .logoImage {
+    width: 144px;
+  }
 }
 
 /* .logo::after {
@@ -76,7 +88,7 @@
 .navDivider {
   width: 1px;
   height: 18px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.15);
   flex-shrink: 0;
 }
 
@@ -91,7 +103,7 @@
   align-items: center;
   gap: 7px;
   text-decoration: none;
-  color: var(--white);
+  color: #000;
   font-size: 0.85rem;
   font-weight: 400;
   letter-spacing: 0.15em;
@@ -110,12 +122,12 @@
   left: 0;
   width: 0;
   height: 1px;
-  background: var(--gold);
+  background: var(--gold-deep);
   transition: width 0.3s ease;
 }
 
 .navMenu a:hover {
-  color: var(--gold);
+  color: #000;
 }
 
 .navMenu a:hover::after {
@@ -130,9 +142,9 @@
   gap: 5px;
   height: 30px;
   padding: 0 0.8rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(0, 0, 0, 0.25);
   border-radius: 6px;
-  color: rgba(255, 255, 255, 0.9);
+  color: #000;
   font-size: 0.75rem;
   letter-spacing: 0.05em;
   text-decoration: none;
@@ -140,22 +152,22 @@
 }
 
 .authSection a.authLink:hover {
-  color: var(--white);
-  border-color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.06);
+  color: #000;
+  border-color: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .authSection a.authLinkPrimary {
   background: var(--gold);
-  color: var(--ink);
-  border: 1px solid var(--gold);
-  font-weight: 500;
+  color: #000;
+  border: 1px solid var(--gold-deep);
+  font-weight: 600;
 }
 
 .authSection a.authLinkPrimary:hover {
   background: var(--gold-bright);
-  border-color: var(--gold-bright);
-  color: var(--ink);
+  border-color: var(--gold-deep);
+  color: #000;
 }
 
 .authIcon {
@@ -172,9 +184,9 @@
   height: 30px;
   padding: 0 0.8rem;
   background: transparent;
-  border: 1px solid rgba(201, 169, 98, 0.45);
+  border: 1px solid rgba(0, 0, 0, 0.25);
   border-radius: 6px;
-  color: var(--gold);
+  color: #000;
   font-size: 0.75rem;
   font-weight: 400;
   letter-spacing: 0.08em;
@@ -184,9 +196,9 @@
 }
 
 .navLogout:hover {
-  border-color: rgba(201, 169, 98, 0.85);
-  background: rgba(201, 169, 98, 0.08);
-  color: var(--gold-bright);
+  border-color: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.05);
+  color: #000;
 }
 
 .profileIcon {
@@ -198,7 +210,7 @@
   border: 1px solid var(--gold);
   border-radius: 50%;
   background: var(--gold);
-  color: var(--ink);
+  color: #000;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -221,9 +233,9 @@
   z-index: 1002;
   min-width: 210px;
   padding: 0.35rem;
-  background: var(--white);
+  background: #F7F2E9;
   border: 1px solid var(--line);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
 }
 
 .profileMenu button {
@@ -235,7 +247,7 @@
   padding: 0.65rem 0.75rem;
   border: 0;
   background: transparent;
-  color: var(--ink);
+  color: #000;
   font: inherit;
   font-size: 0.8rem;
   text-align: left;
@@ -244,7 +256,7 @@
 
 .profileMenu button:hover,
 .profileMenu button:focus-visible {
-  background: var(--paper-dim);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .cartCount {
@@ -281,7 +293,7 @@
   color: var(--ink);
   font-family: var(--font-display);
   font-size: 1.5rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .accountModal p {
@@ -370,7 +382,7 @@
 .userGreeting {
   display: inline-flex;
   align-items: center;
-  color: var(--gold);
+  color: #000;
   font-size: 0.85rem;
   font-weight: 400;
   letter-spacing: 0.1em;
@@ -387,6 +399,20 @@
 
 .userGreetingDesktop {
   display: inline;
+}
+
+.logo:hover {
+  color: #000;
+}
+
+.logo:focus-visible,
+.navMenu a:focus-visible,
+.authLink:focus-visible,
+.navLogout:focus-visible,
+.profileIcon:focus-visible,
+.hamburger:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 4px;
 }
 
 /* ====================== HAMBURGER MENU BUTTON ====================== */
@@ -415,7 +441,7 @@
   width: 24px;
   height: 2px;
   border-radius: 999px;
-  background: var(--white);
+  background: #000;
   transition: transform 0.2s ease, opacity 0.2s ease, top 0.2s ease;
 }
 
@@ -587,7 +613,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.35);
     backdrop-filter: blur(2px);
     opacity: 0;
     visibility: hidden;
@@ -611,10 +637,10 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: center;
-    background: var(--ink);
+    background: #F7F2E9;
     padding: 6rem 2rem 3rem;
     gap: 1.5rem;
-    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.45);
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.16);
     transform: translateX(100%);
     transition: transform 0.25s cubic-bezier(0.2, 0, 0.2, 1);
     z-index: 999;
@@ -667,7 +693,7 @@
   }
 
   .navMenu a:hover {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(0, 0, 0, 0.05);
   }
 
   .authSection a.authLink,

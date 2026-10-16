@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from '../components/Navbar.module.css';
 import Link from 'next/link';
+import Image from 'next/image';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
@@ -88,8 +89,41 @@ const getEmailInitials = (email) => {
   return localPart.slice(0, 2).toUpperCase() || '?';
 };
 
-function Navbar() {
-  const { user, logout, isAdmin } = useAuth();
+const ProfileMenu = ({
+  mobile = false,
+  user,
+  openProfileMenu,
+  toggleProfileMenu,
+  openPasswordModal,
+  openDeactivateModal,
+}) => (
+  <div className={`${styles.profileMenuWrapper} ${mobile ? styles.mobileProfileMenuWrapper : ''}`}>
+    <button
+      type="button"
+      className={`${styles.profileIcon} ${mobile ? styles.mobileProfileIcon : styles.drawerProfileIcon}`}
+      title={user.email || 'Signed in user'}
+      aria-label={`Signed in as ${user.email || 'user'}`}
+      aria-expanded={openProfileMenu === (mobile ? 'mobile' : 'desktop')}
+      aria-haspopup="menu"
+      onClick={() => toggleProfileMenu(mobile ? 'mobile' : 'desktop')}
+    >
+      {getEmailInitials(user.email)}
+    </button>
+    {openProfileMenu === (mobile ? 'mobile' : 'desktop') && (
+      <div className={styles.profileMenu} role="menu">
+        <button type="button" role="menuitem" onClick={openPasswordModal}>
+          <UserIcon />
+          Change password
+        </button>
+        <button type="button" role="menuitem" className={styles.deactivateAction} onClick={openDeactivateModal}>
+          Deactivate account
+        </button>
+      </div>
+    )}
+  </div>
+);
+
+function NavbarContent({ user, logout, isAdmin }) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [openProfileMenu, setOpenProfileMenu] = useState(null);
@@ -145,6 +179,13 @@ function Navbar() {
     setConfirmPassword('');
     setCurrentPassword('');
     setIsPasswordModalOpen(true);
+  };
+
+  const openDeactivateModal = () => {
+    setOpenProfileMenu(null);
+    setAccountError('');
+    setDeactivatePassword('');
+    setIsDeactivateModalOpen(true);
   };
 
   const handlePasswordChange = async (event) => {
@@ -244,48 +285,7 @@ function Navbar() {
     setAccountMessage('');
   };
 
-  const ProfileMenu = ({ mobile = false }) => (
-    <div className={`${styles.profileMenuWrapper} ${mobile ? styles.mobileProfileMenuWrapper : ''}`}>
-      <button
-        type="button"
-        className={`${styles.profileIcon} ${mobile ? styles.mobileProfileIcon : styles.drawerProfileIcon}`}
-        title={user.email || 'Signed in user'}
-        aria-label={`Signed in as ${user.email || 'user'}`}
-        aria-expanded={openProfileMenu === (mobile ? 'mobile' : 'desktop')}
-        aria-haspopup="menu"
-        onClick={() => toggleProfileMenu(mobile ? 'mobile' : 'desktop')}
-      >
-        {getEmailInitials(user.email)}
-      </button>
-      {openProfileMenu === (mobile ? 'mobile' : 'desktop') && (
-        <div className={styles.profileMenu} role="menu">
-          <button type="button" role="menuitem" onClick={openPasswordModal}>
-            <UserIcon />
-            Change password
-          </button>
-          <button type="button" role="menuitem" className={styles.deactivateAction} onClick={() => {
-            setOpenProfileMenu(null);
-            setAccountError('');
-            setDeactivatePassword('');
-            setIsDeactivateModalOpen(true);
-          }}>
-            Deactivate account
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
   // Lock body scroll while the mobile drawer is open
-  useEffect(() => {
-    if (!user) {
-      setOpenProfileMenu(null);
-      setIsPasswordModalOpen(false);
-      setIsDeactivateModalOpen(false);
-      setIsAccountActionLoading(false);
-    }
-  }, [user]);
-
   useEffect(() => {
     document.body.style.overflow = isMenuOpen ? 'hidden' : '';
     return () => {
@@ -329,12 +329,27 @@ function Navbar() {
       <div className={styles.navContent}>
         <div className={styles.logoSection}>
           <Link href="/" className={styles.logo} onClick={closeMenu}>
-            Elegant styles
+            <Image
+              src="/images/elegant-style-navbar.png"
+              alt="Elegant Style"
+              width={1900}
+              height={636}
+              className={styles.logoImage}
+              sizes="148px"
+              priority
+            />
           </Link>
         </div>
 
         {user && (
-          <ProfileMenu mobile />
+          <ProfileMenu
+            mobile
+            user={user}
+            openProfileMenu={openProfileMenu}
+            toggleProfileMenu={toggleProfileMenu}
+            openPasswordModal={openPasswordModal}
+            openDeactivateModal={openDeactivateModal}
+          />
         )}
 
         <button
@@ -385,7 +400,13 @@ function Navbar() {
           <div className={styles.authSection}>
             {user ? (
               <>
-                <ProfileMenu />
+                <ProfileMenu
+                  user={user}
+                  openProfileMenu={openProfileMenu}
+                  toggleProfileMenu={toggleProfileMenu}
+                  openPasswordModal={openPasswordModal}
+                  openDeactivateModal={openDeactivateModal}
+                />
                 <button
                   onClick={handleLogout}
                   className={styles.navLogout}
@@ -467,4 +488,15 @@ function Navbar() {
   );
 }
 
-export default Navbar;
+// Changing accounts remounts the navbar and clears menus, forms, and pending UI state.
+export default function Navbar() {
+  const { user, logout, isAdmin } = useAuth();
+  return (
+    <NavbarContent
+      key={user?.id ?? 'signed-out'}
+      user={user}
+      logout={logout}
+      isAdmin={isAdmin}
+    />
+  );
+}

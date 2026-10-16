@@ -1,6 +1,6 @@
 # E-Commerce Database Migrations
 
-**Project:** Elegant styles (yrzvqvdrahfmmoprgukd)  
+**Project:** Elegant Style (yrzvqvdrahfmmoprgukd)
 **Region:** eu-west-1  
 **Created:** 2026-10-07
 

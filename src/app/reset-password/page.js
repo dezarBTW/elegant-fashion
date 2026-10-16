@@ -2,44 +2,47 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import styles from "./reset-password.css";
+import { getAuthLinkError } from "@/lib/authLinks.mjs";
+import "./reset-password.css";
 
 export default function ResetPassword() {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
-  const [sessionRestored, setSessionRestored] = useState(false);
+  // "checking" while we wait for Supabase to read the link, then "ready" or "invalid".
+  const [linkState, setLinkState] = useState("checking");
 
   useEffect(() => {
-    // Extract tokens from URL hash
-    const hash = window.location.hash;
-    const params = new URLSearchParams(hash.substring(1));
-    const accessToken = params.get("access_token");
-    const refreshToken = params.get("refresh_token");
-    const type = params.get("type");
+    let mounted = true;
+    const check = async () => {
+      if (getAuthLinkError(window.location.href)) {
+        setLinkState("invalid");
+        return;
+      }
+      try {
+        // Wait for Supabase to finish consuming the recovery link before
+        // deciding whether a session exists, including on slow connections.
+        const { data, error: sessionError } = await supabase.auth.getSession();
+        if (mounted)
+          setLinkState(!sessionError && data.session ? "ready" : "invalid");
+      } catch {
+        if (mounted) setLinkState("invalid");
+      }
+    };
+    check();
 
-    if (type === "recovery" && accessToken) {
-      // Set the session with the tokens
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      }).then(({ data, error }) => {
-        if (error) {
-          setError("Invalid or expired reset link. Please request a new password reset.");
-        } else {
-          setSessionRestored(true);
-        }
-      });
-    } else {
-      setError("Invalid reset link. Please request a new password reset.");
-    }
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
+    if (linkState !== "ready" || loading || message) return;
     setError("");
     setMessage("");
 
@@ -61,31 +64,53 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
+      const { error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
 
-      if (error) {
-        setError(error.message || "Error updating password");
+      if (updateError) {
+        setError(updateError.message || "Error updating password");
       } else {
-        setMessage("Password updated successfully! Redirecting to sign in...");
+        setMessage("Password updated! Taking you to the site...");
         setTimeout(() => {
-          router.push("/sign-in");
-        }, 2000);
+          router.replace("/");
+          router.refresh();
+        }, 1500);
       }
-    } catch (error) {
+    } catch {
       setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (error && !sessionRestored) {
+  if (linkState === "checking") {
     return (
       <div className="reset-page">
         <div className="reset-container">
-          <h2>Password Reset Error</h2>
-          <p className="error-message">{error}</p>
+          <h2>Checking your link...</h2>
+          <p className="subtitle">One moment please.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (linkState === "invalid") {
+    return (
+      <div className="reset-page">
+        <div className="reset-container">
+          <h2>Link expired</h2>
+          <p className="error-message">
+            This reset link is invalid or has expired. Reset links only work
+            once and for a limited time.
+          </p>
+          <button
+            className="reset-btn"
+            style={{ width: "100%" }}
+            onClick={() => router.push("/forgot-password")}
+          >
+            Request a new link
+          </button>
           <button className="back-btn" onClick={() => router.push("/sign-in")}>
             Back to Sign In
           </button>
@@ -99,16 +124,25 @@ export default function ResetPassword() {
       <div className="reset-container">
         <h2>Reset Your Password</h2>
         <p className="subtitle">Enter your new password below</p>
-        {error && <div className="error-message">{error}</div>}
-        {message && <div className="success-message">{message}</div>}
+        {error && (
+          <div className="error-message" role="alert">
+            {error}
+          </div>
+        )}
+        {message && (
+          <div className="success-message" role="status">
+            {message}
+          </div>
+        )}
         <form onSubmit={handleResetPassword} className="reset-form">
           <div className="form-group">
             <label htmlFor="new-password">New password</label>
             <input
               id="new-password"
               className="input"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="new-password"
+              minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
@@ -119,14 +153,34 @@ export default function ResetPassword() {
             <input
               id="confirm-new-password"
               className="input"
-              type="password"
+              type={showPassword ? "text" : "password"}
               autoComplete="new-password"
+              minLength={6}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               disabled={loading}
             />
           </div>
-          <button className="reset-btn" type="submit" disabled={loading}>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              fontSize: "0.9rem",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={showPassword}
+              onChange={(e) => setShowPassword(e.target.checked)}
+            />
+            Show passwords
+          </label>
+          <button
+            className="reset-btn"
+            type="submit"
+            disabled={loading || !!message}
+          >
             {loading ? "Updating..." : "Update Password"}
           </button>
         </form>

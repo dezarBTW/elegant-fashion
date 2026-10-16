@@ -54,7 +54,7 @@
   color: var(--gold-bright);
   font-family: var(--font-display);
   font-size: 1.6rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .curriculum-card p {
@@ -79,7 +79,7 @@
 
 .form-header h1 {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 1.9rem;
   color: var(--ink);
 }
@@ -246,7 +246,7 @@
   background: var(--ink);
   color: var(--paper);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.04em;
   border: none;
   border-radius: var(--radius);
@@ -345,7 +345,7 @@
 .auth-modal h2 {
   margin: 0 0 1rem 0;
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 600;
   color: var(--ink);
   font-size: 1.5rem;
 }
@@ -368,7 +368,7 @@
   padding: 0.875rem 1.5rem;
   border-radius: var(--radius);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   text-decoration: none;
   text-align: center;
   transition: all 0.25s ease;
@@ -467,7 +467,7 @@
 
 .success-modal h2 {
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 1.5rem;
   color: var(--ink);
   margin-bottom: 0.75rem;
@@ -486,7 +486,7 @@
   border: none;
   border-radius: var(--radius);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: background 0.25s ease;
 }
@@ -516,7 +516,7 @@
 .admin-header h2 {
   margin: 0;
   font-family: var(--font-display);
-  font-weight: 500;
+  font-weight: 600;
   font-size: 1.4rem;
 }
 
@@ -527,7 +527,7 @@
   text-decoration: none;
   border-radius: var(--radius);
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   transition: background 0.25s ease;
 }
 
@@ -615,7 +615,7 @@
   border: none;
   border-radius: var(--radius);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   text-decoration: none;
   text-align: center;
@@ -633,7 +633,7 @@
   border: none;
   border-radius: var(--radius);
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: opacity 0.25s ease;
 }
