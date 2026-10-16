@@ -43,7 +43,8 @@ export function toWhatsAppUrl(phone) {
 
 export function getProgrammePrice(programme) {
   if (programme === "3 Months Programme") return "₦150,000";
-  if (programme === "6 Months Programme") return "₦250,000";
+  if (programme === "6 Months Programme") return "₦200,000";
+  if (programme === "1 Year Programme") return "₦300,000";
   return "";
 }
 

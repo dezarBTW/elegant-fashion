@@ -75,12 +75,15 @@ export default function TermsOfService() {
 
             <h3>Course Registration</h3>
             <p>
-              When registering for our fashion school programmes, you agree to provide accurate and complete information. Admission is subject to review and acceptance. Programme fees (&#8358;150,000 for 3-month, &#8358;250,000 for 6-month) are payable upon acceptance, with payment details provided during orientation.
+              When registering for our fashion school programmes, you agree to provide accurate and complete information. Admission is subject to review and acceptance. Programme fees (&#8358;150,000 for 3-month, &#8358;200,000 for 6-month and &#8358;300,000 for 1-year training) are payable upon acceptance, with payment details provided during orientation.
             </p>
 
             <h3>Product Purchases</h3>
             <p>
               Ready-to-wear products are subject to availability. Prices are subject to change without notice. We reserve the right to limit quantities, refuse orders, and cancel orders at our discretion.
+            </p>
+            <p>
+              Ready-to-wear checkout payments are processed by Bachs. Pickup and delivery within Yenagoa are free. Delivery outside Yenagoa in Nigeria costs &#8358;2,000, included in the total before payment. A return from the payment page alone does not confirm payment; your order status shows confirmation after we receive it from Bachs. Contact us with your order reference if payment needs review or you need help with delivery.
             </p>
 
             <h3>Bespoke Services</h3>

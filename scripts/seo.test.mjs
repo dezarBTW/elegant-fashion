@@ -27,7 +27,7 @@ test("business identity uses the current brand, domain and address", () => {
 });
 
 test("account and registration routes remain noindex", () => {
-  for (const route of ["admin", "auth", "sign-in", "sign-up", "forgot-password", "reset-password", "course/registration", "course/accepted-students"]) {
+  for (const route of ["admin", "auth", "sign-in", "sign-up", "forgot-password", "reset-password", "checkout", "course/registration", "course/accepted-students"]) {
     const layout = readFileSync(new URL(`../src/app/${route}/layout.js`, import.meta.url), "utf8");
     assert.match(layout, /index: false/);
   }

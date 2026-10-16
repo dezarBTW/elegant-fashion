@@ -92,6 +92,7 @@ export default function PrivacyPolicy() {
               <li><strong>Supabase Storage:</strong> Uploaded passport photographs, product images, and bespoke reference photos are stored in Supabase Storage buckets with controlled access. Bespoke reference photos are kept in a private bucket that only our administrators can open.</li>
               <li><strong>Supabase Auth:</strong> Authentication credentials (email and encrypted passwords) are managed through Supabase&apos;s authentication service.</li>
               <li><strong>Resend (email delivery):</strong> When you send a bespoke request, we receive it by email through Resend, an email delivery service. The email contains the details of your request, and your photos as attachments.</li>
+              <li><strong>Bachs (payments):</strong> When you check out, we send your name, email, phone number, order reference and payment amount to Bachs. You enter payment details on Bachs&apos;s secure checkout. We store your order items, delivery address, contact details and payment confirmation in Supabase; we do not receive your card number, PIN or security code.</li>
               <li><strong>Vercel/Next.js:</strong> Our website is hosted on Vercel using the Next.js framework. No sensitive data is stored in the hosting environment.</li>
             </ul>
             <p>
@@ -105,7 +106,7 @@ export default function PrivacyPolicy() {
               We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:
             </p>
             <ul>
-              <li><strong>Service providers:</strong> We use Supabase for database, authentication, and storage services, and Resend to deliver bespoke request emails to us. These providers have access to your data only to perform services on our behalf.</li>
+              <li><strong>Service providers:</strong> We use Supabase for database, authentication and storage services, Resend for bespoke request emails, and Bachs to process checkout payments.</li>
               <li><strong>Legal requirements:</strong> We may disclose your information if required by law, regulation, or legal process, or to protect our rights, property, or safety.</li>
               <li><strong>Business transfers:</strong> In the event of a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction.</li>
               <li><strong>Consent:</strong> We may share your information with your explicit consent.</li>
@@ -155,6 +156,7 @@ export default function PrivacyPolicy() {
               <li><strong>Account data:</strong> Retained while your account is active. You may request deletion at any time.</li>
               <li><strong>Student registration data:</strong> Retained for academic record-keeping purposes throughout your programme and thereafter as required by applicable regulations.</li>
               <li><strong>Bespoke requests:</strong> Retained while we are working on your outfit and for as long as we need to follow up with you. When a request is deleted, its photos are removed from our storage automatically shortly afterwards.</li>
+              <li><strong>Shop orders:</strong> Retained to process delivery or pickup, provide customer support and keep payment records.</li>
               <li><strong>Testimonials:</strong> Retained indefinitely unless you request removal.</li>
               <li><strong>Technical data (rate limiting):</strong> Retained for a limited duration for security purposes only.</li>
             </ul>
@@ -164,7 +166,7 @@ export default function PrivacyPolicy() {
             <h2>8. Cookies and Similar Storage</h2>
             <p>We use cookies and similar browser storage in two groups:</p>
             <ul>
-              <li><strong>Strictly necessary (always on):</strong> Your sign-in session (authentication tokens kept in your browser by Supabase), security features, and temporary copies of public product information so that pages load faster. The website cannot work properly without these.</li>
+              <li><strong>Strictly necessary (always on):</strong> Your sign-in session, saved cart, payment confirmation markers, security features and cached public product information. A secure order-access cookie allows only the browser that placed an order to view its status for seven days. Bachs may use necessary storage on its hosted payment page.</li>
               <li><strong>Analytics and performance (optional, off by default):</strong> We do not currently run analytics. If we add it in future, it will only run if you have allowed it.</li>
             </ul>
             <p>

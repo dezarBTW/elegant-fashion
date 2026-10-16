@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import styles from "./readytowear.module.css";
 import Image from "next/image";
+import Link from "next/link";
+import { CART_KEY, readCart } from "@/lib/checkout.mjs";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -24,7 +26,23 @@ export default function ReadyToWear() {
   // was previously gated behind `isAdmin`, which hid all products from
   // ordinary customers.
   useEffect(() => {
+    let mounted = true;
+    const fetchProducts = async () => {
+      try {
+        const { data, error } = await supabase.from("products").select("*").eq("is_active", true);
+        if (!mounted) return;
+        if (error) {
+          console.error("Error fetching products:", error);
+        } else {
+          setProducts(data || []);
+          const saved = readCart();
+          setCart(saved.map((item) => (data || []).find((product) => product.id === item.id && product.is_active)).filter(Boolean));
+        }
+      } catch (error) { console.error("Error fetching products:", error); }
+      finally { if (mounted) setLoading(false); }
+    };
     fetchProducts();
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
@@ -32,17 +50,6 @@ export default function ReadyToWear() {
     const timeout = window.setTimeout(() => setCartNotice(""), 2400);
     return () => window.clearTimeout(timeout);
   }, [cartNotice]);
-
-  const fetchProducts = async () => {
-    setLoading(true);
-    const { data, error } = await supabase.from("products").select("*");
-    if (error) {
-      console.error("Error fetching products:", error);
-    } else {
-      setProducts(data || []);
-    }
-    setLoading(false);
-  };
 
   const categories = ["All", "Dresses", "Skirts", "Trousers", "Tops", "Jackets", "Accessories"];
 
@@ -75,15 +82,23 @@ export default function ReadyToWear() {
   const currentProducts = sortedProducts.slice(startIndex, endIndex);
 
   const addToCart = (product) => {
-    setCart((currentCart) => [...currentCart, product]);
+    if (cart.filter((item) => item.id === product.id).length >= 10) {
+      setCartNotice("You can add up to 10 of each item.");
+      return;
+    }
+    const nextCart = [...cart, product];
+    setCart(nextCart);
+    try { localStorage.setItem(CART_KEY, JSON.stringify(nextCart.map((item) => ({ id: item.id })))); } catch { /* Cart still works for this page. */ }
     setCartNotice(`${product.name} added to your bag`);
   };
 
   const removeFromCart = (index) => {
-    setCart(cart.filter((_, i) => i !== index));
+    const nextCart = cart.filter((_, i) => i !== index);
+    setCart(nextCart);
+    try { localStorage.setItem(CART_KEY, JSON.stringify(nextCart.map((item) => ({ id: item.id })))); } catch { /* Cart still works for this page. */ }
   };
 
-  const cartTotal = cart.reduce((total, item) => total + Number(item.sale_price || item.price), 0);
+  const cartTotal = cart.reduce((total, item) => total + Number(item.sale_price ?? item.price), 0);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -268,12 +283,12 @@ export default function ReadyToWear() {
               {cart.length ? cart.map((item, index) => (
                 <article key={`${item.id}-${index}`} className={styles.cartItem}>
                   {item.image && <Image src={item.image} alt="" width={76} height={96} />}
-                  <div className={styles.cartItemInfo}><h3>{item.name}</h3><p>₦{Number(item.sale_price || item.price).toLocaleString('en-NG')}</p></div>
+                  <div className={styles.cartItemInfo}><h3>{item.name}</h3><p>₦{Number(item.sale_price ?? item.price).toLocaleString('en-NG')}</p></div>
                   <button type="button" className={styles.removeCartItem} onClick={() => removeFromCart(index)}>Remove</button>
                 </article>
               )) : <p className={styles.emptyCart}>Your cart is empty.</p>}
             </div>
-            {cart.length > 0 && <div className={styles.cartFooter}><p><span>Subtotal</span><strong>₦{cartTotal.toLocaleString('en-NG')}</strong></p><span>Shipping and taxes calculated at checkout.</span><button type="button" disabled>Continue to checkout</button></div>}
+            {cart.length > 0 && <div className={styles.cartFooter}><p><span>Subtotal</span><strong>₦{cartTotal.toLocaleString('en-NG')}</strong></p><span>Free delivery within Yenagoa. ₦2,000 outside Yenagoa. Free pickup.</span><Link className={styles.checkoutLink} href="/checkout">Continue to checkout</Link></div>}
           </aside>
         </div>
       )}

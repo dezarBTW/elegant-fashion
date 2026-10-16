@@ -116,3 +116,62 @@ HTTP 200 on the public domain:
 For local discovery, create or update the business's Google Business Profile
 with the website, phone, and address shown on the Contact page. Use the same
 business name and website on its official social profiles.
+
+## Ready-to-wear checkout with Bachs
+
+The shop cart is saved in browser storage. Checkout supports guests, free shop
+pickup, free delivery within Yenagoa, and ₦2,000 delivery outside Yenagoa in
+Nigeria. The delivery charge is included in the payment amount. Product prices
+and active status are checked on the server; browser-supplied prices are ignored.
+The current shop sells product-level items; variant selection and inventory
+reservation are not part of this checkout.
+
+Database migration: `supabase/migrations/20261016070952_bachs_checkout_orders.sql`.
+It creates private `shop_orders`, a server-only rate limiter, and administrator
+policies. It has already been executed against the linked hosted project with
+`supabase db query --linked --file ...`; do not execute it a second time.
+Existing products, registrations, and customer accounts were not changed.
+
+### Bachs account setup
+
+1. Create your account at https://bachs.io and obtain a **sandbox** secret API key
+   from its Developer Portal. Enable NGN payment methods for your account.
+2. In Vercel project environment variables, set `BACHS_API_KEY` to that sandbox
+   key. Keep it server-only: never use a `NEXT_PUBLIC_` prefix or commit secrets.
+3. Register this Bachs webhook destination:
+   `https://elegantstyle.com.ng/api/bachs/webhook`.
+   Subscribe to `collection.succeeded`. Copy the endpoint signing secret into
+   Vercel as `BACHS_WEBHOOK_SECRET`, then redeploy.
+4. Complete a sandbox checkout and verify the order appears as **paid** under
+   `/admin/orders`. Confirm its exact amount and NGN currency; test cancellation,
+   payment delay and an unsuccessful payment too. Test pickup and both delivery
+   options. A sample webhook without a real charge ID does not mark an order paid.
+5. After sandbox verification and Bachs account activation, replace the API key
+   and webhook secret with the matching **live** values, configure the live
+   webhook destination and redeploy. Confirm the first live payment manually in
+   both Bachs and the admin orders page before fulfilling it.
+
+Bachs success redirects use the public `elegantstyle.com.ng` domain even for
+sandbox payments, as Bachs refuses localhost/private callback URLs. Sandbox
+end-to-end testing therefore needs a deployed build on this domain configured
+with sandbox credentials. An API key prefix selects the matching API environment.
+
+Only a signed `collection.succeeded` event with status `SUCCEEDED`, the exact
+expected amount, and currency `NGN` marks an order paid. Overpayments,
+underpayments and other mismatches are held for manual review. Browser redirects
+and `checkout.completed` events never mark an order paid. Repeated event delivery
+is safe: the order transition is conditional, and event/charge IDs are unique.
+The status page is restricted to the browser that placed the order by an
+HttpOnly receipt cookie. Administrators can read orders and update fulfilment
+status only after payment. Payment credentials never enter this application's UI.
+
+If Bachs session creation has an uncertain result, the application holds the
+order for reconciliation rather than automatically creating another session.
+Use the order reference to check Bachs before retrying. Refunds and disputes
+remain managed through the Bachs dashboard; contact the customer before making
+manual changes to a payment under review.
+
+Run `node --test scripts/checkout.test.mjs` for money, delivery, pricing and
+webhook signature tests. Provider docs:
+https://docs.bachs.io/guides/checkout/checkout-sessions and
+https://docs.bachs.io/guides/webhooks/overview.
