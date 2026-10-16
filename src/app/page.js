@@ -3,6 +3,7 @@ import styles from "./page.module.css";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
+import { businessStructuredData } from "@/lib/seo.mjs";
 
 const heroSlides = [
   { src: "/images/Hero/image%20%2820%29.jpg", alt: "Jeweled blue Ankara evening gown" },
@@ -65,6 +66,10 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(businessStructuredData).replace(/</g, "\\u003c") }}
+      />
       <a className={styles.skipLink} href="#main-content">Skip to content</a>
 
       <section className={styles.hero} aria-label="Featured fashion collections">

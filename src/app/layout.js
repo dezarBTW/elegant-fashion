@@ -2,10 +2,14 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import CookieConsent from "@/components/CookieConsent";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SITE_URL, pageMetadata } from "@/lib/seo.mjs";
 
 export const metadata = {
-  title: "Elegant Style",
-  description: "Ready-to-wear, bespoke tailoring, and fashion design training.",
+  ...pageMetadata("/"),
+  metadataBase: new URL(SITE_URL),
+  title: { default: pageMetadata("/").title, template: "%s | Elegant Style" },
+  robots: { index: true, follow: true },
+  verification: { google: process.env.GOOGLE_SITE_VERIFICATION || undefined },
 };
 
 export default function RootLayout({ children }) {

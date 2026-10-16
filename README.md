@@ -90,3 +90,29 @@ Supabase project. Email links always return to `https://elegantstyle.com.ng`.
 Run `node --test scripts/auth-links.test.mjs` for redirect and link-error checks.
 See [Supabase redirect configuration](https://supabase.com/docs/guides/auth/redirect-urls)
 and [password recovery](https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail).
+
+## Google Search setup
+
+Deploy the SEO changes before submitting URLs to Google. Verify that these return
+HTTP 200 on the public domain:
+
+- https://elegantstyle.com.ng/robots.txt
+- https://elegantstyle.com.ng/sitemap.xml
+
+1. Open https://search.google.com/search-console and sign in with the Google
+   account that should own the site's search reporting.
+2. Add a **Domain** property for `elegantstyle.com.ng`. Google supplies a TXT
+   record; add that exact record at the domain's DNS provider, then verify it.
+   Alternatively, add the URL-prefix property `https://elegantstyle.com.ng/`,
+   choose HTML tag verification, set `GOOGLE_SITE_VERIFICATION` in the deployment
+   environment to the tag's `content` value, redeploy, and click Verify.
+3. In **Sitemaps**, submit `https://elegantstyle.com.ng/sitemap.xml`.
+4. In **URL inspection**, inspect `https://elegantstyle.com.ng/`, run **Test live
+   URL**, and choose **Request indexing**. Repeat for `/ready-to-wear`, `/course`
+   and `/contact` if needed.
+5. Check indexing and search performance in Search Console. Google controls
+   indexing and ranking; submission does not guarantee either or a deadline.
+
+For local discovery, create or update the business's Google Business Profile
+with the website, phone, and address shown on the Contact page. Use the same
+business name and website on its official social profiles.
