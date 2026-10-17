@@ -18,7 +18,6 @@ export default function ReadyToWear() {
   const [sortOrder, setSortOrder] = useState("featured");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartNotice, setCartNotice] = useState("");
-  const [quantities, setQuantities] = useState({});
   const itemsPerPage = 10;
 
   // Products are public (see "Public can view products" RLS policy), so
@@ -90,8 +89,7 @@ export default function ReadyToWear() {
 
   const addToCart = (product) => {
     try {
-      const quantity = quantities[product.id] || 1;
-      const nextCart = addCartItem(cart, product.id, quantity);
+      const nextCart = addCartItem(cart, product.id, 1);
       saveCart(nextCart);
       setCartNotice(`${product.name}: quantity ${nextCart.find((item) => item.id === product.id).quantity} in your cart`);
     } catch (error) { setCartNotice(error.message); }
@@ -197,8 +195,8 @@ export default function ReadyToWear() {
                       <div className={styles.imageFallback} aria-label="Product image coming soon">E</div>
                     )}
                     {product.sale_price && product.sale_price < product.price && <span className={styles.productBadge}>Special price</span>}
-                    <button className={styles.quickAdd} type="button" onClick={() => addToCart(product)} aria-label={`Add ${quantities[product.id] || 1} of ${product.name} to cart`}>
-                      Add {quantities[product.id] || 1} <span aria-hidden="true">+</span>
+                    <button className={styles.quickAdd} type="button" onClick={() => addToCart(product)} aria-label={`Add ${product.name} to cart`}>
+                      Add item <span aria-hidden="true">+</span>
                     </button>
                   </div>
                   <div className={styles.productInfo}>
@@ -208,12 +206,6 @@ export default function ReadyToWear() {
                       <span className={styles.productPrice}>₦{Number(product.sale_price || product.price).toLocaleString('en-NG')}</span>
                       {product.sale_price && product.sale_price < product.price && <del className={styles.oldPrice}>₦{Number(product.price).toLocaleString('en-NG')}</del>}
                     </div>
-                    <label className={styles.productQuantity}>
-                      Quantity
-                      <select aria-label={`Quantity for ${product.name}`} value={quantities[product.id] || 1} onChange={(event) => setQuantities({ ...quantities, [product.id]: Number(event.target.value) })}>
-                        {Array.from({ length: 10 }, (_, index) => <option key={index + 1} value={index + 1}>{index + 1}</option>)}
-                      </select>
-                    </label>
                   </div>
                 </article>
               ))}
