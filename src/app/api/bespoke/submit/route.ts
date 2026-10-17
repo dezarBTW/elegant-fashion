@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { after, NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { ADMIN_NOTIFY_EMAIL } from "@/lib/orderEmails.mjs";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -81,11 +82,11 @@ async function sendNotificationEmail(data: {
   requestId: string;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
-  const recipient = process.env.BESPOKE_NOTIFY_EMAIL;
+  const recipient = ADMIN_NOTIFY_EMAIL;
   const sender = process.env.RESEND_FROM_EMAIL;
   if (!apiKey || !recipient || !sender) {
     console.warn(
-      "Bespoke email notification is disabled: configure RESEND_API_KEY, BESPOKE_NOTIFY_EMAIL, and RESEND_FROM_EMAIL.",
+      "Bespoke email notification is disabled: configure RESEND_API_KEY and RESEND_FROM_EMAIL.",
     );
     return;
   }

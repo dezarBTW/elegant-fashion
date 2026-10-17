@@ -1,6 +1,8 @@
 "use client";
 import styles from "./fashionschool.css";
 import { useState, useEffect } from "react";
+import { authenticatedFetch } from "@/lib/clientApi";
+import { REGISTRATION_COMPLETE_MESSAGE, SPONSORSHIP_OPTIONS, registrationSchema } from "@/lib/registration.mjs";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,7 +15,7 @@ const REGISTRATION_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 const requiredFields = [
   "surname", "first_name", "gender", "date_of_birth", "age", "nationality",
   "marital_status", "state_of_origin", "address", "telephone", "email",
-  "chosen_programme", "passport_photo", "agreed",
+  "chosen_programme", "sponsorship", "passport_photo", "agreed",
 ];
 
 // African countries list
@@ -92,7 +94,7 @@ const africanStates = {
 const initialFormData = {
   surname: "", first_name: "", middle_name: "", gender: "", date_of_birth: "",
   age: "", nationality: "", marital_status: "", state_of_origin: "", address: "",
-  telephone: "", email: "", chosen_programme: "", passport_photo: "", agreed: false,
+  telephone: "", email: "", chosen_programme: "", sponsorship: "", sponsor_organization: "", passport_photo: "", agreed: false,
 };
 
 function validateField(name, value) {
@@ -125,12 +127,18 @@ export default function Course() {
   const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
-    if (user) {
-      checkExistingRegistration();
-    } else if (!loading) {
-      setCheckingRegistration(false);
+    if (!user) {
+      if (!loading) window.queueMicrotask(() => setCheckingRegistration(false));
+      return;
     }
-  }, [user, loading]);
+    let mounted = true;
+    supabase.from("students").select("id").eq("user_id", user.id).order("created_at").limit(1).maybeSingle().then(({ data }) => {
+      if (!mounted) return;
+      if (data) router.push(`/course/registration/${data.id}`);
+      else setCheckingRegistration(false);
+    }).catch(() => { if (mounted) setCheckingRegistration(false); });
+    return () => { mounted = false; };
+  }, [user, loading, router]);
 
   useEffect(() => {
     if (!user) return;
@@ -145,31 +153,13 @@ export default function Course() {
     setCachedValue(`registration-draft:${user.id}`, draft, REGISTRATION_DRAFT_TTL_MS);
   }, [formData, user, draftLoaded]);
 
-  const checkExistingRegistration = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("students")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      if (data && !error) {
-        router.push(`/course/registration/${data.id}`);
-      } else {
-        setCheckingRegistration(false);
-      }
-    } catch (error) {
-      console.error("Error checking registration:", error);
-      setCheckingRegistration(false);
-    }
-  };
-
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     const safeValue = name === "email" ? sanitizeEmail(value) : sanitizeText(value);
     setFormData((prev) => ({
       ...prev,
       [name]: safeValue,
+      ...(name === "sponsorship" && safeValue !== "Scholarship" ? { sponsor_organization: "" } : {}),
     }));
     setTouchedFields((prev) => ({ ...prev, [name]: true }));
     setFieldErrors((prev) => ({ ...prev, [name]: validateField(name, safeValue) }));
@@ -263,15 +253,17 @@ export default function Course() {
     }
   };
 
+  const fieldsToValidate = formData.sponsorship === "Scholarship" ? [...requiredFields, "sponsor_organization"] : requiredFields;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     const errors = Object.fromEntries(
-      requiredFields.map((name) => [name, validateField(name, formData[name])]).filter(([, error]) => error)
+      fieldsToValidate.map((name) => [name, validateField(name, formData[name])]).filter(([, error]) => error)
     );
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      setTouchedFields(Object.fromEntries(requiredFields.map((name) => [name, true])));
+      setTouchedFields(Object.fromEntries(fieldsToValidate.map((name) => [name, true])));
       return;
     }
 
@@ -284,40 +276,19 @@ export default function Course() {
     setSubmitting(true);
 
     try {
-      const { data, error } = await supabase
-        .from("students")
-        .insert([
-          {
-            surname: sanitizeText(formData.surname),
-            first_name: sanitizeText(formData.first_name),
-            middle_name: sanitizeText(formData.middle_name),
-            gender: sanitizeText(formData.gender),
-            date_of_birth: sanitizeText(formData.date_of_birth),
-            age: parseInt(formData.age),
-            nationality: sanitizeText(formData.nationality),
-            marital_status: sanitizeText(formData.marital_status),
-            state_of_origin: sanitizeText(formData.state_of_origin),
-            address: sanitizeText(formData.address),
-            telephone: sanitizeText(formData.telephone),
-            email: sanitizeEmail(formData.email),
-            chosen_programme: sanitizeText(formData.chosen_programme),
-            passport_photo: formData.passport_photo,
-            user_id: user.id,
-          },
-        ])
-        .select();
-
-      if (error) {
-        console.error("Submission error:", error);
-        alert("Error submitting application. Please try again.");
-      } else {
-        invalidateCachedValue(`registration-draft:${user.id}`);
-        setRegistrationId(data[0].id);
-        setShowSuccessModal(true);
+      const parsed = registrationSchema.safeParse(formData);
+      if (!parsed.success) {
+        setFieldErrors(Object.fromEntries(parsed.error.issues.map((issue) => [issue.path[0], issue.message])));
+        setTouchedFields(Object.fromEntries(fieldsToValidate.map((name) => [name, true])));
+        return;
       }
+      const { registration } = await authenticatedFetch("/api/registrations", { method: "POST", body: JSON.stringify(parsed.data) });
+      invalidateCachedValue(`registration-draft:${user.id}`);
+      setRegistrationId(registration.id);
+      setShowSuccessModal(true);
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("Error submitting application. Please try again.");
+      alert(error.message || "Error submitting application. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -330,11 +301,11 @@ export default function Course() {
     }
   };
 
-  const completedFields = requiredFields.filter(
+  const completedFields = fieldsToValidate.filter(
     (name) => !validateField(name, formData[name])
   ).length;
-  const isFormValid = completedFields === requiredFields.length;
-  const progress = Math.round((completedFields / requiredFields.length) * 100);
+  const isFormValid = completedFields === fieldsToValidate.length;
+  const progress = Math.round((completedFields / fieldsToValidate.length) * 100);
 
   if (loading || checkingRegistration) {
     return (
@@ -700,9 +671,24 @@ export default function Course() {
             {touchedFields.chosen_programme && <FieldError message={fieldErrors.chosen_programme} />}
           </div>
 
+          <div className="question" role="group" aria-labelledby="sponsorship-heading">
+            <div id="sponsorship-heading" className="question-number">14. Sponsorship <span className="required">*</span></div>
+            <div className="radio-group">
+              {SPONSORSHIP_OPTIONS.map((option) => <label className="radio-option" key={option}>
+                <input type="radio" name="sponsorship" value={option} checked={formData.sponsorship === option} onChange={handleInputChange} onBlur={handleFieldBlur} required />
+                {option}
+              </label>)}
+            </div>
+            {touchedFields.sponsorship && <FieldError message={fieldErrors.sponsorship} />}
+            {formData.sponsorship === "Scholarship" && <label className="sponsor-organization">Sponsoring organization <span className="required">*</span>
+              <input className="input-field" name="sponsor_organization" value={formData.sponsor_organization} onChange={handleInputChange} onBlur={handleFieldBlur} placeholder="state the organization sponsoring your training" maxLength={160} required />
+              {touchedFields.sponsor_organization && <FieldError message={fieldErrors.sponsor_organization} />}
+            </label>}
+          </div>
+
           {/* Passport Photograph */}
           <div className="question">
-            <div className="question-number">14. Passport Photograph <span className="required">*</span></div>
+            <div className="question-number">15. Passport Photograph <span className="required">*</span></div>
             <div className="question-label">Upload a clear passport photo (JPG, JPEG, or PNG, max 5MB)</div>
             <input
               type="file"
@@ -723,6 +709,7 @@ export default function Course() {
             )}
             {formData.passport_photo && (
               <div className="passport-preview">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={formData.passport_photo}
                   alt="Passport Preview"
@@ -769,7 +756,7 @@ export default function Course() {
               </svg>
             </div>
             <h2>Registration Successful!</h2>
-            <p>You have successfully registered!</p>
+            <p style={{ whiteSpace: "pre-line" }}>{REGISTRATION_COMPLETE_MESSAGE}</p>
             <button className="success-modal-btn" onClick={handleCloseModal}>
               View Registration Details
             </button>

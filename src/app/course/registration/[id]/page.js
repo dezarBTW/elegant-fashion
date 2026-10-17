@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./registration.module.css";
 import Image from "next/image";
+import { REGISTRATION_COMPLETE_MESSAGE } from "@/lib/registration.mjs";
 
 export default function RegistrationDetails() {
   const params = useParams();
@@ -12,10 +13,8 @@ export default function RegistrationDetails() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchRegistrationDetails();
-  }, [params.id]);
-
-  const fetchRegistrationDetails = async () => {
+    let mounted = true;
+    const fetchRegistrationDetails = async () => {
     try {
       const { data, error } = await supabase
         .from("students")
@@ -26,14 +25,17 @@ export default function RegistrationDetails() {
       if (error) {
         console.error("Error fetching registration:", error);
       } else {
-        setRegistration(data);
+        if (mounted) setRegistration(data);
       }
     } catch (error) {
       console.error("Error fetching registration:", error);
     } finally {
-      setLoading(false);
+      if (mounted) setLoading(false);
     }
-  };
+    };
+    fetchRegistrationDetails();
+    return () => { mounted = false; };
+  }, [params.id]);
 
   const getProgrammePrice = (programme) => {
     if (programme === "3 Months Programme") {
@@ -184,6 +186,8 @@ export default function RegistrationDetails() {
               <label>Chosen Programme</label>
               <p>{registration.chosen_programme}</p>
             </div>
+            <div className={styles.infoItem}><label>Sponsorship</label><p>{registration.sponsorship || "Not recorded"}</p></div>
+            {registration.sponsor_organization && <div className={styles.infoItem}><label>Sponsor organization</label><p>{registration.sponsor_organization}</p></div>}
           </div>
         </div>
 
@@ -192,13 +196,14 @@ export default function RegistrationDetails() {
           <div className={styles.pricingCard}>
             <h2>Training Cost</h2>
             <p className={styles.price}>{getProgrammePrice(registration.chosen_programme)}</p>
-            <p className={styles.priceNote}>
-              Payment details will be provided during orientation
+            <p className={styles.priceNote} style={{ whiteSpace: "pre-line" }}>
+              {REGISTRATION_COMPLETE_MESSAGE}
             </p>
           </div>
         )}
 
         {/* Action Buttons */}
+        {registration.accepted && <p className={styles.priceNote} style={{ whiteSpace: "pre-line" }}>{REGISTRATION_COMPLETE_MESSAGE}</p>}
         <div className={styles.actions}>
           {registration.accepted && (
             <button onClick={() => window.print()} className={styles.printBtn}>

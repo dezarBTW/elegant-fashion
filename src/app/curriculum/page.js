@@ -133,8 +133,8 @@ export default function Curriculum() {
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     if (prefersReducedMotion) {
-      setStudentCount(1000);
-      return undefined;
+      const reducedMotionTimer = setTimeout(() => setStudentCount(1000), 0);
+      return () => clearTimeout(reducedMotionTimer);
     }
 
     const target = 1000;

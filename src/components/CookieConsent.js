@@ -16,18 +16,23 @@ export default function CookieConsent() {
   const panelRef = useRef(null);
 
   useEffect(() => {
-    const saved = getCookieConsent();
-    setConsent(saved);
-    setShowBanner(!saved);
-    setAnalytics(saved?.analytics ?? false);
-    setReady(true);
+    const frame = requestAnimationFrame(() => {
+      const saved = getCookieConsent();
+      setConsent(saved);
+      setShowBanner(!saved);
+      setAnalytics(saved?.analytics ?? false);
+      setReady(true);
+    });
 
     const openFromElsewhere = () => {
       setAnalytics(getCookieConsent()?.analytics ?? false);
       setShowSettings(true);
     };
     window.addEventListener(OPEN_SETTINGS_EVENT, openFromElsewhere);
-    return () => window.removeEventListener(OPEN_SETTINGS_EVENT, openFromElsewhere);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener(OPEN_SETTINGS_EVENT, openFromElsewhere);
+    };
   }, []);
 
   useEffect(() => {

@@ -7,6 +7,7 @@ import { z } from "zod";
 import * as bachs from "../src/lib/bachs.mjs";
 import * as management from "../src/lib/orderManagement.mjs";
 import { buildOrderEmails, sendOrderEmails } from "../src/lib/orderEmails.mjs";
+import { createReceiptConfirmation, receiptHash } from "../src/lib/checkoutServer.js";
 
 const id = "11111111-1111-4111-8111-111111111111";
 const adminId = "22222222-2222-4222-8222-222222222222";
@@ -17,6 +18,7 @@ const fixture = () => ({
   items: [{ productId: "dress", name: "Dress", quantity: 1, unitAmountMinor: 5000000, lineAmountMinor: 5000000 }],
   subtotal_minor: 5000000, shipping_minor: 200000, total_minor: 5200000, payment_status: "pending",
   fulfillment_status: "new", checkout_id: "chk_test", created_at: "2026-10-16T10:00:00Z", receipt_hash: "private",
+  customer_received_at: null, receipt_confirmation_hash: null,
 });
 
 function database(orders = [fixture()], profile = { id: adminId, is_admin: true, is_active: true }) {
@@ -52,6 +54,7 @@ function database(orders = [fixture()], profile = { id: adminId, is_admin: true,
         select(value, options) { columns = value; count = Boolean(options?.count); return query; },
         update(value) { patch = value; return query; },
         eq(key, value) { filters.push((row) => row[key] === value); return query; },
+        is(key, value) { filters.push((row) => (row[key] ?? null) === value); return query; },
         neq(key, value) { filters.push((row) => row[key] !== value); return query; },
         order(key, options) { sorts.push([key, options]); return query; },
         maybeSingle() { return execute(true); },
@@ -69,7 +72,7 @@ async function route(file, db, mailer = async () => {}) {
   const dependencies = {
     "next/server": { NextResponse: Response },
     "zod": { z },
-    "@/lib/checkoutServer": { checkoutDatabase: () => db },
+    "@/lib/checkoutServer": { checkoutDatabase: () => db, createReceiptConfirmation, receiptHash },
     "@/lib/bachs.mjs": bachs,
     "@/lib/orderEmails.mjs": { sendOrderEmails: mailer },
     "@/lib/orderManagement.mjs": management,
@@ -99,14 +102,18 @@ const adminRequest = (method = "GET", payload, token = "valid", query = "") => n
 test("concurrent and repeated paid webhooks claim one email attempt", async () => {
   const db = database();
   const sent = [];
-  const { POST } = await route("src/app/api/bachs/webhook/route.js", db, async (order) => sent.push(order));
+  const { POST } = await route("src/app/api/bachs/webhook/route.js", db, async (order, options) => sent.push({ order, options }));
   const responses = await Promise.all([POST(webhook()), POST(webhook())]);
   assert.ok(responses.every((response) => response.status === 200));
   assert.equal(sent.length, 1);
   assert.equal(db.orders[0].payment_status, "paid");
   assert.equal(db.orders[0].paid_at, db.orders[0].emails_claimed_at);
+  assert.equal(db.orders[0].receipt_confirmation_hash, receiptHash(sent[0].options.receiptToken));
+  assert.equal(sent[0].order.receipt_confirmation_hash, undefined);
+  const originalConfirmation = db.orders[0].receipt_confirmation_hash;
   assert.equal((await POST(webhook())).status, 200);
   assert.equal(sent.length, 1);
+  assert.equal(db.orders[0].receipt_confirmation_hash, originalConfirmation);
 });
 
 test("email failure preserves payment and returns 200 without retrying mail", async () => {
@@ -147,7 +154,7 @@ test("email HTML escapes customer fields and includes naira amounts and pickup",
   assert.ok(buildOrderEmails(order, "shop@example.invalid")[0].text.includes("Km 4 Isaac Boro Express Way, Yenagoa, Bayelsa State"));
 });
 
-test("both emails are attempted independently with recipient fallback and stable keys", async () => {
+test("both emails are attempted independently with the sole admin recipient and stable keys", async () => {
   const calls = [];
   const logs = [];
   const options = {
@@ -158,13 +165,13 @@ test("both emails are attempted independently with recipient fallback and stable
   await sendOrderEmails(fixture(), options);
   assert.equal(calls.length, 2);
   assert.equal(calls[0].body.to[0], "customer@example.invalid");
-  assert.equal(calls[1].body.to[0], "fallback@example.invalid");
+  assert.equal(calls[1].body.to[0], "elegantyoufashion18@gmail.com");
   assert.equal(calls[0].headers["Idempotency-Key"], `paid-order/${id}/customer`);
   assert.equal(calls[1].headers["Idempotency-Key"], `paid-order/${id}/shop`);
   assert.equal(logs.length, 1);
   calls.length = 0;
   await sendOrderEmails(fixture(), { ...options, env: { ...options.env, ORDER_NOTIFY_EMAIL: "orders@example.invalid" } });
-  assert.equal(calls[1].body.to[0], "orders@example.invalid");
+  assert.equal(calls[1].body.to[0], "elegantyoufashion18@gmail.com");
 });
 
 test("missing email configuration is logged and never calls Resend", async () => {
@@ -205,7 +212,79 @@ test("order listing filters, sorts newest first, and omits private receipt data"
   assert.equal(result.total, 2);
   assert.equal(result.orders[0].id, "33333333-3333-4333-8333-333333333333");
   assert.equal(result.orders[0].receipt_hash, undefined);
+  assert.equal(result.orders[0].receipt_confirmation_hash, undefined);
   assert.equal((await GET(adminRequest("GET", undefined, "valid", "?payment=bogus"))).status, 400);
+});
+
+const receiptRequest = (token, overrides = {}, origin = "https://elegantstyle.com.ng") => new Request(`https://elegantstyle.com.ng/api/checkout/orders/${id}/received`, {
+  method: "POST", headers: { "Content-Type": "application/json", ...(origin ? { Origin: origin } : {}) },
+  body: JSON.stringify({ token, confirmed: true, ...overrides }),
+});
+const receiptContext = { params: Promise.resolve({ id }) };
+
+test("receipt tokens are distinct random secrets and only their hashes are stored", () => {
+  const first = createReceiptConfirmation(), second = createReceiptConfirmation();
+  assert.match(first.token, /^[a-f0-9]{64}$/);
+  assert.match(first.hash, /^[a-f0-9]{64}$/);
+  assert.notEqual(first.token, first.hash);
+  assert.notEqual(first.token, second.token);
+  assert.equal(first.hash, receiptHash(first.token));
+});
+
+test("only the customer email contains a personal receipt link, in its fragment", () => {
+  const { token } = createReceiptConfirmation();
+  const [customer, admin] = buildOrderEmails(fixture(), "shop@example.invalid", token);
+  assert.ok(customer.html.includes("I have received the product"));
+  const link = new URL(customer.html.match(/href="([^"]+)"/)[1]);
+  assert.equal(link.origin, "https://elegantstyle.com.ng");
+  assert.equal(link.pathname, `/order-received/${id}`);
+  assert.equal(link.search, "");
+  assert.equal(link.hash, `#token=${token}`);
+  assert.ok(customer.text.includes(link.href));
+  assert.ok(!admin.html.includes(token) && !admin.text.includes(token));
+  assert.ok(!buildOrderEmails(fixture(), "shop@example.invalid", '" onclick="bad')[0].html.includes("onclick="));
+});
+
+test("receipt confirmation requires a valid paid-order link, explicit agreement, and same origin", async () => {
+  const { token, hash } = createReceiptConfirmation();
+  const db = database([{ ...fixture(), payment_status: "paid", receipt_confirmation_hash: hash }]);
+  const endpoint = await route("src/app/api/checkout/orders/[id]/received/route.js", db);
+  assert.equal(endpoint.GET, undefined);
+  const { POST } = endpoint;
+  for (const payload of [{ token: "bad" }, { token: "b".repeat(64) }, { confirmed: false }, { customer_received_at: "2020-01-01" }]) {
+    assert.equal((await POST(receiptRequest(token, payload), receiptContext)).status, 400);
+    assert.equal(db.orders[0].customer_received_at, null);
+  }
+  for (const origin of ["https://elsewhere.example", ""]) assert.equal((await POST(receiptRequest(token, {}, origin), receiptContext)).status, 403);
+  assert.equal((await POST(receiptRequest(token), { params: Promise.resolve({ id: "invalid" }) })).status, 400);
+  db.orders[0].payment_status = "pending";
+  assert.equal((await POST(receiptRequest(token), receiptContext)).status, 400);
+  assert.equal(db.orders[0].customer_received_at, null);
+});
+
+test("guest receipt confirmation is atomic, repeatable, and changes no payment or staff fulfilment fields", async () => {
+  const { token, hash } = createReceiptConfirmation();
+  const db = database([{ ...fixture(), payment_status: "paid", receipt_confirmation_hash: hash, fulfillment_status: "shipped" }]);
+  const { POST } = await route("src/app/api/checkout/orders/[id]/received/route.js", db);
+  const responses = await Promise.all([POST(receiptRequest(token), receiptContext), POST(receiptRequest(token), receiptContext)]);
+  assert.ok(responses.every((response) => response.status === 200));
+  const payloads = await Promise.all(responses.map((response) => response.json()));
+  assert.equal(payloads.filter((payload) => payload.alreadyConfirmed).length, 1);
+  assert.equal(payloads[0].receivedAt, payloads[1].receivedAt);
+  assert.equal(db.updates.filter((update) => update.affected > 0).length, 1);
+  assert.deepEqual(Object.keys(db.updates[0].patch), ["customer_received_at"]);
+  assert.equal(db.orders[0].payment_status, "paid");
+  assert.equal(db.orders[0].fulfillment_status, "shipped");
+  assert.ok(!JSON.stringify(payloads).includes(token) && !JSON.stringify(payloads).includes(hash));
+});
+
+test("receipt confirmation rejects an email link used with another order", async () => {
+  const { token } = createReceiptConfirmation();
+  const { hash } = createReceiptConfirmation();
+  const db = database([{ ...fixture(), payment_status: "paid", receipt_confirmation_hash: hash }]);
+  const { POST } = await route("src/app/api/checkout/orders/[id]/received/route.js", db);
+  assert.equal((await POST(receiptRequest(token), receiptContext)).status, 400);
+  assert.equal(db.orders[0].customer_received_at, null);
 });
 
 test("fulfilment updates reject payment/amount writes, unpaid orders and stale status", async () => {

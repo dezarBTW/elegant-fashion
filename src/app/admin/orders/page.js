@@ -114,6 +114,7 @@ export default function Orders() {
                   <div className={styles.statusPills}>
                     <span className={`${styles.badge} ${review ? styles.badgeDeclined : order.payment_status === "paid" ? styles.badgeConfirmed : styles.badgePending}`}>Payment: {order.payment_status}</span>
                     <span className={styles.badge}>Fulfilment: {order.fulfillment_status}</span>
+                    {order.customer_received_at && <span className={`${styles.badge} ${styles.badgeConfirmed}`}>Customer confirmed receipt</span>}
                   </div>
                 </div>
                 {review && <p className={orderStyles.reviewMessage}>Payment needs a manual check: the amount or currency did not match. Do not fulfil this order yet.</p>}
@@ -126,6 +127,7 @@ export default function Orders() {
                     <div><dt className={styles.detailLabel}>{order.delivery?.method === "pickup" ? "Pickup address" : "Delivery address"}</dt>
                       <dd className={styles.detailValue}>{order.delivery?.method === "pickup" ? PICKUP_ADDRESS : [order.delivery?.address, order.delivery?.city, order.delivery?.state].filter(Boolean).join(", ")}</dd></div>
                     <div><dt className={styles.detailLabel}>Paid at</dt><dd className={styles.detailValue}>{order.paid_at ? formatDateTime(order.paid_at) : "Not confirmed"}</dd></div>
+                    <div><dt className={styles.detailLabel}>Customer receipt confirmation</dt><dd className={styles.detailValue}>{order.customer_received_at ? formatDateTime(order.customer_received_at) : "Not yet confirmed by customer"}</dd></div>
                   </dl>
                   <div className={orderStyles.tableWrap}><table className={orderStyles.table}>
                     <caption>Order items</caption><thead><tr><th scope="col">Item</th><th scope="col">Quantity</th><th scope="col">Unit price</th><th scope="col">Amount</th></tr></thead>

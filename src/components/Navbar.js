@@ -33,13 +33,6 @@ const LogoutIcon = () => (
   </svg>
 );
 
-const UserIcon = () => (
-  <svg className={styles.authIcon} viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <circle cx="12" cy="8" r="4" />
-    <path d="M4 21a8 8 0 0 1 16 0" />
-  </svg>
-);
-
 const CollectionIcon = () => (
   <svg className={styles.navIcon} viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M6 8h12l1 13H5L6 8Z" />
@@ -89,200 +82,57 @@ const getEmailInitials = (email) => {
   return localPart.slice(0, 2).toUpperCase() || '?';
 };
 
-const ProfileMenu = ({
-  mobile = false,
-  user,
-  openProfileMenu,
-  toggleProfileMenu,
-  openPasswordModal,
-  openDeactivateModal,
-}) => (
-  <div className={`${styles.profileMenuWrapper} ${mobile ? styles.mobileProfileMenuWrapper : ''}`}>
-    <button
-      type="button"
+const ProfileMenu = ({ mobile = false, user, onNavigate }) => (
+  <div className={`${styles.profileMenuWrapper} ${mobile ? styles.mobileProfileMenuWrapper : ""}`}>
+    <Link href="/account" onClick={onNavigate}
       className={`${styles.profileIcon} ${mobile ? styles.mobileProfileIcon : styles.drawerProfileIcon}`}
-      title={user.email || 'Signed in user'}
-      aria-label={`Signed in as ${user.email || 'user'}`}
-      aria-expanded={openProfileMenu === (mobile ? 'mobile' : 'desktop')}
-      aria-haspopup="menu"
-      onClick={() => toggleProfileMenu(mobile ? 'mobile' : 'desktop')}
-    >
+      title={user.email || "My account"} aria-label="Open my account">
       {getEmailInitials(user.email)}
-    </button>
-    {openProfileMenu === (mobile ? 'mobile' : 'desktop') && (
-      <div className={styles.profileMenu} role="menu">
-        <button type="button" role="menuitem" onClick={openPasswordModal}>
-          <UserIcon />
-          Change password
-        </button>
-        <button type="button" role="menuitem" className={styles.deactivateAction} onClick={openDeactivateModal}>
-          Deactivate account
-        </button>
-      </div>
-    )}
+    </Link>
   </div>
 );
 
 function NavbarContent({ user, logout, isAdmin }) {
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [openProfileMenu, setOpenProfileMenu] = useState(null);
-  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-  const [isDeactivateModalOpen, setIsDeactivateModalOpen] = useState(false);
-  const [deactivatePassword, setDeactivatePassword] = useState('');
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
   const lastScrollY = React.useRef(0);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [accountMessage, setAccountMessage] = useState('');
-  const [accountError, setAccountError] = useState('');
-  const [isAccountActionLoading, setIsAccountActionLoading] = useState(false);
+  const menuButton = React.useRef(null);
+  const menuPanel = React.useRef(null);
+  const closeMenu = () => setIsMenuOpen(false);
+  const toggleMenu = () => setIsMenuOpen((previous) => !previous);
 
-  // Logout: clear local state first (instant, no network required),
-  // then best-effort revoke session on Supabase in background.
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const links = () => [...menuPanel.current.querySelectorAll('a[href], button:not(:disabled)')]
+      .filter((element) => element.getClientRects().length > 0);
+    const frame = requestAnimationFrame(() => links()[0]?.focus());
+    const handleKey = (event) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+        menuButton.current?.focus();
+      }
+      if (event.key === 'Tab') {
+        const controls = [menuButton.current, ...links()];
+        const index = controls.indexOf(document.activeElement);
+        if (index === -1 || (!event.shiftKey && index === controls.length - 1) || (event.shiftKey && index === 0)) {
+          event.preventDefault();
+          controls[event.shiftKey ? controls.length - 1 : 0]?.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => { cancelAnimationFrame(frame); window.removeEventListener('keydown', handleKey); };
+  }, [isMenuOpen]);
+
   const handleLogout = async () => {
-    setIsMenuOpen(false); // Close menu immediately
-    setOpenProfileMenu(null);
-
-    // Step 1: Clear local state immediately (synchronous, works offline)
+    setIsMenuOpen(false);
     logout();
-
-    // Step 2: Navigate away immediately
     router.push('/');
     router.refresh();
-
-    // Step 3: Best-effort revoke session on Supabase (background, doesn't block UI)
-    try {
-      await supabase.auth.signOut({ scope: 'local' });
-    } catch (error) {
-      console.error('Local logout error:', error);
-    }
-
-    // Step 4: Also try to revoke globally (background, non-blocking)
-    supabase.auth.signOut({ scope: 'global' }).catch((error) => {
-      console.error('Global logout error:', error);
-    });
-  };
-
-  const toggleMenu = () => {
-    setIsMenuOpen((prev) => !prev);
-  };
-
-  const closeMenu = () => setIsMenuOpen(false);
-
-  const openPasswordModal = () => {
-    setOpenProfileMenu(null);
-    setAccountMessage('');
-    setAccountError('');
-    setNewPassword('');
-    setConfirmPassword('');
-    setCurrentPassword('');
-    setIsPasswordModalOpen(true);
-  };
-
-  const openDeactivateModal = () => {
-    setOpenProfileMenu(null);
-    setAccountError('');
-    setDeactivatePassword('');
-    setIsDeactivateModalOpen(true);
-  };
-
-  const handlePasswordChange = async (event) => {
-    event.preventDefault();
-    setAccountMessage('');
-    setAccountError('');
-
-    if (!currentPassword) {
-      setAccountError('Enter your current password.');
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      setAccountError('Password must be at least 6 characters.');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setAccountError('Passwords do not match.');
-      return;
-    }
-
-    setIsAccountActionLoading(true);
-    const { error: reauthenticationError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: currentPassword,
-    });
-
-    if (reauthenticationError) {
-      setIsAccountActionLoading(false);
-      setAccountError('Your current password is incorrect.');
-      return;
-    }
-
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setIsAccountActionLoading(false);
-
-    if (error) {
-      setAccountError(error.message || 'Unable to change your password.');
-      return;
-    }
-
-    setAccountMessage('Password changed successfully.');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
-  };
-
-  const handleDeactivateAccount = async () => {
-    if (!user?.id) {
-      setIsDeactivateModalOpen(false);
-      setAccountError('Your session has expired. Please sign in again.');
-      return;
-    }
-
-    if (!deactivatePassword) {
-      setAccountError('Enter your password to confirm deactivation.');
-      return;
-    }
-
-    setIsAccountActionLoading(true);
-    setAccountError('');
-
-    const { error: reauthenticationError } = await supabase.auth.signInWithPassword({
-      email: user.email,
-      password: deactivatePassword,
-    });
-
-    if (reauthenticationError) {
-      setIsAccountActionLoading(false);
-      setAccountError('Your password is incorrect.');
-      return;
-    }
-
-    const { error } = await supabase
-      .from('users')
-      .update({ is_active: false })
-      .eq('id', user.id);
-
-    if (error) {
-      setIsAccountActionLoading(false);
-      setAccountError(error.message || 'Unable to deactivate your account.');
-      return;
-    }
-
-    await supabase.auth.signOut({ scope: 'local' });
-    logout();
-    setIsAccountActionLoading(false);
-    setIsDeactivateModalOpen(false);
-    router.replace('/sign-in?deactivated=true');
-    router.refresh();
-  };
-
-  const toggleProfileMenu = (menuName) => {
-    setOpenProfileMenu((previous) => previous === menuName ? null : menuName);
-    setAccountError('');
-    setAccountMessage('');
+    try { await supabase.auth.signOut({ scope: 'local' }); }
+    catch (error) { console.error('Local logout error:', error); }
+    supabase.auth.signOut({ scope: 'global' }).catch((error) => console.error('Global logout error:', error));
   };
 
   // Lock body scroll while the mobile drawer is open
@@ -309,7 +159,7 @@ function NavbarContent({ user, logout, isAdmin }) {
     let frame = null;
     const updateNavbar = () => {
       frame = null;
-      if (isMenuOpen || isPasswordModalOpen || isDeactivateModalOpen) return;
+      if (isMenuOpen) return;
 
       const currentScrollY = window.scrollY;
       if (currentScrollY < 80) {
@@ -330,7 +180,7 @@ function NavbarContent({ user, logout, isAdmin }) {
       window.removeEventListener('scroll', handleScroll);
       if (frame !== null) window.cancelAnimationFrame(frame);
     };
-  }, [isMenuOpen, isPasswordModalOpen, isDeactivateModalOpen]);
+  }, [isMenuOpen]);
 
   return (
     <nav className={`${styles.nav} ${isNavbarVisible ? '' : styles.navHidden}`}>
@@ -350,21 +200,16 @@ function NavbarContent({ user, logout, isAdmin }) {
         </div>
 
         {user && (
-          <ProfileMenu
-            mobile
-            user={user}
-            openProfileMenu={openProfileMenu}
-            toggleProfileMenu={toggleProfileMenu}
-            openPasswordModal={openPasswordModal}
-            openDeactivateModal={openDeactivateModal}
-          />
+          <ProfileMenu mobile user={user} onNavigate={closeMenu} />
         )}
 
         <button
+          ref={menuButton}
           className={`${styles.hamburger} ${isMenuOpen ? styles.hamburgerOpen : ''}`}
           onClick={toggleMenu}
           aria-label="Toggle menu"
           aria-expanded={isMenuOpen}
+          aria-controls="primary-navigation"
         >
           <span></span>
           <span></span>
@@ -378,7 +223,10 @@ function NavbarContent({ user, logout, isAdmin }) {
           aria-hidden="true"
         ></div>
 
-        <div className={`${styles.navLinks} ${isMenuOpen ? styles.navLinksOpen : ''}`}>
+        <div ref={menuPanel} id="primary-navigation" className={`${styles.navLinks} ${isMenuOpen ? styles.navLinksOpen : ""}`}>
+          <Link href="/" className={styles.drawerLogo} onClick={closeMenu} aria-label="Elegant Style home">
+            <Image src="/images/elegant-style-navbar.png" alt="Elegant Style" width={1900} height={636} sizes="160px" className={styles.drawerLogoImage} />
+          </Link>
           <div className={styles.navMenu}>
             <Link href="/" onClick={closeMenu}>
               <HomeIcon />
@@ -408,13 +256,7 @@ function NavbarContent({ user, logout, isAdmin }) {
           <div className={styles.authSection}>
             {user ? (
               <>
-                <ProfileMenu
-                  user={user}
-                  openProfileMenu={openProfileMenu}
-                  toggleProfileMenu={toggleProfileMenu}
-                  openPasswordModal={openPasswordModal}
-                  openDeactivateModal={openDeactivateModal}
-                />
+                <ProfileMenu user={user} onNavigate={closeMenu} />
                 <button
                   onClick={handleLogout}
                   className={styles.navLogout}
@@ -446,52 +288,6 @@ function NavbarContent({ user, logout, isAdmin }) {
           </div>
         </div>
       </div>
-      {isPasswordModalOpen && (
-        <div className={styles.accountModalOverlay} role="presentation" onClick={() => setIsPasswordModalOpen(false)}>
-          <section className={styles.accountModal} role="dialog" aria-modal="true" aria-labelledby="change-password-title" onClick={(event) => event.stopPropagation()}>
-            <h2 id="change-password-title">Change password</h2>
-            {accountError && <p className={styles.accountError} role="alert">{accountError}</p>}
-            {accountMessage && <p className={styles.accountSuccess} role="status">{accountMessage}</p>}
-            <form onSubmit={handlePasswordChange}>
-              <label htmlFor="current-password">Current password</label>
-              <input id="current-password" type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} disabled={isAccountActionLoading} required />
-              <label htmlFor="new-password">New password</label>
-              <input id="new-password" type="password" autoComplete="new-password" value={newPassword} onChange={(event) => setNewPassword(event.target.value)} disabled={isAccountActionLoading} required />
-              <label htmlFor="confirm-password">Confirm new password</label>
-              <input id="confirm-password" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} disabled={isAccountActionLoading} required />
-              <div className={styles.accountModalActions}>
-                <button type="button" className={styles.modalSecondaryButton} onClick={() => setIsPasswordModalOpen(false)}>Cancel</button>
-                <button type="submit" className={styles.modalPrimaryButton} disabled={isAccountActionLoading}>{isAccountActionLoading ? 'Updating...' : 'Update password'}</button>
-              </div>
-            </form>
-          </section>
-        </div>
-      )}
-      {isDeactivateModalOpen && (
-        <div className={styles.accountModalOverlay} role="presentation" onClick={() => setIsDeactivateModalOpen(false)}>
-          <section className={styles.accountModal} role="dialog" aria-modal="true" aria-labelledby="deactivate-account-title" onClick={(event) => event.stopPropagation()}>
-            <h2 id="deactivate-account-title">Deactivate account?</h2>
-            <p>Your account and its data will stay in the database, but you will be signed out and unable to sign in until an administrator reactivates it.</p>
-            {accountError && <p className={styles.accountError} role="alert">{accountError}</p>}
-            <form onSubmit={(event) => { event.preventDefault(); handleDeactivateAccount(); }}>
-              <label htmlFor="deactivate-password">Confirm your password</label>
-              <input
-                id="deactivate-password"
-                type="password"
-                autoComplete="current-password"
-                value={deactivatePassword}
-                onChange={(event) => setDeactivatePassword(event.target.value)}
-                disabled={isAccountActionLoading}
-                required
-              />
-              <div className={styles.accountModalActions}>
-                <button type="button" className={styles.modalSecondaryButton} onClick={() => setIsDeactivateModalOpen(false)}>Keep account</button>
-                <button type="submit" className={styles.deactivateButton} disabled={isAccountActionLoading}>{isAccountActionLoading ? 'Deactivating...' : 'Deactivate account'}</button>
-              </div>
-            </form>
-          </section>
-        </div>
-      )}
     </nav>
   );
 }

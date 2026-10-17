@@ -9,7 +9,7 @@ export default function TermsOfService() {
         <header className={styles.header}>
           <span className={styles.eyebrow}>Legal</span>
           <h1>Terms of Service</h1>
-          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-10-16">16 October 2026</time></p>
+          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-10-17">17 October 2026</time></p>
         </header>
 
         <div className={styles.content}>
@@ -37,7 +37,7 @@ export default function TermsOfService() {
             <ul>
               <li>Supabase provides account authentication, database storage, and photo storage; passwords are stored as hashes</li>
               <li>School applications and saved browser drafts contain the information entered in the application form</li>
-              <li>Bachs processes ready-to-wear payments, and Resend delivers bespoke notifications and paid-order emails</li>
+              <li>Bachs processes ready-to-wear payments, and Resend delivers bespoke, registration, paid-order, refund, and complaint service emails</li>
               <li>We do not sell, trade, or rent your personal information to third parties</li>
               <li>Account deactivation and deletion of personal data are separate requests</li>
             </ul>
@@ -73,15 +73,18 @@ export default function TermsOfService() {
               You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account. You agree to notify us immediately of any unauthorized use of your account.
             </p>
             <p>
-              Use an email address you control and complete email confirmation when prompted. Password recovery is available through the sign-in page. Signed-in users can change their password or deactivate their account through the profile menu after confirming their current password. Deactivation marks the account inactive and signs you out; it does not erase applications, orders, or other records. Contact us separately about deletion or an existing order.
+              Use an email address you control and complete email confirmation when prompted. Password recovery is available through the sign-in page. The profile avatar opens your account dashboard, where you can view your details, change your password, and deactivate your account after confirming your current password. If you signed in with Google and have no password, use password recovery to set one before these password-confirmed actions. Deactivation marks the account inactive, disables account access, and signs you out; it does not erase applications, orders, support requests, or other records. Contact us separately about reactivation, deletion, or an existing order.
             </p>
 
             <h3>Course Registration</h3>
             <p>
-              Provide accurate application details and a passport photograph in JPG or PNG format, up to 5 MB. The current programmes are 3 months (&#8358;150,000), 6 months (&#8358;200,000), and 1 year (&#8358;300,000). Programme fees are payable upon acceptance, with payment arrangements provided during orientation. The ready-to-wear checkout does not collect course fees.
+              Provide accurate application details and a passport photograph in JPG or PNG format, up to 5 MB. Select a sponsorship type and, for Scholarship, name the organization sponsoring your training. A sponsorship selection does not itself award funding or confirm an arrangement with that organization. The current programmes are 3 months (&#8358;150,000), 6 months (&#8358;200,000), and 1 year (&#8358;300,000). After registration, visit the academy from Monday to Friday, 8am to 5pm, for payment details, orientation, and physical verification, as instructed on your registration confirmation. The ready-to-wear checkout does not collect course fees.
             </p>
             <p>
               An application acknowledgement or registration reference confirms submission, not admission. Our staff review applications and update their status. Your registration details show your application information and admission outcome. Accepted-student management is restricted to the administrative area. Draft details may be saved on your device while you complete the form, as explained in the Privacy Policy.
+            </p>
+            <p>
+              The shop receives a registration notification, and we attempt to send an acceptance email when an application is first accepted. Email delivery can fail or be delayed; check your registration details for the recorded decision or contact the academy. A missing email does not require another application.
             </p>
 
             <h3>Product Purchases</h3>
@@ -105,9 +108,18 @@ export default function TermsOfService() {
             <p>
               Payment status and fulfilment progress are separate. Paid orders can move through processing, ready for pickup or dispatch, shipped where applicable, and completed. Our staff update fulfilment progress; a paid status alone does not mean an order has been dispatched or is ready to collect.
             </p>
+            <p>
+              Your payment email includes an &ldquo;I have received the product&rdquo; link. Only submit its confirmation after you have received every product in that order. The confirmation records your acknowledgement and its time separately from staff fulfilment updates. Opening the email or link alone does not confirm receipt, and acknowledging receipt does not remove any applicable rights concerning faulty or incorrect products.
+            </p>
             <h3>Order Changes, Cancellations, and Problems</h3>
             <p>
-              Contact us with your order reference as soon as possible if you need to change or cancel an order, have paid twice, or receive an incorrect, damaged, or faulty item. Order changes, returns, and refunds are handled with the shop; the site does not currently provide a self-service cancellation or refund tool. We will review the payment and fulfilment position and discuss the appropriate next steps. These terms do not remove any cancellation, refund, quality, or other consumer rights that cannot lawfully be excluded.
+              Contact us with your order reference as soon as possible if you need to change or cancel an order, have paid twice, or receive an incorrect, damaged, or faulty item. Signed-in customers can view paid orders matched to their verified account email, submit a refund reason for an ordered product, or describe a complaint about a product they confirm they received. Requests and staff responses appear in the account dashboard, and we attempt to send confirmation and status emails. Contact the shop if an order used a different email or you cannot access your account.
+            </p>
+            <p>
+              Submitting a refund request does not guarantee approval. Approval records the shop&apos;s decision; it does not automatically return funds. The shop arranges any payment refund separately through Bachs and discusses any return or collection arrangements with you. There is one refund request and one complaint per product per order; contact the shop with the existing reference for further information. These terms do not remove any cancellation, refund, quality, or other consumer rights that cannot lawfully be excluded.
+            </p>
+            <p>
+              Buy again adds one unit of an available product to your cart. Current availability, price, and delivery charges apply when you start the new checkout; an earlier purchase does not reserve stock or guarantee its previous price.
             </p>
 
             <h3>Bespoke Services</h3>

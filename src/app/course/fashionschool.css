@@ -647,6 +647,8 @@
   cursor: not-allowed;
 }
 
+.sponsor-organization { display: grid; gap: 8px; margin-top: 16px; }
+
 .no-pending {
   padding: 2rem;
   text-align: center;

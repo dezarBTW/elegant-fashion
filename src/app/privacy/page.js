@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
         <header className={styles.header}>
           <span className={styles.eyebrow}>Legal</span>
           <h1>Privacy Policy</h1>
-          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-10-16">16 October 2026</time></p>
+          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-10-17">17 October 2026</time></p>
         </header>
 
         <div className={styles.content}>
@@ -41,6 +41,7 @@ export default function PrivacyPolicy() {
               <li>Telephone number</li>
               <li>Email address</li>
               <li>Chosen programme (3-month, 6-month, or 1-year)</li>
+              <li>Sponsorship type (Self sponsored, Guardian, or Scholarship) and the sponsoring organization for a scholarship</li>
               <li>Passport photograph</li>
               <li>Your account identifier, application reference, submission date, and application or admission status</li>
             </ul>
@@ -59,6 +60,14 @@ export default function PrivacyPolicy() {
             </ul>
             <p>
               Bachs collects payment details on its hosted checkout. We receive payment references and confirmation information, rather than your card number, PIN, or card security code. A saved cart contains product identifiers in your browser; your name and delivery details are collected when you submit checkout.
+            </p>
+
+            <h3>Account Order History and Support Requests</h3>
+            <p>
+              When you open My orders, we link unassigned orders to your account using your verified account email and the email supplied at checkout. We record refund reasons and descriptions of complaints about received products, together with your account, order and product references, receipt confirmation, request status, staff response, review identifier, and timestamps. You can view your own requests; authorised staff can review and update them. Please avoid including unnecessary sensitive information in a request.
+            </p>
+            <p>
+              Paid-order emails include a personal link for confirming that you received the order. We store a hash of the confirmation token and the time you confirm receipt. Opening the email or link alone does not confirm delivery; you must submit the confirmation on the page. Keep the link private, as anyone with it can confirm receipt for that order. Authorised staff can see the recorded confirmation.
             </p>
 
             <h3>Bespoke Requests</h3>
@@ -92,7 +101,7 @@ export default function PrivacyPolicy() {
               <li><strong>Student registration:</strong> To process your course application, assess eligibility, manage admissions, and maintain academic records.</li>
               <li><strong>Bespoke requests:</strong> To review your outfit request, contact you about it, and prepare a quote.</li>
               <li><strong>Orders and fulfilment:</strong> To check prices, create and verify a payment, arrange pickup or delivery, manage order progress, and resolve payment or order problems.</li>
-              <li><strong>Transactional emails:</strong> To send paid-order receipts and notify the shop of paid orders or bespoke requests. These messages are service communications, not optional advertising emails.</li>
+              <li><strong>Transactional emails:</strong> To send paid-order receipts, student acceptance messages, and refund or complaint confirmations and updates, and notify the shop of registrations, paid orders, bespoke enquiries, and support requests. These messages are service communications, not optional advertising emails.</li>
               <li><strong>Communication:</strong> To respond to your inquiries, send updates about your application or orders, and provide customer support.</li>
               <li><strong>Service improvement:</strong> To understand how our services are used and improve the user experience.</li>
               <li><strong>Security:</strong> To protect against fraud, abuse, and unauthorized access through rate limiting and input validation.</li>
@@ -110,10 +119,11 @@ export default function PrivacyPolicy() {
               Your data is stored using the following infrastructure:
             </p>
             <ul>
-              <li><strong>Supabase database:</strong> Account profiles, student applications, bespoke requests, shop orders, payment and fulfilment records, and security identifiers are stored in Supabase. Database policies and server-side access checks restrict application and order-management functions to the relevant users or authorised staff.</li>
+              <li><strong>Supabase database:</strong> Account profiles, student applications and sponsorship details, bespoke requests, shop orders, refund requests, product complaints, staff responses, payment and fulfilment records, and security identifiers are stored in Supabase. Database policies and server-side access checks restrict account, application, and request records to the relevant users or authorised staff.</li>
               <li><strong>Supabase Storage:</strong> Product images, student passport photographs, and bespoke reference photos are stored in Supabase. Product images are public. The student photo feature currently uses public image links; anyone who obtains a working public link may be able to view the photo. Bespoke reference photos are kept in a private bucket and made available to authorised staff through the administrative area or temporary signed links.</li>
               <li><strong>Supabase Auth:</strong> Email addresses, password hashes, authentication sessions, confirmation, and password recovery are handled through Supabase&apos;s authentication service. Our staff cannot read your stored password.</li>
               <li><strong>Resend and email recipients:</strong> Resend delivers bespoke notifications to the shop, which may include your name, phone number, request description, reference images as attachments, and temporary image links valid for seven days. For verified paid orders, it delivers a receipt to your supplied email address and an order notification to the shop. These emails include the order reference, items, amounts, and pickup or delivery details; the shop notification also includes your contact details. Copies can remain in the recipient&apos;s mailbox.</li>
+              <li><strong>Registration and support emails:</strong> Resend sends the shop your submitted registration details, including sponsorship and organization, and sends an acceptance message to the email on an accepted application. It sends refund and complaint confirmations and status updates to your account email and new-request alerts to the shop, including references, product name, description, status, and any staff response. Copies can remain in recipients&apos; mailboxes.</li>
               <li><strong>Bachs (payments):</strong> When you check out, we send your name, email, phone number, order reference and payment amount to Bachs. You enter payment details on Bachs&apos;s secure checkout. We store your order items, delivery address, contact details and payment confirmation in Supabase; we do not receive your card number, PIN or security code.</li>
               <li><strong>Vercel hosting:</strong> Vercel serves the website and runs the server functions that process checkout, payment notifications, and bespoke submissions. Submitted information passes through these functions, and operational logs may contain request, reference, or error information.</li>
             </ul>
@@ -164,7 +174,7 @@ export default function PrivacyPolicy() {
             <ul>
               <li><strong>Access:</strong> You can request a copy of the personal data we hold about you.</li>
               <li><strong>Correction:</strong> You can request that we correct any inaccurate or incomplete data.</li>
-              <li><strong>Deletion:</strong> You can ask us to delete your personal data, subject to records we must lawfully retain. The profile menu&apos;s deactivation feature makes the account inactive and signs you out; it does not delete the authentication account, application, photos, orders, or emails. Contact us separately to request deletion.</li>
+              <li><strong>Deletion:</strong> You can ask us to delete your personal data, subject to records we must lawfully retain. Deactivation in the account dashboard makes the account inactive and signs you out; it does not delete the authentication account, application, photos, orders, support requests, or emails. Contact us separately to request deletion or reactivation.</li>
               <li><strong>Data portability:</strong> You can request a copy of your data in a portable format.</li>
               <li><strong>Objection:</strong> You can object to certain processing of your personal data.</li>
               <li><strong>Withdraw consent:</strong> Where we rely on your consent, such as for optional cookies, you can withdraw it at any time. See section 8 for how to change your cookie choices.</li>

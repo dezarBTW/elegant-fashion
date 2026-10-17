@@ -27,7 +27,6 @@ export default function BespokeRequests() {
   const [busyId, setBusyId] = useState(null);
 
   const loadRequests = useCallback(async () => {
-    setError("");
     const { data, error: fetchError } = await supabase
       .from("bespoke_requests")
       .select("*")
@@ -40,6 +39,7 @@ export default function BespokeRequests() {
       return;
     }
 
+    setError("");
     const rows = data || [];
     setRequests(rows);
     setLoading(false);
@@ -67,7 +67,9 @@ export default function BespokeRequests() {
   }, []);
 
   useEffect(() => {
-    if (isAdmin) loadRequests();
+    if (!isAdmin) return;
+    const timer = setTimeout(loadRequests, 0);
+    return () => clearTimeout(timer);
   }, [isAdmin, loadRequests]);
 
   const counts = useMemo(() => {

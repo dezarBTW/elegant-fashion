@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyBachsSignature, paymentMatchesOrder } from "@/lib/bachs.mjs";
-import { checkoutDatabase } from "@/lib/checkoutServer";
+import { checkoutDatabase, createReceiptConfirmation } from "@/lib/checkoutServer";
 import { sendOrderEmails } from "@/lib/orderEmails.mjs";
 
 export const runtime = "nodejs";
@@ -31,15 +31,16 @@ export async function POST(request) {
     if (order.payment_status === "paid") return NextResponse.json({ received: true });
     const paid = paymentMatchesOrder(data, order.total_minor);
     const paidAt = new Date().toISOString();
+    const confirmation = paid ? createReceiptConfirmation() : null;
     const { data: changedOrder, error: saveError } = await db.from("shop_orders").update({
       payment_status: paid ? "paid" : "review",
-      ...(paid ? { paid_at: paidAt, emails_claimed_at: paidAt, paid_event_id: event.id, payment_id: data.charge_id, checkout_id: data.checkout_id } : {}),
+      ...(paid ? { paid_at: paidAt, emails_claimed_at: paidAt, paid_event_id: event.id, payment_id: data.charge_id, checkout_id: data.checkout_id, receipt_confirmation_hash: confirmation.hash } : {}),
     }).eq("id", order.id).neq("payment_status", "paid")
       .select("id,customer_name,customer_email,customer_phone,delivery,items,subtotal_minor,shipping_minor,total_minor,emails_claimed_at")
       .maybeSingle();
     if (saveError) throw saveError;
     if (paid && changedOrder?.emails_claimed_at) {
-      try { await sendOrderEmails(changedOrder); }
+      try { await sendOrderEmails(changedOrder, { receiptToken: confirmation.token }); }
       catch (error) { console.error(`Order ${order.id}: email attempt failed`, error?.message); }
     }
     return NextResponse.json({ received: true });

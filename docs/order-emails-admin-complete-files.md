@@ -1,3 +1,5 @@
+> Superseded on 17 October 2026: administrator notifications now use elegantyoufashion18@gmail.com directly. See [the current complete handoff](account-registration-support-handoff.md) for current code, configuration, and applied SQL.
+
 # Elegant Style: paid-order emails and admin order management
 
 This document contains every changed or added application, configuration, migration and test file in full. The migration was **applied to the linked Elegant Style Fashion Supabase project** on 16 October 2026 and verified. Its local timestamp matches remote migration history. No real order emails were sent during testing.

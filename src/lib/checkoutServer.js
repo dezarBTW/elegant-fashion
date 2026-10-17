@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 
 export function checkoutDatabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -10,6 +10,11 @@ export function checkoutDatabase() {
 
 export function receiptHash(token) {
   return createHash("sha256").update(token).digest("hex");
+}
+
+export function createReceiptConfirmation() {
+  const token = randomBytes(32).toString("hex");
+  return { token, hash: receiptHash(token) };
 }
 
 export function hasOrderAccess(request, order) {

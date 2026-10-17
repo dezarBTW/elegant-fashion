@@ -1,0 +1,36 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - generic [ref=e3]:
+      - link [ref=e5] [cursor=pointer]:
+        - /url: /
+        - img "Elegant Style" [ref=e6]
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - link "HOME" [ref=e9] [cursor=pointer]:
+            - /url: /
+          - link "READY-TO-WEAR" [ref=e14] [cursor=pointer]:
+            - /url: /ready-to-wear
+          - link "FASHION ACADEMY" [ref=e18] [cursor=pointer]:
+            - /url: /course
+          - link "ABOUT US" [ref=e22] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=e25]:
+          - link "Sign In" [ref=e26] [cursor=pointer]:
+            - /url: /sign-in
+          - link "Sign Up" [ref=e30] [cursor=pointer]:
+            - /url: /sign-up
+  - main [ref=e34]:
+    - link "← Back to the shop" [ref=e35] [cursor=pointer]:
+      - /url: /ready-to-wear
+    - heading "Have you received your order?" [level=1] [ref=e36]
+    - paragraph [ref=e37]: Only confirm after you have received every product in this order. You do not need to sign in.
+    - generic [ref=e38]:
+      - generic [ref=e39]:
+        - checkbox "I confirm that I have received every product in this order." [ref=e40]
+        - text: I confirm that I have received every product in this order.
+      - button "I have received the product" [disabled] [ref=e41]
+    - paragraph [ref=e42]:
+      - text: If anything is missing, damaged, or incorrect, contact the shop on
+      - link "08166361710" [ref=e43] [cursor=pointer]:
+        - /url: tel:+2348166361710
+      - text: . Confirming receipt does not prevent you from reporting a product problem.

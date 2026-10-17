@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { consumeRateLimit, formatRetryMessage } from "@/lib/sanitizeInput";
 import { formatDate, formatDateTime, getProgrammePrice, getStudentStatus, toWhatsAppUrl } from "../adminUtils";
 import styles from "../adminShell.module.css";
+import { authenticatedFetch } from "@/lib/clientApi";
 
 const TABS = [
   { key: "pending", label: "Pending" },
@@ -36,11 +37,13 @@ export default function StudentApplications() {
   // Old links like /course/accepted-students send people here with ?tab=accepted.
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("tab");
-    if (TABS.some((item) => item.key === requested)) setTab(requested);
+    if (TABS.some((item) => item.key === requested)) {
+      const frame = requestAnimationFrame(() => setTab(requested));
+      return () => cancelAnimationFrame(frame);
+    }
   }, []);
 
   const loadStudents = useCallback(async () => {
-    setError("");
     const { data, error: fetchError } = await supabase
       .from("students")
       .select("*")
@@ -51,6 +54,7 @@ export default function StudentApplications() {
       setError("Could not load student applications. Please refresh the page.");
     } else {
       setStudents(data || []);
+      setError("");
     }
     setLoading(false);
   }, []);
@@ -103,22 +107,12 @@ export default function StudentApplications() {
     setBusyId(student.id);
     setError("");
 
-    const { error: updateError } = await supabase
-      .from("students")
-      .update({ status: nextStatus, accepted: nextStatus === "accepted" })
-      .eq("id", student.id);
-
-    setBusyId(null);
-
-    if (updateError) {
-      console.error("Could not update student:", updateError);
-      setError("Could not update this application. Please try again.");
-      return;
-    }
-
-    const patch = { status: nextStatus, accepted: nextStatus === "accepted" };
-    setStudents((current) => current.map((item) => (item.id === student.id ? { ...item, ...patch } : item)));
-    setSelected((current) => (current && current.id === student.id ? { ...current, ...patch } : current));
+    try {
+      const result = await authenticatedFetch("/api/admin/students", { method: "PATCH", body: JSON.stringify({ id: student.id, status: nextStatus }) });
+      setStudents((current) => current.map((item) => item.id === student.id ? result.student : item));
+      setSelected((current) => current?.id === student.id ? result.student : current);
+    } catch (error) { setError(error.message || "Could not update this application."); }
+    finally { setBusyId(null); }
   };
 
   const renderActions = (student) => {
@@ -277,6 +271,8 @@ export default function StudentApplications() {
                   ["Telephone", selected.telephone],
                   ["Email", selected.email],
                   ["Address", selected.address],
+                  ["Sponsorship", selected.sponsorship || "Not recorded"],
+                  ["Sponsor organization", selected.sponsor_organization || "Not applicable"],
                   [
                     "Programme",
                     `${selected.chosen_programme || ""}${

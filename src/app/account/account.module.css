@@ -1,0 +1,21 @@
+.stack { display: grid; gap: 20px; }
+.form { display: grid; gap: 16px; max-width: 600px; }
+.form label { display: grid; gap: 7px; font-weight: 600; }
+.form input, .form textarea, .form select { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); color: var(--ink); font: inherit; }
+.form textarea { min-height: 120px; resize: vertical; }
+.form :is(input, textarea, select, button):focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 3px; }
+.form .check { display: flex; align-items: start; gap: 10px; font-weight: 400; }
+.check input { width: 18px; min-height: 18px; height: 18px; flex-shrink: 0; margin-top: 4px; }
+.success { padding: 14px; background: var(--success-bg); color: var(--success); border-radius: 8px; }
+.hint { color: var(--stone); font-size: 14px; }
+.details { display: grid; gap: 12px; margin: 16px 0; overflow-wrap: anywhere; }
+.details dt { color: var(--stone); font-size: 13px; }
+.details dd { margin: 0; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.item { padding: 16px 0; border-top: 1px solid var(--line); }
+.item h3 { font-size: 17px; margin-bottom: 5px; }
+.reference { overflow-wrap: anywhere; font-size: 13px; color: var(--stone); }
+.message { white-space: pre-wrap; overflow-wrap: anywhere; margin: 12px 0; }
+.panel { margin-top: 16px; padding: 20px; border: 1px solid var(--line); border-radius: 10px; }
+.pagination { display: flex; gap: 14px; align-items: center; justify-content: center; margin-top: 20px; }
+@media (max-width: 600px) { .panel { padding: 14px; } .actions > button { flex: 1 1 auto; } }
