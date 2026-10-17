@@ -67,8 +67,8 @@ export default function Contact() {
             </svg>
           </div>
           <h3>Email</h3>
-          <a href="mailto:patrickesther26@gmail.com" className={styles.cardLink}>
-            patrickesther26@gmail.com
+          <a href="mailto:elegantyoufashion18@gmail.com" className={styles.cardLink}>
+            elegantyoufashion18@gmail.com
           </a>
         </div>
       </div>

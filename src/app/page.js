@@ -128,7 +128,7 @@ export default function Home() {
 
           <div className={styles.heroCTA}>
             <Link className={`${styles.btn} ${styles.btnPrimary}`} href="/ready-to-wear">Shop With Us</Link>
-            <Link className={`${styles.btn} ${styles.btnSecondary}`} href="/bespoke/request">Book a fitting</Link>
+            <Link className={`${styles.btn} ${styles.btnSecondary}`} href="/bespoke/request">Book A Fitting</Link>
           </div>
 
           <div className={styles.statsRow} aria-label="Brand statistics">
