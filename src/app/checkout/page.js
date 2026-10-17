@@ -42,7 +42,7 @@ export default function Checkout() {
         const saved = readCart();
         if (!saved.length) return;
         const quantities = new Map();
-        saved.forEach((item) => quantities.set(item.id, (quantities.get(item.id) || 0) + 1));
+        saved.forEach((item) => quantities.set(item.id, item.quantity));
         const { data, error: fetchError } = await supabase.from("products").select("id,name,price,sale_price,is_active").in("id", [...quantities.keys()]);
         if (fetchError) throw fetchError;
         const priced = priceCart([...quantities].map(([productId, quantity]) => ({ productId, quantity })), data || []);

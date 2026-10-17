@@ -91,9 +91,11 @@ test("account changes require password confirmation and enforce password bounds"
 
 test("repurchase adds one item without changing existing cart or exceeding checkout limits", () => {
   const cart = [{ id, name: "Existing dress" }];
-  assert.deepEqual(repurchaseCart(cart, id), [...cart, { id }]);
+  assert.deepEqual(repurchaseCart(cart, id), [{ id, quantity: 2 }]);
+  assert.deepEqual(repurchaseCart([{ id, quantity: 5 }], id), [{ id, quantity: 6 }]);
   assert.equal(cart.length, 1);
   assert.throws(() => repurchaseCart(Array.from({ length: 10 }, () => ({ id })), id), /10/);
+  assert.throws(() => repurchaseCart([{ id, quantity: 10 }], id), /10/);
   assert.throws(() => repurchaseCart(Array.from({ length: 20 }, (_, i) => ({ id: String(i) })), id), /20/);
 });
 

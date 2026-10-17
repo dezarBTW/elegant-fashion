@@ -39,6 +39,38 @@ export function priceCart(items, products) {
 export function readCart() {
   try {
     const saved = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
-    return Array.isArray(saved) ? saved.filter((item) => item && typeof item.id === "string").slice(0, 200) : [];
+    return normalizeCart(saved);
   } catch { return []; }
+}
+
+export function normalizeCart(saved) {
+  const quantities = new Map();
+  for (const item of Array.isArray(saved) ? saved.slice(0, 200) : []) {
+    if (!item || typeof item.id !== "string" || !item.id) continue;
+    const quantity = item.quantity ?? 1;
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) continue;
+    quantities.set(item.id, Math.min(10, (quantities.get(item.id) || 0) + quantity));
+  }
+  return [...quantities].map(([id, quantity]) => ({ id, quantity }));
+}
+
+export function setCartQuantity(cart, productId, quantity) {
+  if (!Number.isInteger(quantity) || quantity < 0 || quantity > 10) throw new Error("Choose between 1 and 10 of each item.");
+  const items = normalizeCart(cart);
+  if (!quantity) return items.filter((item) => item.id !== productId);
+  if (items.some((item) => item.id === productId)) return items.map((item) => item.id === productId ? { ...item, quantity } : item);
+  if (items.length >= 20) throw new Error("Your cart already contains 20 different items.");
+  return [...items, { id: productId, quantity }];
+}
+
+export function addCartItem(cart, productId, quantity = 1) {
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 10) throw new Error("Choose between 1 and 10 of each item.");
+  const current = normalizeCart(cart).find((item) => item.id === productId)?.quantity || 0;
+  return setCartQuantity(cart, productId, current + quantity);
+}
+
+export function subtractPurchasedItems(cart, purchased) {
+  const quantities = new Map();
+  for (const item of purchased) quantities.set(item.productId, (quantities.get(item.productId) || 0) + item.quantity);
+  return normalizeCart(cart).map((item) => ({ ...item, quantity: Math.max(0, item.quantity - (quantities.get(item.id) || 0)) })).filter((item) => item.quantity > 0);
 }

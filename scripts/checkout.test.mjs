@@ -1,8 +1,29 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createHmac } from "node:crypto";
-import { decimalAmount, deliveryFeeMinor, moneyToMinor, priceCart } from "../src/lib/checkout.mjs";
+import { addCartItem, normalizeCart, setCartQuantity, subtractPurchasedItems, decimalAmount, deliveryFeeMinor, moneyToMinor, priceCart } from "../src/lib/checkout.mjs";
 import { bachsBaseUrl, paymentMatchesOrder, validCheckoutUrl, verifyBachsSignature } from "../src/lib/bachs.mjs";
+
+test("legacy repeated products become one quantity and checkout charges for every unit", () => {
+  const cart = normalizeCart([{ id: "dress" }, { id: "dress" }, { id: "dress", quantity: 3 }, { id: "top", quantity: 2 }]);
+  assert.deepEqual(cart, [{ id: "dress", quantity: 5 }, { id: "top", quantity: 2 }]);
+  const products = [{ id: "dress", name: "Dress", price: "500.00", is_active: true }, { id: "top", name: "Top", price: "300.00", is_active: true }];
+  const priced = priceCart(cart.map(({ id: productId, quantity }) => ({ productId, quantity })), products);
+  assert.equal(priced.lines.length, 2);
+  assert.equal(priced.lines[0].quantity, 5);
+  assert.equal(priced.subtotalMinor, 310000);
+  assert.deepEqual(addCartItem(cart, "dress", 2), [{ id: "dress", quantity: 7 }, { id: "top", quantity: 2 }]);
+  assert.deepEqual(setCartQuantity(cart, "dress", 0), [{ id: "top", quantity: 2 }]);
+  assert.throws(() => addCartItem(cart, "dress", 6), /10/);
+  assert.throws(() => setCartQuantity(cart, "dress", 1.5));
+  assert.throws(() => addCartItem(cart, "dress", 0));
+  assert.deepEqual(normalizeCart([null, { id: "bad", quantity: -2 }, { id: "bad", quantity: "3" }]), []);
+});
+
+test("paid cart cleanup subtracts purchased quantities and preserves later additions", () => {
+  assert.deepEqual(subtractPurchasedItems([{ id: "dress", quantity: 7 }, { id: "top", quantity: 2 }], [{ productId: "dress", quantity: 5 }]), [{ id: "dress", quantity: 2 }, { id: "top", quantity: 2 }]);
+  assert.deepEqual(subtractPurchasedItems([{ id: "dress" }, { id: "dress" }], [{ productId: "dress", quantity: 2 }]), []);
+});
 
 test("delivery follows the shop's exact rates and is added to the total", () => {
   assert.equal(deliveryFeeMinor("pickup"), 0);

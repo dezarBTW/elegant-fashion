@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import styles from "./readytowear.module.css";
 import Image from "next/image";
 import Link from "next/link";
-import { CART_KEY, readCart } from "@/lib/checkout.mjs";
+import { CART_KEY, readCart, addCartItem, setCartQuantity } from "@/lib/checkout.mjs";
 import { supabase } from "@/lib/supabaseClient";
 import { ShopSkeleton } from "./ShopSkeleton";
 
@@ -18,6 +18,7 @@ export default function ReadyToWear() {
   const [sortOrder, setSortOrder] = useState("featured");
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [cartNotice, setCartNotice] = useState("");
+  const [quantities, setQuantities] = useState({});
   const itemsPerPage = 10;
 
   // Products are public (see "Public can view products" RLS policy), so
@@ -35,7 +36,9 @@ export default function ReadyToWear() {
         } else {
           setProducts(data || []);
           const saved = readCart();
-          setCart(saved.map((item) => (data || []).find((product) => product.id === item.id && product.is_active)).filter(Boolean));
+          const available = saved.filter((item) => (data || []).some((product) => product.id === item.id && product.is_active));
+          setCart(available.map((item) => ({ ...(data || []).find((product) => product.id === item.id), quantity: item.quantity })));
+          try { localStorage.setItem(CART_KEY, JSON.stringify(available)); } catch { /* Cart still works for this page. */ }
         }
       } catch (error) { console.error("Error fetching products:", error); }
       finally { if (mounted) setLoading(false); }
@@ -80,24 +83,27 @@ export default function ReadyToWear() {
   const endIndex = startIndex + itemsPerPage;
   const currentProducts = sortedProducts.slice(startIndex, endIndex);
 
+  const saveCart = (nextCart) => {
+    setCart(nextCart.map((item) => ({ ...products.find((product) => product.id === item.id), quantity: item.quantity })));
+    try { localStorage.setItem(CART_KEY, JSON.stringify(nextCart)); } catch { /* Cart still works for this page. */ }
+  };
+
   const addToCart = (product) => {
-    if (cart.filter((item) => item.id === product.id).length >= 10) {
-      setCartNotice("You can add up to 10 of each item.");
-      return;
-    }
-    const nextCart = [...cart, product];
-    setCart(nextCart);
-    try { localStorage.setItem(CART_KEY, JSON.stringify(nextCart.map((item) => ({ id: item.id })))); } catch { /* Cart still works for this page. */ }
-    setCartNotice(`${product.name} added to your bag`);
+    try {
+      const quantity = quantities[product.id] || 1;
+      const nextCart = addCartItem(cart, product.id, quantity);
+      saveCart(nextCart);
+      setCartNotice(`${product.name}: quantity ${nextCart.find((item) => item.id === product.id).quantity} in your cart`);
+    } catch (error) { setCartNotice(error.message); }
   };
 
-  const removeFromCart = (index) => {
-    const nextCart = cart.filter((_, i) => i !== index);
-    setCart(nextCart);
-    try { localStorage.setItem(CART_KEY, JSON.stringify(nextCart.map((item) => ({ id: item.id })))); } catch { /* Cart still works for this page. */ }
+  const updateQuantity = (productId, quantity) => {
+    try { saveCart(setCartQuantity(cart, productId, quantity)); }
+    catch (error) { setCartNotice(error.message); }
   };
 
-  const cartTotal = cart.reduce((total, item) => total + Number(item.sale_price ?? item.price), 0);
+  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const cartTotal = cart.reduce((total, item) => total + Number(item.sale_price ?? item.price) * item.quantity, 0);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -191,8 +197,8 @@ export default function ReadyToWear() {
                       <div className={styles.imageFallback} aria-label="Product image coming soon">E</div>
                     )}
                     {product.sale_price && product.sale_price < product.price && <span className={styles.productBadge}>Special price</span>}
-                    <button className={styles.quickAdd} type="button" onClick={() => addToCart(product)} aria-label={`Add ${product.name} to cart`}>
-                      Add item <span aria-hidden="true">+</span>
+                    <button className={styles.quickAdd} type="button" onClick={() => addToCart(product)} aria-label={`Add ${quantities[product.id] || 1} of ${product.name} to cart`}>
+                      Add {quantities[product.id] || 1} <span aria-hidden="true">+</span>
                     </button>
                   </div>
                   <div className={styles.productInfo}>
@@ -202,6 +208,12 @@ export default function ReadyToWear() {
                       <span className={styles.productPrice}>₦{Number(product.sale_price || product.price).toLocaleString('en-NG')}</span>
                       {product.sale_price && product.sale_price < product.price && <del className={styles.oldPrice}>₦{Number(product.price).toLocaleString('en-NG')}</del>}
                     </div>
+                    <label className={styles.productQuantity}>
+                      Quantity
+                      <select aria-label={`Quantity for ${product.name}`} value={quantities[product.id] || 1} onChange={(event) => setQuantities({ ...quantities, [product.id]: Number(event.target.value) })}>
+                        {Array.from({ length: 10 }, (_, index) => <option key={index + 1} value={index + 1}>{index + 1}</option>)}
+                      </select>
+                    </label>
                   </div>
                 </article>
               ))}
@@ -225,8 +237,8 @@ export default function ReadyToWear() {
         </section>
       </main>
 
-      <button className={styles.cartToggle} type="button" onClick={() => setIsCartOpen(true)} aria-label={`Open cart, ${cart.length} items`}>
-        Cart <span>{cart.length}</span>
+      <button className={styles.cartToggle} type="button" onClick={() => setIsCartOpen(true)} aria-label={`Open cart, ${cartCount} units`}>
+        Cart <span>{cartCount}</span>
       </button>
       {cartNotice && <p className={styles.cartNotice} role="status" aria-live="polite">{cartNotice}</p>}
 
@@ -234,15 +246,24 @@ export default function ReadyToWear() {
         <div className={styles.cartOverlay} role="presentation" onClick={() => setIsCartOpen(false)}>
           <aside className={styles.cartDrawer} role="dialog" aria-modal="true" aria-labelledby="cart-title" onClick={(event) => event.stopPropagation()}>
             <div className={styles.cartHeader}>
-              <div><p className={styles.eyebrow}>CART DETAILS</p><h2 id="cart-title">Your cart <span>({cart.length})</span></h2></div>
+              <div><p className={styles.eyebrow}>CART DETAILS</p><h2 id="cart-title">Your cart <span>({cartCount} units)</span></h2></div>
               <button type="button" className={styles.closeCart} aria-label="Close cart" onClick={() => setIsCartOpen(false)}>×</button>
             </div>
             <div className={styles.cartItems}>
-              {cart.length ? cart.map((item, index) => (
-                <article key={`${item.id}-${index}`} className={styles.cartItem}>
-                  {item.image && <Image src={item.image} alt="" width={76} height={96} />}
-                  <div className={styles.cartItemInfo}><h3>{item.name}</h3><p>₦{Number(item.sale_price ?? item.price).toLocaleString('en-NG')}</p></div>
-                  <button type="button" className={styles.removeCartItem} onClick={() => removeFromCart(index)}>Remove</button>
+              {cart.length ? cart.map((item) => (
+                <article key={item.id} className={styles.cartItem}>
+                  <div>{item.image && <Image src={item.image} alt="" width={76} height={96} />}</div>
+                  <div className={styles.cartItemInfo}>
+                    <h3>{item.name}</h3>
+                    <p>₦{Number(item.sale_price ?? item.price).toLocaleString('en-NG')} each</p>
+                    <div className={styles.quantityControl} role="group" aria-label={`Quantity for ${item.name}`}>
+                      <button type="button" aria-label={`Decrease quantity of ${item.name}`} disabled={item.quantity <= 1} onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</button>
+                      <span aria-live="polite">Quantity: {item.quantity}</span>
+                      <button type="button" aria-label={`Increase quantity of ${item.name}`} disabled={item.quantity >= 10} onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
+                    </div>
+                    <p className={styles.cartLineTotal}>₦{(Number(item.sale_price ?? item.price) * item.quantity).toLocaleString('en-NG')}</p>
+                    <button type="button" className={styles.removeCartItem} aria-label={`Remove ${item.name} from cart`} onClick={() => updateQuantity(item.id, 0)}>Remove</button>
+                  </div>
                 </article>
               )) : <p className={styles.emptyCart}>Your cart is empty.</p>}
             </div>

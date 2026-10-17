@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { addCartItem } from "./checkout.mjs";
 
 export const REQUEST_TYPES = ["refund", "complaint"];
 export const REQUEST_STATUSES = {
@@ -26,7 +27,5 @@ export const accountActionSchema = z.discriminatedUnion("action", [
 ]);
 
 export function repurchaseCart(cart, productId) {
-  if (cart.filter((item) => item.id === productId).length >= 10) throw new Error("Your cart already contains 10 of this item.");
-  if (!cart.some((item) => item.id === productId) && new Set(cart.map((item) => item.id)).size >= 20) throw new Error("Your cart already contains 20 different items.");
-  return [...cart, { id: productId }];
+  return addCartItem(cart, productId);
 }

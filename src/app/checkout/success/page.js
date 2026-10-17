@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CART_KEY, readCart, PICKUP_ADDRESS } from "@/lib/checkout.mjs";
+import { CART_KEY, readCart, subtractPurchasedItems, PICKUP_ADDRESS } from "@/lib/checkout.mjs";
 import styles from "../checkout.module.css";
 import { PaymentStatusSkeleton } from "../CheckoutSkeleton";
 
@@ -11,13 +11,7 @@ const money = (minor) => `₦${(Number(minor) / 100).toLocaleString("en-NG", { m
 function removePurchasedItems(order) {
   try {
     if (localStorage.getItem(`es_paid_${order.id}`)) return;
-    const quantities = new Map(order.items.map((item) => [item.productId, item.quantity]));
-    const remaining = readCart().filter((item) => {
-      const count = quantities.get(item.id) || 0;
-      if (!count) return true;
-      quantities.set(item.id, count - 1);
-      return false;
-    });
+    const remaining = subtractPurchasedItems(readCart(), order.items);
     localStorage.setItem(CART_KEY, JSON.stringify(remaining));
     localStorage.setItem(`es_paid_${order.id}`, "1");
     sessionStorage.removeItem("es_pending_order");
