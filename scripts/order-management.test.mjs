@@ -6,7 +6,7 @@ import vm from "node:vm";
 import { z } from "zod";
 import * as bachs from "../src/lib/bachs.mjs";
 import * as management from "../src/lib/orderManagement.mjs";
-import { buildOrderEmails, sendOrderEmails } from "../src/lib/orderEmails.mjs";
+import { buildOrderEmails, buildFulfillmentEmail, sendOrderEmails, sendsReceiptLink } from "../src/lib/orderEmails.mjs";
 import { createReceiptConfirmation, receiptHash } from "../src/lib/checkoutServer.js";
 
 const id = "11111111-1111-4111-8111-111111111111";
@@ -54,6 +54,7 @@ function database(orders = [fixture()], profile = { id: adminId, is_admin: true,
         select(value, options) { columns = value; count = Boolean(options?.count); return query; },
         update(value) { patch = value; return query; },
         eq(key, value) { filters.push((row) => row[key] === value); return query; },
+        in(key, values) { filters.push((row) => values.includes(row[key])); return query; },
         is(key, value) { filters.push((row) => (row[key] ?? null) === value); return query; },
         neq(key, value) { filters.push((row) => row[key] !== value); return query; },
         order(key, options) { sorts.push([key, options]); return query; },
@@ -65,7 +66,7 @@ function database(orders = [fixture()], profile = { id: adminId, is_admin: true,
   };
 }
 
-async function route(file, db, mailer = async () => {}) {
+async function route(file, db, mailer = async () => {}, fulfillmentMailer = async () => true) {
   const context = vm.createContext({ console: { error() {} }, process: { env: { BACHS_WEBHOOK_SECRET: secret } }, Date, URL, Response, AbortSignal });
   const source = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
   const routeModule = new vm.SourceTextModule(source, { context });
@@ -74,7 +75,7 @@ async function route(file, db, mailer = async () => {}) {
     "zod": { z },
     "@/lib/checkoutServer": { checkoutDatabase: () => db, createReceiptConfirmation, receiptHash },
     "@/lib/bachs.mjs": bachs,
-    "@/lib/orderEmails.mjs": { sendOrderEmails: mailer },
+    "@/lib/orderEmails.mjs": { sendOrderEmails: mailer, sendFulfillmentEmail: fulfillmentMailer, sendsReceiptLink },
     "@/lib/orderManagement.mjs": management,
   };
   await routeModule.link((name) => {
@@ -108,7 +109,9 @@ test("concurrent and repeated paid webhooks claim one email attempt", async () =
   assert.equal(sent.length, 1);
   assert.equal(db.orders[0].payment_status, "paid");
   assert.equal(db.orders[0].paid_at, db.orders[0].emails_claimed_at);
-  assert.equal(db.orders[0].receipt_confirmation_hash, receiptHash(sent[0].options.receiptToken));
+  // The payment email carries no receipt link, so no token exists until the order ships.
+  assert.equal(db.orders[0].receipt_confirmation_hash, null);
+  assert.equal(sent[0].options, undefined);
   assert.equal(sent[0].order.receipt_confirmation_hash, undefined);
   const originalConfirmation = db.orders[0].receipt_confirmation_hash;
   assert.equal((await POST(webhook())).status, 200);
@@ -231,18 +234,71 @@ test("receipt tokens are distinct random secrets and only their hashes are store
   assert.equal(first.hash, receiptHash(first.token));
 });
 
-test("only the customer email contains a personal receipt link, in its fragment", () => {
+test("payment emails never contain the receipt link; only the shipped email does, in its fragment", () => {
   const { token } = createReceiptConfirmation();
-  const [customer, admin] = buildOrderEmails(fixture(), "shop@example.invalid", token);
-  assert.ok(customer.html.includes("I have received the product"));
-  const link = new URL(customer.html.match(/href="([^"]+)"/)[1]);
+  const [payment, admin] = buildOrderEmails(fixture(), "shop@example.invalid", token);
+  assert.ok(!payment.html.includes("I have received the product") && !payment.html.includes("order-received"));
+  assert.ok(!payment.text.includes("order-received") && !admin.html.includes("order-received"));
+  const shipped = buildFulfillmentEmail(fixture(), token);
+  assert.equal(shipped.kind, "shipped");
+  assert.ok(shipped.subject.includes("has shipped"));
+  assert.ok(shipped.html.includes("I have received the product"));
+  const link = new URL(shipped.html.match(/href="([^"]+)"/)[1]);
   assert.equal(link.origin, "https://elegantstyle.com.ng");
   assert.equal(link.pathname, `/order-received/${id}`);
   assert.equal(link.search, "");
   assert.equal(link.hash, `#token=${token}`);
-  assert.ok(customer.text.includes(link.href));
-  assert.ok(!admin.html.includes(token) && !admin.text.includes(token));
-  assert.ok(!buildOrderEmails(fixture(), "shop@example.invalid", '" onclick="bad')[0].html.includes("onclick="));
+  assert.ok(shipped.text.includes(link.href));
+  assert.equal(shipped.idempotencyKey, `fulfillment-notice/${id}/shipped`);
+  assert.equal(buildFulfillmentEmail(fixture(), '" onclick="bad'), null);
+  const pickup = fixture();
+  pickup.delivery = { method: "pickup" };
+  assert.equal(buildFulfillmentEmail(pickup, token).kind, "ready");
+  assert.ok(buildFulfillmentEmail(pickup, token).subject.includes("is ready"));
+});
+
+test("the receipt link is sent when delivery orders ship and pickup orders are ready", () => {
+  assert.equal(sendsReceiptLink("shipped", "yenagoa"), true);
+  assert.equal(sendsReceiptLink("ready", "pickup"), true);
+  assert.equal(sendsReceiptLink("ready", "outside_yenagoa"), false);
+  assert.equal(sendsReceiptLink("processing", "pickup"), false);
+  assert.equal(sendsReceiptLink("completed", "pickup"), false);
+});
+
+test("shipping a paid order stores a fresh receipt hash and emails the customer once", async () => {
+  const db = database([{ ...fixture(), payment_status: "paid", fulfillment_status: "processing" }]);
+  const sent = [];
+  const { PATCH } = await route("src/app/api/admin/orders/route.js", db, async () => {}, async (order, token) => { sent.push({ order, token }); return true; });
+  const update = { id, expected_status: "processing", fulfillment_status: "shipped" };
+  const response = await PATCH(adminRequest("PATCH", update));
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.customerEmailSent, true);
+  assert.equal(sent.length, 1);
+  assert.match(sent[0].token, /^[a-f0-9]{64}$/);
+  assert.equal(db.orders[0].receipt_confirmation_hash, receiptHash(sent[0].token));
+  assert.ok(!JSON.stringify(body).includes(sent[0].token));
+  assert.equal((await PATCH(adminRequest("PATCH", update))).status, 409);
+  assert.equal(sent.length, 1);
+});
+
+test("a failed shipping email never undoes the status change", async () => {
+  const db = database([{ ...fixture(), payment_status: "paid", fulfillment_status: "processing" }]);
+  const { PATCH } = await route("src/app/api/admin/orders/route.js", db, async () => {}, async () => { throw new Error("Resend unavailable"); });
+  const response = await PATCH(adminRequest("PATCH", { id, expected_status: "processing", fulfillment_status: "shipped" }));
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).customerEmailSent, false);
+  assert.equal(db.orders[0].fulfillment_status, "shipped");
+});
+
+test("receipt confirmation is refused until the order has shipped", async () => {
+  const { token, hash } = createReceiptConfirmation();
+  const db = database([{ ...fixture(), payment_status: "paid", receipt_confirmation_hash: hash, fulfillment_status: "processing" }]);
+  const { POST } = await route("src/app/api/checkout/orders/[id]/received/route.js", db);
+  assert.equal((await POST(receiptRequest(token), receiptContext)).status, 400);
+  assert.equal(db.orders[0].customer_received_at, null);
+  db.orders[0].fulfillment_status = "shipped";
+  assert.equal((await POST(receiptRequest(token), receiptContext)).status, 200);
 });
 
 test("receipt confirmation requires a valid paid-order link, explicit agreement, and same origin", async () => {

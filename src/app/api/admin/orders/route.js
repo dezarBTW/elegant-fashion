@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { checkoutDatabase } from "@/lib/checkoutServer";
+import { checkoutDatabase, createReceiptConfirmation } from "@/lib/checkoutServer";
+import { sendFulfillmentEmail, sendsReceiptLink } from "@/lib/orderEmails.mjs";
 import { FULFILLMENT_STATUSES, PAYMENT_STATUSES, ORDER_COLUMNS, OrderRequestError, requireOrderAdmin, nextFulfillmentStatuses } from "@/lib/orderManagement.mjs";
 
 export const runtime = "nodejs";
@@ -60,11 +61,22 @@ export async function PATCH(request) {
     if (order.payment_status !== "paid") return json({ error: "Only paid orders can be fulfilled. Review the payment in Bachs first." }, 409);
     if (order.fulfillment_status !== expected_status) return json({ error: "This order changed. Refresh before updating it." }, 409);
     if (!nextFulfillmentStatuses(order.fulfillment_status, order.delivery?.method).includes(fulfillment_status)) return json({ error: "Invalid fulfilment transition for this delivery method." }, 409);
+    // Delivery orders get their receipt link when shipped; pickup orders when ready.
+    // A fresh token is created here because only its hash is ever stored.
+    const notify = sendsReceiptLink(fulfillment_status, order.delivery?.method);
+    const confirmation = notify ? createReceiptConfirmation() : null;
     const { data: updated, error: updateError } = await db.from("shop_orders")
-      .update({ fulfillment_status }).eq("id", id).eq("payment_status", "paid")
+      .update({ fulfillment_status, ...(confirmation ? { receipt_confirmation_hash: confirmation.hash } : {}) })
+      .eq("id", id).eq("payment_status", "paid")
       .eq("fulfillment_status", expected_status).select(ORDER_COLUMNS).maybeSingle();
     if (updateError) throw updateError;
     if (!updated) return json({ error: "This order changed. Refresh before updating it." }, 409);
-    return json({ order: updated });
+    let emailSent = null;
+    if (confirmation) {
+      // The status change is already saved; an email problem must never undo it.
+      try { emailSent = await sendFulfillmentEmail(updated, confirmation.token); }
+      catch (error) { console.error(`Order ${id}: fulfilment email failed`, error?.message); emailSent = false; }
+    }
+    return json({ order: updated, ...(emailSent === null ? {} : { customerEmailSent: emailSent }) });
   } catch (error) { return failure(error); }
 }

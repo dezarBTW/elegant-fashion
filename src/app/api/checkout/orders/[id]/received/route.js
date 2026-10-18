@@ -19,7 +19,7 @@ export async function POST(request, { params }) {
     const db = checkoutDatabase();
     const hash = receiptHash(input.data.token);
     const { data: changed, error } = await db.from("shop_orders").update({ customer_received_at: new Date().toISOString() })
-      .eq("id", id).eq("payment_status", "paid").eq("receipt_confirmation_hash", hash).is("customer_received_at", null)
+      .eq("id", id).eq("payment_status", "paid").in("fulfillment_status", ["ready", "shipped", "completed"]).eq("receipt_confirmation_hash", hash).is("customer_received_at", null)
       .select("id,customer_received_at").maybeSingle();
     if (error) throw error;
     if (changed) return json({ confirmed: true, receivedAt: changed.customer_received_at });
@@ -27,7 +27,7 @@ export async function POST(request, { params }) {
       .eq("id", id).eq("payment_status", "paid").eq("receipt_confirmation_hash", hash).maybeSingle();
     if (lookupError) throw lookupError;
     if (existing?.customer_received_at) return json({ confirmed: true, alreadyConfirmed: true, receivedAt: existing.customer_received_at });
-    return json({ error: "This confirmation link is invalid or is not for a paid order. Use the link in your payment email." }, 400);
+    return json({ error: "This confirmation link is invalid, or your order has not been shipped yet. Use the link in the email we send when your order ships." }, 400);
   } catch (error) {
     console.error("Order receipt confirmation failed", error?.code || "database_error");
     return json({ error: "Unable to save your confirmation. Please try again." }, 503);

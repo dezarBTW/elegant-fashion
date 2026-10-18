@@ -38,7 +38,47 @@ export async function sendServiceEmail(message, { env = process.env, fetchImpl =
   }
 }
 
-export function buildOrderEmails(order, shopRecipient, receiptToken) {
+function receiptConfirmationUrl(order, receiptToken) {
+  return /^[a-f0-9]{64}$/.test(receiptToken || "")
+    ? `${SITE_URL}/order-received/${encodeURIComponent(order.id)}#token=${receiptToken}` : null;
+}
+
+// True when this status change should email the customer their receipt link:
+// delivery orders when shipped, pickup orders when ready for pickup.
+export function sendsReceiptLink(status, deliveryMethod) {
+  return status === "shipped" || (status === "ready" && deliveryMethod === "pickup");
+}
+
+export function buildFulfillmentEmail(order, receiptToken) {
+  const safe = escapeEmailHtml;
+  const isPickup = order.delivery?.method === "pickup";
+  const reference = String(order.id).replace(/[\r\n]/g, " ");
+  const url = receiptConfirmationUrl(order, receiptToken);
+  if (!url) return null;
+  const heading = isPickup ? "Your order is ready for pickup" : "Your order has been shipped";
+  const lead = isPickup
+    ? `Your order is ready. Please collect it at: ${PICKUP_ADDRESS}.`
+    : "Your order is on its way to you.";
+  const items = (Array.isArray(order.items) ? order.items : []).map((item) => `${safe(item.name)} × ${safe(item.quantity)}`).join("<br>");
+  const itemText = (Array.isArray(order.items) ? order.items : []).map((item) => `${item.name} × ${item.quantity}`).join("\n");
+  return {
+    kind: isPickup ? "ready" : "shipped",
+    to: order.customer_email,
+    subject: `${isPickup ? "Your Elegant Style order is ready" : "Your Elegant Style order has shipped"} — ${reference}`,
+    html: wrapBrandEmail(heading, `<p>Hello ${safe(order.customer_name)},</p><p>${safe(lead)}</p><p>Order reference: <strong>${safe(order.id)}</strong></p><p>${items}</p><h2 style="font-size:18px">After you receive your order</h2><p>Once you have received every product in this order, let us know using the button below.</p><p><a href="${safe(url)}" style="display:inline-block;background:#24211e;color:#ffffff;padding:14px 20px;text-decoration:none;border-radius:6px">I have received the product</a></p><p>This opens a confirmation page. Only confirm after your order has arrived. Keep this personal link private. For help, call 08166361710 and quote your order reference.</p>`),
+    text: `Hello ${order.customer_name},\n${lead}\nOrder reference: ${order.id}\n${itemText}\n\nAfter you receive every product in this order, confirm receipt here:\n${url}\nOnly confirm after your order has arrived. Keep this personal link private. For help, call 08166361710.`,
+    idempotencyKey: `fulfillment-notice/${order.id}/${isPickup ? "ready" : "shipped"}`,
+  };
+}
+
+export async function sendFulfillmentEmail(order, receiptToken, options = {}) {
+  const message = buildFulfillmentEmail(order, receiptToken);
+  if (!message) return false;
+  const { kind, ...email } = message;
+  return sendServiceEmail(email, options);
+}
+
+export function buildOrderEmails(order, shopRecipient) {
   const safe = escapeEmailHtml;
   const delivery = order.delivery || {};
   const method = delivery.method === "pickup" ? "Shop pickup" : delivery.method === "yenagoa" ? "Delivery within Yenagoa" : "Delivery outside Yenagoa";
@@ -63,16 +103,12 @@ export function buildOrderEmails(order, shopRecipient, receiptToken) {
   const itemText = items.map((item) => `${item.name} × ${item.quantity} — ${naira(item.unitAmountMinor)} each — ${naira(item.lineAmountMinor)}`).join("\n");
   const commonText = [`Order reference: ${order.id}`, itemText, `Subtotal: ${naira(order.subtotal_minor)}`, `Delivery / pickup: ${naira(order.shipping_minor)}`, `Total paid: ${naira(order.total_minor)}`, method, address].join("\n");
   const reference = String(order.id).replace(/[\r\n]/g, " ");
-  const confirmationUrl = /^[a-f0-9]{64}$/.test(receiptToken || "")
-    ? `${SITE_URL}/order-received/${encodeURIComponent(order.id)}#token=${receiptToken}` : null;
-  const confirmationHtml = confirmationUrl ? `<h2 style="font-size:18px">After you receive your order</h2><p>Once you have received every product in this order, let us know using the button below.</p><p><a href="${safe(confirmationUrl)}" style="display:inline-block;background:#24211e;color:#ffffff;padding:14px 20px;text-decoration:none;border-radius:6px">I have received the product</a></p><p>This opens a confirmation page. Only confirm after your order has arrived. Keep this personal link private.</p>` : "";
-  const confirmationText = confirmationUrl ? `\n\nAfter you receive every product in this order, confirm receipt here:\n${confirmationUrl}\nOnly confirm after your order has arrived. Keep this personal link private.` : "";
   return [
     {
       kind: "customer", to: order.customer_email,
       subject: `Your Elegant Style receipt — ${reference}`,
-      html: wrap("Payment received", `<p>Hello ${safe(order.customer_name)},</p><p>Thank you. We have received payment for your order.</p>${details}<p>We will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710 and quote your order reference.</p>${confirmationHtml}`),
-      text: `Hello ${order.customer_name},\nThank you. Your order is paid.\n${commonText}\nWe will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710.${confirmationText}`,
+      html: wrap("Payment received", `<p>Hello ${safe(order.customer_name)},</p><p>Thank you. We have received payment for your order.</p>${details}<p>We will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710 and quote your order reference.</p><p>We will email you again when your order ${delivery.method === "pickup" ? "is ready for pickup" : "has shipped"}.</p>`),
+      text: `Hello ${order.customer_name},\nThank you. Your order is paid.\n${commonText}\nWe will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710. We will email you again when your order ${delivery.method === "pickup" ? "is ready for pickup" : "has shipped"}.`,
     },
     {
       kind: "shop", to: shopRecipient,
@@ -85,10 +121,10 @@ export function buildOrderEmails(order, shopRecipient, receiptToken) {
 
 // The webhook's atomic payment update has already claimed this attempt.
 // Never throw or retry here: payment success must remain independent of email.
-export async function sendOrderEmails(order, { env = process.env, fetchImpl = fetch, logger = console, receiptToken } = {}) {
+export async function sendOrderEmails(order, { env = process.env, fetchImpl = fetch, logger = console } = {}) {
   try {
     const recipient = ADMIN_NOTIFY_EMAIL;
-    const messages = buildOrderEmails(order, recipient, receiptToken);
+    const messages = buildOrderEmails(order, recipient);
     await Promise.all(messages.map(async ({ kind, to, ...message }) => {
       try {
         if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL || !to) throw new Error("Email configuration or recipient is missing");

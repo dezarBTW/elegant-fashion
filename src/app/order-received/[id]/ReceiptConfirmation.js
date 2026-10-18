@@ -15,7 +15,7 @@ export default function ReceiptConfirmation({ orderId }) {
     event.preventDefault();
     if (busy || !confirmed) return;
     const token = new URLSearchParams(window.location.hash.slice(1)).get("token");
-    if (!/^[a-f0-9]{64}$/.test(token || "")) { setError("Open the personal confirmation link in your payment email."); return; }
+    if (!/^[a-f0-9]{64}$/.test(token || "")) { setError("Open the personal confirmation link in the email we sent when your order shipped."); return; }
     setBusy(true); setError("");
     try {
       const response = await fetch(`/api/checkout/orders/${encodeURIComponent(orderId)}/received`, {
