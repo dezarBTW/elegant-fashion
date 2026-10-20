@@ -1,0 +1,114 @@
+.section {
+  padding: 1.5rem 0 2rem;
+  border-block: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.header {
+  max-width: 1200px;
+  margin: 0 auto 1rem;
+  padding-inline: 2rem;
+}
+
+.header h2 {
+  margin: 0;
+  color: var(--stone);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.viewport {
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  animation: social-scroll 45s linear infinite;
+}
+
+.group {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: clamp(3rem, 6vw, 6rem);
+  padding-right: clamp(3rem, 6vw, 6rem);
+}
+
+.link {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.85rem;
+  min-height: 64px;
+  padding: 0.5rem 0.25rem;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.link img {
+  flex: 0 0 auto;
+  object-fit: contain;
+}
+
+.link strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.handle {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--stone);
+  font-size: 0.85rem;
+}
+
+.arrow {
+  margin-left: 0.25rem;
+  color: var(--gold-deep);
+}
+
+.link:hover .handle {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* Restore logical link positions before the browser scrolls keyboard focus into view. */
+.viewport:focus-within .track {
+  animation: none;
+  transform: none;
+}
+
+@keyframes social-scroll {
+  to { transform: translateX(-50%); }
+}
+
+@media (max-width: 600px) {
+  .header { padding-inline: 1.25rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    display: block;
+    width: 100%;
+    animation: none;
+  }
+
+  .group {
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    padding-inline: 1.25rem;
+  }
+
+  .group[aria-hidden="true"] {
+    display: none;
+  }
+
+  .link { white-space: normal; min-width: 0; max-width: 100%; }
+  .link > span { min-width: 0; }
+  .handle { overflow-wrap: anywhere; }
+}

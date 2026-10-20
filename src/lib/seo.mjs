@@ -1,3 +1,5 @@
+import { socialLinks } from "./socialLinks.mjs";
+
 export const SITE_URL = "https://elegantstyle.com.ng";
 
 export const publicPages = {
@@ -87,7 +89,7 @@ export const businessStructuredData = {
         addressRegion: "Bayelsa State",
         addressCountry: "NG",
       },
-      sameAs: ["https://www.facebook.com/elegantstylefashionacademy"],
+      sameAs: socialLinks.filter(({ id }) => id !== "whatsapp").map(({ href }) => href),
     },
   ],
 };

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 import { businessStructuredData } from "@/lib/seo.mjs";
 import { watchCopyrightYear } from "@/lib/copyrightYear.mjs";
+import SocialCarousel from "@/components/SocialCarousel";
 
 const heroSlides = [
   { src: "/images/Hero/image%20%2820%29.jpg", alt: "Jeweled blue Ankara evening gown" },
@@ -309,6 +310,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        <SocialCarousel />
       </main>
 
       <footer className={styles.footer}>
