@@ -284,3 +284,10 @@
             grid-template-columns: 1fr;
           }
         }
+.available-sizes { min-width:0; padding:16px; border:1px solid var(--line); border-radius:8px; margin-bottom:20px; }
+.available-sizes legend { font-size:1rem; font-weight:600; padding-inline:6px; }
+.available-sizes p { font-size:.8rem; color:var(--stone); margin-bottom:12px; }
+.available-sizes>div { display:flex; flex-wrap:wrap; gap:12px 20px; }
+.available-sizes label { display:flex; align-items:center; gap:8px; min-height:40px; font-size:.85rem; }
+.available-sizes input { width:18px; height:18px; accent-color:var(--gold-deep); }
+.product-form textarea { width:100%; padding:12px; border:1px solid var(--line); border-radius:8px; resize:vertical; background:var(--white); color:var(--ink); }

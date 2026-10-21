@@ -1,10 +1,12 @@
 import page from "./readytowear.module.css";
 import s from "./shopSkeleton.module.css";
+import detail from "./product/[slug]/product.module.css";
+import { SHOP_PAGE_SIZE } from "@/lib/products.mjs";
 
 const bone = (...names) => [s.bone, ...names].join(" ");
 
 /** Skeleton for the /ready-to-wear listing. Mirrors the real layout. */
-export function ShopSkeleton({ count = 10 }) {
+export function ShopSkeleton({ count = SHOP_PAGE_SIZE }) {
   return (
     <div className={page.container} aria-busy="true">
       <span className={s.srOnly} role="status">Loading ready-to-wear collection</span>
@@ -57,17 +59,10 @@ export function ProductDetailSkeleton() {
   return (
     <div className={page.container} aria-busy="true">
       <span className={s.srOnly} role="status">Loading product</span>
-      <main className={`${page.shop} ${s.visual}`} aria-hidden="true">
+      <main className={`${detail.page} ${s.visual}`} aria-hidden="true">
         <div className={bone(s.crumb)} />
-        <div className={s.detail}>
-          <div className={s.gallery}>
-            <div className={s.thumbs}>
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className={bone(s.thumb)} />
-              ))}
-            </div>
-            <div className={bone(s.mainImage)} />
-          </div>
+        <div className={detail.details}>
+          <div className={`${detail.image} ${s.bone}`} />
 
           <div className={s.detailInfo}>
             <div className={bone(s.dCategory)} />
@@ -78,19 +73,9 @@ export function ProductDetailSkeleton() {
             <div className={bone(s.dLine)} />
             <div className={bone(s.dLineShort)} />
             <div className={bone(s.dLabel)} />
-            <div className={s.optionRow}>
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className={bone(s.swatch)} />
-              ))}
-            </div>
-            <div className={bone(s.dLabel)} />
-            <div className={s.optionRow}>
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className={bone(s.option)} />
-              ))}
-            </div>
+            <div className={s.optionRow}>{Array.from({ length: 5 }).map((_, index) => <div key={index} className={bone(s.option)} />)}</div>
+            <div className={bone(s.cardControl)} />
             <div className={bone(s.dButton)} />
-            <div className={bone(s.dButtonGhost)} />
           </div>
         </div>
       </main>

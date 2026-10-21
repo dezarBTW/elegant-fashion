@@ -1,16 +1,18 @@
 'use client';
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { CONFIRMATION_REDIRECT } from "@/lib/authLinks.mjs";
+import { CONFIRMATION_REDIRECT, authReturnPath, withAuthReturn } from "@/lib/authLinks.mjs";
 import { consumeRateLimit, formatRetryMessage, sanitizeEmail } from "@/lib/sanitizeInput";
 import Image from "next/image";
 import "../auth-atelier.css";
 import "../auth-extras.css";
 
-export default function SignIn() {
+function SignInForm() {
+  const search = useSearchParams();
+  const returnTo = authReturnPath(search.toString());
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -33,8 +35,8 @@ export default function SignIn() {
 
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
-      if (data.session) {
-        router.replace("/");
+      if (data.session && !data.session.user.is_anonymous) {
+        router.replace(returnTo);
         router.refresh();
         return;
       }
@@ -44,7 +46,7 @@ export default function SignIn() {
     return () => {
       mounted = false;
     };
-  }, [router]);
+  }, [router, returnTo]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -106,7 +108,7 @@ export default function SignIn() {
         return;
       }
 
-      router.replace("/");
+      router.replace(returnTo);
       router.refresh();
     } catch (error) {
       console.error("Sign-in redirect error:", error);
@@ -132,7 +134,7 @@ export default function SignIn() {
         type: "signup",
         email: unconfirmedEmail,
         options: {
-          emailRedirectTo: CONFIRMATION_REDIRECT,
+          emailRedirectTo: withAuthReturn(CONFIRMATION_REDIRECT, returnTo),
         },
       });
 
@@ -156,7 +158,7 @@ export default function SignIn() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: withAuthReturn(`${window.location.origin}/auth/callback`, returnTo),
         },
       });
 
@@ -306,10 +308,14 @@ export default function SignIn() {
           </button>
 
           <p className="auth-switch">
-            New to Elegant Style? <Link href="/sign-up">Create an account</Link>
+            New to Elegant Style? <Link href={withAuthReturn('/sign-up', returnTo)}>Create an account</Link>
           </p>
         </div>
       </section>
     </main>
   );
+}
+
+export default function SignIn() {
+  return <Suspense fallback={<main className="auth-page auth-loading"><p>Loading sign-in…</p></main>}><SignInForm /></Suspense>;
 }

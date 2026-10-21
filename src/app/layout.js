@@ -2,6 +2,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import CookieConsent from "@/components/CookieConsent";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CartProvider } from "@/contexts/CartContext";
 import { SITE_URL, pageMetadata } from "@/lib/seo.mjs";
 
 export const metadata = {
@@ -16,13 +17,16 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
     >
 
       <body>
         <AuthProvider>
+          <CartProvider>
           <Navbar />
           {children}
+          </CartProvider>
         </AuthProvider>
         <CookieConsent />
       </body>

@@ -1,24 +1,21 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import styles from "./readytowear.module.css";
-import Image from "next/image";
-import Link from "next/link";
-import { CART_KEY, readCart, addCartItem, setCartQuantity } from "@/lib/checkout.mjs";
+import ShopProductCard from "@/components/ShopProductCard";
+import { matchesGender, SHOP_PAGE_SIZE } from "@/lib/products.mjs";
 import { supabase } from "@/lib/supabaseClient";
 import { ShopSkeleton } from "./ShopSkeleton";
 
 export default function ReadyToWear() {
-  const [cart, setCart] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [sortOrder, setSortOrder] = useState("featured");
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [cartNotice, setCartNotice] = useState("");
-  const itemsPerPage = 10;
+  const [gender, setGender] = useState("");
+  const [error, setError] = useState("");
+  const itemsPerPage = SHOP_PAGE_SIZE;
 
   // Products are public (see "Public can view products" RLS policy), so
   // every visitor should see them regardless of admin status — this page
@@ -28,29 +25,21 @@ export default function ReadyToWear() {
     let mounted = true;
     const fetchProducts = async () => {
       try {
-        const { data, error } = await supabase.from("products").select("*").eq("is_active", true);
+        const { data, error } = await supabase.from("products").select("*").eq("is_active", true).order("created_at", { ascending: false }).order("id", { ascending: true });
         if (!mounted) return;
         if (error) {
           console.error("Error fetching products:", error);
+          setError("Unable to load the collection. Please refresh the page.");
         } else {
           setProducts(data || []);
-          const saved = readCart();
-          const available = saved.filter((item) => (data || []).some((product) => product.id === item.id && product.is_active));
-          setCart(available.map((item) => ({ ...(data || []).find((product) => product.id === item.id), quantity: item.quantity })));
-          try { localStorage.setItem(CART_KEY, JSON.stringify(available)); } catch { /* Cart still works for this page. */ }
+
         }
-      } catch (error) { console.error("Error fetching products:", error); }
+      } catch (error) { console.error("Error fetching products:", error); if (mounted) setError("Unable to load the collection. Please refresh the page."); }
       finally { if (mounted) setLoading(false); }
     };
     fetchProducts();
     return () => { mounted = false; };
   }, []);
-
-  useEffect(() => {
-    if (!cartNotice) return undefined;
-    const timeout = window.setTimeout(() => setCartNotice(""), 2400);
-    return () => window.clearTimeout(timeout);
-  }, [cartNotice]);
 
   const categories = ["All", "Dresses", "Skirts", "Trousers", "Tops", "Jackets", "Accessories"];
 
@@ -67,44 +56,17 @@ export default function ReadyToWear() {
       JSON.stringify(product.specifications || {}),
     ].filter(Boolean).join(" ").toLowerCase();
     const searchMatch = searchQuery === "" || searchContent.includes(searchQuery.trim().toLowerCase());
-    return categoryMatch && priceMatch && searchMatch;
+    return categoryMatch && priceMatch && searchMatch && matchesGender(product, gender || "all");
   });
 
-  const sortedProducts = [...filteredProducts].sort((first, second) => {
-    if (sortOrder === "price-ascending") return first.price - second.price;
-    if (sortOrder === "price-descending") return second.price - first.price;
-    if (sortOrder === "newest") return new Date(second.created_at) - new Date(first.created_at);
-    return 0;
-  });
-
-  const totalPages = Math.ceil(sortedProducts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const activePage = Math.min(currentPage, totalPages);
+  const startIndex = (activePage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentProducts = sortedProducts.slice(startIndex, endIndex);
-
-  const saveCart = (nextCart) => {
-    setCart(nextCart.map((item) => ({ ...products.find((product) => product.id === item.id), quantity: item.quantity })));
-    try { localStorage.setItem(CART_KEY, JSON.stringify(nextCart)); } catch { /* Cart still works for this page. */ }
-  };
-
-  const addToCart = (product) => {
-    try {
-      const nextCart = addCartItem(cart, product.id, 1);
-      saveCart(nextCart);
-      setCartNotice(`${product.name}: quantity ${nextCart.find((item) => item.id === product.id).quantity} in your cart`);
-    } catch (error) { setCartNotice(error.message); }
-  };
-
-  const updateQuantity = (productId, quantity) => {
-    try { saveCart(setCartQuantity(cart, productId, quantity)); }
-    catch (error) { setCartNotice(error.message); }
-  };
-
-  const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
-  const cartTotal = cart.reduce((total, item) => total + Number(item.sale_price ?? item.price) * item.quantity, 0);
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   const handlePageChange = (page) => {
-    setCurrentPage(page);
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
@@ -173,41 +135,22 @@ export default function ReadyToWear() {
                 </select>
               </label>
               <label>
-                <span className={styles.srOnly}>Sort products</span>
-                <select value={sortOrder} onChange={(event) => { setSortOrder(event.target.value); setCurrentPage(1); }}>
-                  <option value="featured">Featured</option>
-                  <option value="newest">New arrivals</option>
-                  <option value="price-ascending">Price: low to high</option>
-                  <option value="price-descending">Price: high to low</option>
+                <span className={styles.srOnly}>Gender</span>
+                <select value={gender} onChange={(event) => { setGender(event.target.value); setCurrentPage(1); }}>
+                  <option value="" disabled hidden>Gender</option>
+                  <option value="all">All</option>
+                  <option value="male">Male Fashion</option>
+                  <option value="female">Female Fashion</option>
                 </select>
               </label>
             </div>
           </div>
 
+          {error && <p role="alert">{error}</p>}
           {currentProducts.length ? (
             <div className={styles.products}>
               {currentProducts.map((product, index) => (
-                <article key={product.id} className={styles.productCard} style={{ '--item-index': index }}>
-                  <div className={styles.productImage}>
-                    {product.image ? (
-                      <Image src={product.image} alt={product.name} fill priority={index === 0} sizes="(max-width: 600px) 50vw, (max-width: 1000px) 33vw, 25vw" className={styles.image} />
-                    ) : (
-                      <div className={styles.imageFallback} aria-label="Product image coming soon">E</div>
-                    )}
-                    {product.sale_price && product.sale_price < product.price && <span className={styles.productBadge}>Special price</span>}
-                    <button className={styles.quickAdd} type="button" onClick={() => addToCart(product)} aria-label={`Add ${product.name} to cart`}>
-                      Add item <span aria-hidden="true">+</span>
-                    </button>
-                  </div>
-                  <div className={styles.productInfo}>
-                    <span className={styles.productCategory}>{product.category || 'Ready to wear'}</span>
-                    <h3 className={styles.productName}>{product.name}</h3>
-                    <div className={styles.productMeta}>
-                      <span className={styles.productPrice}>₦{Number(product.sale_price || product.price).toLocaleString('en-NG')}</span>
-                      {product.sale_price && product.sale_price < product.price && <del className={styles.oldPrice}>₦{Number(product.price).toLocaleString('en-NG')}</del>}
-                    </div>
-                  </div>
-                </article>
+                <ShopProductCard key={product.id} product={product} index={index} priority={index === 0} />
               ))}
             </div>
           ) : (
@@ -215,54 +158,20 @@ export default function ReadyToWear() {
               <p className={styles.eyebrow}>NOTHING IN THIS EDIT</p>
               <h3>No pieces found</h3>
               <p>Try another category or clear your search.</p>
-              <button type="button" onClick={() => { setSearchQuery(''); setSelectedCategory('All'); setPriceRange('all'); }}>Clear filters</button>
+              <button type="button" onClick={() => { setSearchQuery(''); setSelectedCategory('All'); setPriceRange('all'); setGender(''); setCurrentPage(1); }}>Clear filters</button>
             </div>
           )}
 
           {totalPages > 1 && (
             <nav className={styles.pagination} aria-label="Product pages">
-              <button type="button" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>Previous</button>
-              <span>{currentPage} <span aria-hidden="true">/</span> {totalPages}</span>
-              <button type="button" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>Next</button>
+              <button type="button" onClick={() => handlePageChange(activePage - 1)} disabled={activePage === 1}>Previous</button>
+              <span aria-live="polite">Page {activePage} of {totalPages}</span>
+              <button type="button" onClick={() => handlePageChange(activePage + 1)} disabled={activePage === totalPages}>Next</button>
             </nav>
           )}
         </section>
       </main>
 
-      <button className={styles.cartToggle} type="button" onClick={() => setIsCartOpen(true)} aria-label={`Open cart, ${cartCount} units`}>
-        Cart <span>{cartCount}</span>
-      </button>
-      {cartNotice && <p className={styles.cartNotice} role="status" aria-live="polite">{cartNotice}</p>}
-
-      {isCartOpen && (
-        <div className={styles.cartOverlay} role="presentation" onClick={() => setIsCartOpen(false)}>
-          <aside className={styles.cartDrawer} role="dialog" aria-modal="true" aria-labelledby="cart-title" onClick={(event) => event.stopPropagation()}>
-            <div className={styles.cartHeader}>
-              <div><p className={styles.eyebrow}>CART DETAILS</p><h2 id="cart-title">Your cart <span>({cartCount} units)</span></h2></div>
-              <button type="button" className={styles.closeCart} aria-label="Close cart" onClick={() => setIsCartOpen(false)}>×</button>
-            </div>
-            <div className={styles.cartItems}>
-              {cart.length ? cart.map((item) => (
-                <article key={item.id} className={styles.cartItem}>
-                  <div>{item.image && <Image src={item.image} alt="" width={76} height={96} />}</div>
-                  <div className={styles.cartItemInfo}>
-                    <h3>{item.name}</h3>
-                    <p>₦{Number(item.sale_price ?? item.price).toLocaleString('en-NG')} each</p>
-                    <div className={styles.quantityControl} role="group" aria-label={`Quantity for ${item.name}`}>
-                      <button type="button" aria-label={`Decrease quantity of ${item.name}`} disabled={item.quantity <= 1} onClick={() => updateQuantity(item.id, item.quantity - 1)}>−</button>
-                      <span aria-live="polite">Quantity: {item.quantity}</span>
-                      <button type="button" aria-label={`Increase quantity of ${item.name}`} disabled={item.quantity >= 10} onClick={() => updateQuantity(item.id, item.quantity + 1)}>+</button>
-                    </div>
-                    <p className={styles.cartLineTotal}>₦{(Number(item.sale_price ?? item.price) * item.quantity).toLocaleString('en-NG')}</p>
-                    <button type="button" className={styles.removeCartItem} aria-label={`Remove ${item.name} from cart`} onClick={() => updateQuantity(item.id, 0)}>Remove</button>
-                  </div>
-                </article>
-              )) : <p className={styles.emptyCart}>Your cart is empty.</p>}
-            </div>
-            {cart.length > 0 && <div className={styles.cartFooter}><p><span>Subtotal</span><strong>₦{cartTotal.toLocaleString('en-NG')}</strong></p><span>Free delivery within Yenagoa. ₦2,000 outside Yenagoa. Free pickup.</span><Link className={styles.checkoutLink} href="/checkout">Continue to checkout</Link></div>}
-          </aside>
-        </div>
-      )}
     </div>
   );
 }

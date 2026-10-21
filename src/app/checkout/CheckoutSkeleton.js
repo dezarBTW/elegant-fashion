@@ -26,7 +26,7 @@ function OrderSummarySkeleton() {
 export function CheckoutSkeleton() {
   return (
     <main className={page.page} aria-busy="true">
-      <Link className={page.back} href="/ready-to-wear">← Back to the shop</Link>
+      <Link className={page.back} href="/ready-to-wear">← Back to shop</Link>
       <h1>Checkout</h1>
       <p className={page.lede}>Your pieces, your details, and a secure payment.</p>
       <span className={s.srOnly} role="status">Loading your cart</span>

@@ -1,0 +1,8 @@
+.card { padding:24px; margin-bottom:20px; border:1px solid var(--line); border-radius:12px; background:var(--white); overflow-wrap:anywhere; }
+.card h2 { font-size:1.25rem; }
+.card p { margin-block:12px; font-size:.85rem; color:var(--stone); }
+.card dl { display:grid; grid-template-columns:130px minmax(0,1fr); gap:8px 16px; }
+.card dt { font-weight:600; font-size:.85rem; }
+.card dd { margin:0; white-space:pre-line; font-size:.85rem; }
+.card a { text-decoration:underline; }
+@media(max-width:480px) { .card { padding:16px; } .card dl { grid-template-columns:1fr; gap:4px; } .card dd { margin-bottom:10px; } }

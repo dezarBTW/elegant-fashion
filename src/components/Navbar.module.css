@@ -36,6 +36,12 @@
   flex-shrink: 0;
 }
 
+.navActions { display:flex; align-items:center; gap:14px; flex-shrink:0; }
+.desktopAuth { display:block; }
+.mobileAuth { display:none; }
+.cartButton { position:relative; display:grid; place-items:center; width:40px; height:40px; padding:0; border:0; color:var(--ink); background:transparent; }
+.cartBadge { position:absolute; top:-2px; right:-3px; display:grid; place-items:center; min-width:18px; height:18px; padding-inline:3px; border-radius:50%; background:var(--gold); color:var(--ink); font-size:10px; font-weight:700; }
+
 .logo {
   display: inline-flex;
   align-items: center;
@@ -566,6 +572,11 @@
   .navContent {
     position: relative;
   }
+
+  .navActions { margin-left:auto; order:1; gap:12px; }
+  .desktopAuth { display:none; }
+  .mobileAuth { display:block; }
+  .hamburger { order:2; }
 
   .logoSection {
     gap: 0.5rem;

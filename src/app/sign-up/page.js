@@ -1,16 +1,18 @@
 'use client'
 import React from "react"
 import { supabase } from "@/lib/supabaseClient";
-import { CONFIRMATION_REDIRECT } from "@/lib/authLinks.mjs";
+import { CONFIRMATION_REDIRECT, authReturnPath, withAuthReturn } from "@/lib/authLinks.mjs";
 import {useState, useEffect, useRef} from "react";
-import { useRouter} from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import "../auth-atelier.css";
 import "../auth-extras.css";
 import { consumeRateLimit, formatRetryMessage, sanitizeEmail } from "@/lib/sanitizeInput";
 
-export default function SignUp() {
+function SignUpForm() {
+    const search = useSearchParams();
+    const returnTo = authReturnPath(search.toString());
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -111,8 +113,8 @@ export default function SignUp() {
                 password,
                 options: {
                     // The confirmation link brings the user back here, which
-                    // signs them in and sends them to the home page.
-                    emailRedirectTo: CONFIRMATION_REDIRECT,
+                    // signs them in and returns checkout visitors to their cart flow.
+                    emailRedirectTo: withAuthReturn(CONFIRMATION_REDIRECT, returnTo),
                 }
             });
 
@@ -122,7 +124,7 @@ export default function SignUp() {
             } else if (data?.session) {
                 // Email confirmation is switched off in Supabase: the user is
                 // already signed in, so go straight through.
-                router.push("/sign-in");
+                router.push(withAuthReturn('/sign-in', returnTo));
             } else {
                 // Confirmation required: ask the user to check their inbox.
                 setSentTo(safeEmail);
@@ -152,7 +154,7 @@ export default function SignUp() {
                 type: "signup",
                 email: sentTo,
                 options: {
-                    emailRedirectTo: CONFIRMATION_REDIRECT,
+                    emailRedirectTo: withAuthReturn(CONFIRMATION_REDIRECT, returnTo),
                 },
             });
 
@@ -176,7 +178,7 @@ export default function SignUp() {
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {
-                    redirectTo: `${window.location.origin}/auth/callback`,
+                    redirectTo: withAuthReturn(`${window.location.origin}/auth/callback`, returnTo),
                 },
             });
 
@@ -299,11 +301,15 @@ export default function SignUp() {
                     {loading ? "Please wait..." : "Continue with Google"}
                 </button>
 
-                <p className="auth-switch">Already have an account? <Link href="/sign-in">Sign in</Link></p>
+                <p className="auth-switch">Already have an account? <Link href={withAuthReturn('/sign-in', returnTo)}>Sign in</Link></p>
                     </>
                 )}
                 </div>
             </section>
         </main>
     )
+}
+
+export default function SignUp() {
+    return <React.Suspense fallback={<main className="auth-page auth-loading"><p>Loading sign-up…</p></main>}><SignUpForm /></React.Suspense>;
 }

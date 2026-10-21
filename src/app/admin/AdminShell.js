@@ -8,6 +8,7 @@ import styles from "./adminShell.module.css";
 const NAV_ITEMS = [
   { href: "/admin", label: "Overview", exact: true },
   { href: "/admin/products", label: "Products" },
+  { href: "/admin/product-requests", label: "Size & colour requests" },
   { href: "/admin/orders", label: "Shop orders" },
   { href: "/admin/customer-requests", label: "Refunds & complaints" },
   { href: "/admin/students", label: "Student applications" },

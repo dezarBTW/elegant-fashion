@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { getAuthLinkError } from "@/lib/authLinks.mjs";
+import { getAuthLinkError, authReturnPath } from "@/lib/authLinks.mjs";
 import "./callback.css";
 
 export default function AuthCallback() {
@@ -29,7 +29,7 @@ export default function AuthCallback() {
           );
           return;
         }
-        router.replace("/");
+        router.replace(authReturnPath(window.location.search));
         router.refresh();
       } catch {
         if (mounted)

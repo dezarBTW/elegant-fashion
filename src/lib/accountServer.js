@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { checkoutDatabase } from "./checkoutServer";
+import { checkoutDatabase } from "./checkoutServer.js";
 import { OrderRequestError } from "./orderManagement.mjs";
 
 export async function requireActiveAccount(request) {

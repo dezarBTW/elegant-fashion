@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CART_KEY, readCart, subtractPurchasedItems, PICKUP_ADDRESS } from "@/lib/checkout.mjs";
+import { writeCart, readCart, subtractPurchasedItems, PICKUP_ADDRESS } from "@/lib/checkout.mjs";
 import styles from "../checkout.module.css";
 import { PaymentStatusSkeleton } from "../CheckoutSkeleton";
 
@@ -12,7 +12,7 @@ function removePurchasedItems(order) {
   try {
     if (localStorage.getItem(`es_paid_${order.id}`)) return;
     const remaining = subtractPurchasedItems(readCart(), order.items);
-    localStorage.setItem(CART_KEY, JSON.stringify(remaining));
+    writeCart(remaining);
     localStorage.setItem(`es_paid_${order.id}`, "1");
     sessionStorage.removeItem("es_pending_order");
   } catch { /* Payment confirmation is independent of browser storage. */ }
@@ -61,7 +61,7 @@ export default function OrderStatus() {
         <p className={styles.reference}>Order reference: <strong>{order.id}</strong></p>
         <section className={styles.summary} aria-label="Order details">
           <h2>Your order</h2>
-          {order.items.map((item) => <p className={styles.line} key={item.productId}><span>{item.name} × {item.quantity}</span><span>{money(item.lineAmountMinor)}</span></p>)}
+          {order.items.map((item) => <p className={styles.line} key={`${item.productId}:${item.size || ''}`}><span>{item.name}{item.size && ` · ${item.size}`} × {item.quantity}</span><span>{money(item.lineAmountMinor)}</span></p>)}
           <p className={styles.line}><span>{order.method === "pickup" ? "Pickup" : "Delivery"}</span><span>{Number(order.shippingMinor) ? money(order.shippingMinor) : "Free"}</span></p>
           <p className={`${styles.line} ${styles.total}`}><span>Total</span><span>{money(order.totalMinor)}</span></p>
         </section>

@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { randomBytes, createHash, createHmac } from "node:crypto";
 import { z } from "zod";
-import { checkoutDatabase, hasOrderAccess, receiptHash, setOrderCookie } from "@/lib/checkoutServer";
+import { hasOrderAccess, receiptHash, setOrderCookie } from "@/lib/checkoutServer";
+import { requireActiveAccount } from "@/lib/accountServer";
+import { OrderRequestError } from "@/lib/orderManagement.mjs";
 import { deliveryFeeMinor, decimalAmount, priceCart } from "@/lib/checkout.mjs";
 import { bachsBaseUrl, validCheckoutUrl } from "@/lib/bachs.mjs";
 import { SITE_URL } from "@/lib/seo.mjs";
+import { SIZE_VALUES } from "@/lib/products.mjs";
 
 export const runtime = "nodejs";
 
 const schema = z.object({
   attemptId: z.uuid(),
-  items: z.array(z.object({ productId: z.uuid(), quantity: z.number().int().min(1).max(10) }).strict()).min(1).max(20),
+  items: z.array(z.object({ productId: z.uuid(), quantity: z.number().int().min(1).max(10), size: z.enum(SIZE_VALUES).optional() }).strict()).min(1).max(20),
   customer: z.object({
     name: z.string().trim().min(2).max(100),
     email: z.email().max(254).transform((value) => value.toLowerCase()),
@@ -34,6 +37,13 @@ const schema = z.object({
 export async function POST(request) {
   const errorResponse = (message, status = 400, extra = {}) => NextResponse.json({ error: message, ...extra }, { status });
   if (request.headers.get("origin") !== new URL(request.url).origin) return errorResponse("Invalid request origin.", 403);
+  let account;
+  try {
+    account = await requireActiveAccount(request);
+    if (account.user.is_anonymous) return errorResponse("Please sign in to checkout.", 401);
+  } catch (error) {
+    return errorResponse(error instanceof OrderRequestError ? error.message : "Unable to verify your account. Please try again.", error instanceof OrderRequestError ? error.status : 503);
+  }
   if (Number(request.headers.get("content-length") || 0) > 20000) return errorResponse("Request is too large.", 413);
   let input;
   try {
@@ -49,8 +59,7 @@ export async function POST(request) {
   let baseUrl;
   try { baseUrl = bachsBaseUrl(apiKey); } catch { return errorResponse("Online payments are not configured.", 503); }
 
-  let db;
-  try { db = checkoutDatabase(); } catch { return errorResponse("Order service is unavailable.", 503); }
+  const { db, user } = account;
   const fingerprint = createHash("sha256").update(JSON.stringify(input)).digest("hex");
   const id = input.attemptId;
   let token;
@@ -69,6 +78,7 @@ export async function POST(request) {
     const { data: existing, error: lookupError } = await db.from("shop_orders").select("*").eq("id", id).maybeSingle();
     if (lookupError) throw lookupError;
     if (existing) {
+      if (existing.user_id !== user.id) return errorResponse("This checkout belongs to another account.", 403);
       if (!hasOrderAccess(request, existing)) return errorResponse("This checkout cannot be reused.", 403);
       if (existing.request_fingerprint !== fingerprint) return errorResponse("Your checkout details changed. Please start a new checkout.", 409);
       if (existing.payment_status === "paid") return respond({ orderId: id, paid: true });
@@ -77,7 +87,7 @@ export async function POST(request) {
     }
 
     const ids = [...new Set(input.items.map((item) => item.productId))];
-    const { data: products, error: productError } = await db.from("products").select("id,name,price,sale_price,is_active").in("id", ids).eq("is_active", true);
+    const { data: products, error: productError } = await db.from("products").select("id,name,price,sale_price,is_active,available_sizes").in("id", ids).eq("is_active", true);
     if (productError) throw productError;
     let pricing;
     try { pricing = priceCart(input.items, products || []); } catch (error) { return errorResponse(error.message); }
@@ -85,7 +95,7 @@ export async function POST(request) {
     const totalMinor = pricing.subtotalMinor + shippingMinor;
     token = randomBytes(32).toString("hex");
     const { error: insertError } = await db.from("shop_orders").insert({
-      id, customer_name: input.customer.name, customer_email: input.customer.email, customer_phone: input.customer.phone,
+      id, user_id: user.id, customer_name: input.customer.name, customer_email: input.customer.email, customer_phone: input.customer.phone,
       delivery: input.delivery, items: pricing.lines, subtotal_minor: pricing.subtotalMinor,
       shipping_minor: shippingMinor, total_minor: totalMinor, receipt_hash: receiptHash(token), request_fingerprint: fingerprint,
     });

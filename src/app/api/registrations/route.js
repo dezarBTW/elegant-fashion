@@ -26,7 +26,12 @@ export async function POST(request) {
     const { data, error } = await db.rpc("submit_student_application", { p_user_id: user.id, p_details: input });
     if (error?.code === "23505") throw new OrderRequestError("You already have a registration. Open your registration details.", 409);
     if (error) throw error;
-    after(() => notifyRegistration(data));
+    after(async () => {
+      if (await notifyRegistration(data)) {
+        const { error } = await db.from("students").update({ registration_email_sent_at: new Date().toISOString() }).eq("id", data.id);
+        if (error) console.error("Student notification status could not be recorded", error.code);
+      }
+    });
     return NextResponse.json({ registration: data }, { status: 201, headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     if (!(error instanceof OrderRequestError)) console.error("Student registration failed", error?.code || error?.message);

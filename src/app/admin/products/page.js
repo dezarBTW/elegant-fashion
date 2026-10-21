@@ -8,6 +8,7 @@ import { invalidateCachedValue } from "@/lib/browserCache";
 import shellStyles from "../adminShell.module.css";
 // The product cards use the same styles as the Ready-to-wear shop page.
 import shopStyles from "../../ready-to-wear/readytowear.module.css";
+import { PRODUCT_SIZES, PRODUCT_GENDERS, availableSizes } from "@/lib/products.mjs";
 import "../admin.css";
 
 const PRODUCTS_CACHE_KEY = "products:v1";
@@ -23,6 +24,9 @@ export default function ProductsAdmin() {
     name: "",
     price: "",
     category: "",
+    gender: "",
+    description: "",
+    available_sizes: [],
     image: ""
   });
   const [editMode, setEditMode] = useState(false);
@@ -105,8 +109,20 @@ export default function ProductsAdmin() {
       name: sanitizeText(formData.name),
       price: parseFloat(formData.price),
       category: sanitizeText(formData.category),
-      image: formData.image || "/images/placeholder.jpg"
+      gender: formData.gender,
+      description: sanitizeText(formData.description),
+      available_sizes: availableSizes(formData),
+      image: formData.image || null
     };
+
+    if (!PRODUCT_GENDERS.some(option => option.value === productData.gender)) {
+      alert("Select Male fashion, Female fashion or Unisex for this product.");
+      return;
+    }
+    if (!editMode && !productData.available_sizes.length) {
+      alert("Select at least one available size for this new product.");
+      return;
+    }
 
     if (editMode && editId) {
       const { error } = await supabase
@@ -147,6 +163,9 @@ export default function ProductsAdmin() {
       name: product.name,
       price: product.price,
       category: product.category,
+      gender: product.gender || "",
+      description: product.description || "",
+      available_sizes: availableSizes(product),
       image: product.image
     });
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -191,14 +210,15 @@ export default function ProductsAdmin() {
       name: "",
       price: "",
       category: "",
+      gender: "",
+      description: "",
+      available_sizes: [],
       image: ""
     });
   };
 
   const handleChange = (e) => {
-    const value = ["name", "category"].includes(e.target.name)
-      ? sanitizeText(e.target.value)
-      : e.target.value;
+    const value = e.target.value;
     setFormData({
       ...formData,
       [e.target.name]: value
@@ -237,10 +257,10 @@ export default function ProductsAdmin() {
         .from('product-images')
         .getPublicUrl(filePath);
 
-      setFormData({
-        ...formData,
+      setFormData(current => ({
+        ...current,
         image: publicUrl
-      });
+      }));
     } catch (error) {
       console.error("Error handling image upload:", error);
       alert("Error uploading image. Please try again.");
@@ -271,8 +291,9 @@ export default function ProductsAdmin() {
           <h2>{editMode ? "Edit Product" : "Add New Product"}</h2>
           <form onSubmit={handleSubmit} className="product-form">
             <div className="form-group">
-              <label>Product Name *</label>
+              <label htmlFor="product-name-input">Product Name *</label>
               <input
+                id="product-name-input"
                 type="text"
                 name="name"
                 value={formData.name}
@@ -283,8 +304,9 @@ export default function ProductsAdmin() {
             </div>
 
             <div className="form-group">
-              <label>Price (₦) *</label>
+              <label htmlFor="product-price-input">Price (₦) *</label>
               <input
+                id="product-price-input"
                 type="number"
                 name="price"
                 value={formData.price}
@@ -297,8 +319,9 @@ export default function ProductsAdmin() {
             </div>
 
             <div className="form-group">
-              <label>Category *</label>
+              <label htmlFor="product-category-input">Category *</label>
               <select
+                id="product-category-input"
                 name="category"
                 value={formData.category}
                 onChange={handleChange}
@@ -315,8 +338,9 @@ export default function ProductsAdmin() {
             </div>
 
             <div className="form-group">
-              <label>Product Image</label>
+              <label htmlFor="product-image-input">Product Image</label>
               <input
+                id="product-image-input"
                 type="file"
                 name="image"
                 accept="image/*"
@@ -334,6 +358,24 @@ export default function ProductsAdmin() {
                 </div>
               )}
             </div>
+
+            <div className="form-group">
+              <label htmlFor="product-gender">Gender *</label>
+              <select id="product-gender" name="gender" value={formData.gender} onChange={handleChange} required>
+                <option value="">Select gender</option>
+                {PRODUCT_GENDERS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+              </select>
+              <p>Unisex products appear in both Male fashion and Female fashion.</p>
+            </div>
+            <div className="form-group">
+              <label htmlFor="product-description">Brief product description</label>
+              <textarea id="product-description" name="description" rows={4} maxLength={2000} value={formData.description} onChange={handleChange} placeholder="Describe the fabric, fit and key details." required />
+            </div>
+            <fieldset className="available-sizes">
+              <legend>Available sizes</legend>
+              <p>Select every size currently available. When editing, uncheck sizes that are no longer available.</p>
+              <div>{PRODUCT_SIZES.map(option => <label key={option.value}><input type="checkbox" checked={formData.available_sizes.includes(option.value)} onChange={event => setFormData(current => ({ ...current, available_sizes: event.target.checked ? [...current.available_sizes, option.value] : current.available_sizes.filter(size => size !== option.value) }))} />{option.label}</label>)}</div>
+            </fieldset>
 
             <div className="form-actions">
               <button type="submit" className="submit-btn">
@@ -415,6 +457,8 @@ export default function ProductsAdmin() {
                   <div className={shopStyles.productInfo}>
                     <span className={shopStyles.productCategory}>{product.category || "Uncategorised"}</span>
                     <h3 className={shopStyles.productName}>{product.name}</h3>
+                    <p className={shopStyles.productCategory}>{PRODUCT_GENDERS.find(option => option.value === product.gender)?.label || 'Gender not set — edit to choose'}</p>
+                    <p className={shopStyles.productCategory}>Sizes: {availableSizes(product).join(', ') || 'None available'}</p>
                     <div className={shopStyles.productMeta}>
                       <span className={shopStyles.productPrice}>
                         ₦{Number(product.sale_price || product.price).toLocaleString("en-NG")}

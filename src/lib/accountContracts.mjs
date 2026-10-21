@@ -26,6 +26,6 @@ export const accountActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("deactivate"), currentPassword: z.string().min(1).max(256), confirmed: z.literal(true) }).strict(),
 ]);
 
-export function repurchaseCart(cart, productId) {
-  return addCartItem(cart, productId);
+export function repurchaseCart(cart, productId, size = "") {
+  return addCartItem(cart, productId, 1, size);
 }

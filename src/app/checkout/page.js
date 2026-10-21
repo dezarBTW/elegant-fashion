@@ -4,7 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { deliveryFeeMinor, priceCart, readCart, PICKUP_ADDRESS } from "@/lib/checkout.mjs";
+import { deliveryFeeMinor, priceCart, previewCheckoutCart, PICKUP_ADDRESS } from "@/lib/checkout.mjs";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { CHECKOUT_SIGN_IN } from "@/lib/authLinks.mjs";
 import styles from "./checkout.module.css";
 import { CheckoutSkeleton } from "./CheckoutSkeleton";
 
@@ -13,8 +16,13 @@ const formatMoney = (minor) => `₦${(minor / 100).toLocaleString("en-NG", { min
 export default function Checkout() {
   const router = useRouter();
   const attemptId = useRef(null);
-  const [lines, setLines] = useState([]);
-  const [subtotal, setSubtotal] = useState(0);
+  const attemptedCart = useRef(null);
+  const { items: cart, openCart } = useCart();
+  const { user, loading: authLoading } = useAuth();
+  const signedIn = Boolean(user && !user.is_anonymous);
+  const [products, setProducts] = useState([]);
+  const productIds = [...new Set(cart.map(item => item.id))].sort().join(",");
+  const { lines, subtotalMinor: subtotal, ready } = previewCheckoutCart(cart, products);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -25,8 +33,14 @@ export default function Checkout() {
   const [delivery, setDelivery] = useState({ method: "pickup", address: "", city: "", state: "" });
 
   useEffect(() => {
+    if (!authLoading && !signedIn) router.replace(CHECKOUT_SIGN_IN);
+  }, [authLoading, signedIn, router]);
+
+  useEffect(() => {
+    if (authLoading || !signedIn) return;
     let mounted = true;
     const load = async () => {
+      setLoading(true);
       const wasCancelled = new URLSearchParams(window.location.search).has("cancelled");
       setCancelled(wasCancelled);
       if (wasCancelled) {
@@ -39,21 +53,18 @@ export default function Checkout() {
         } catch { /* Browser storage may be unavailable. */ }
       }
       try {
-        const saved = readCart();
-        if (!saved.length) return;
-        const quantities = new Map();
-        saved.forEach((item) => quantities.set(item.id, item.quantity));
-        const { data, error: fetchError } = await supabase.from("products").select("id,name,price,sale_price,is_active").in("id", [...quantities.keys()]);
+        if (!productIds) { if (mounted) setProducts([]); return; }
+        const ids = productIds.split(",");
+        const { data, error: fetchError } = await supabase.from("products").select("id,name,price,sale_price,is_active,available_sizes").in("id", ids);
         if (fetchError) throw fetchError;
-        const priced = priceCart([...quantities].map(([productId, quantity]) => ({ productId, quantity })), data || []);
-        if (mounted) { setLines(priced.lines); setSubtotal(priced.subtotalMinor); }
+        if (mounted) { setProducts(data || []); setError(""); }
       } catch (err) {
         if (mounted) setError(err.message || "Unable to load your cart. Please return to the shop.");
       } finally { if (mounted) setLoading(false); }
     };
     load();
     return () => { mounted = false; };
-  }, [router]);
+  }, [router, productIds, authLoading, signedIn]);
 
   const changeCustomer = (event) => {
     attemptId.current = null;
@@ -69,16 +80,26 @@ export default function Checkout() {
   };
   const submit = async (event) => {
     event.preventDefault();
-    if (submitting || uncertain || !lines.length) return;
+    if (submitting || uncertain || !ready || !signedIn) return;
     setSubmitting(true);
     setError("");
-    attemptId.current ||= crypto.randomUUID();
     try {
+      const { data: auth, error: authError } = await supabase.auth.getSession();
+      if (authError || !auth.session || auth.session.user.is_anonymous) { router.replace(CHECKOUT_SIGN_IN); return; }
+      const priced = priceCart(lines.map(({ productId, quantity, size }) => ({ productId, quantity, size })), products);
+      const snapshot = JSON.stringify(priced.lines.map(({ productId, quantity, size }) => ({ productId, quantity, size })));
+      if (attemptedCart.current !== snapshot) { attemptId.current = null; attemptedCart.current = snapshot; }
+      attemptId.current ||= crypto.randomUUID();
       const response = await fetch("/api/checkout", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ attemptId: attemptId.current, items: lines.map(({ productId, quantity }) => ({ productId, quantity })), customer, delivery }),
+        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.session.access_token}` },
+        body: JSON.stringify({ attemptId: attemptId.current, items: priced.lines.map(({ productId, quantity, size }) => ({ productId, quantity, size })), customer, delivery }),
       });
       const result = await response.json();
+      if (response.status === 401) {
+        await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+        router.replace(CHECKOUT_SIGN_IN);
+        return;
+      }
       if (!response.ok) {
         setReference(result.orderId || "");
         setUncertain(Boolean(result.uncertain));
@@ -92,11 +113,11 @@ export default function Checkout() {
   };
   const shipping = deliveryFeeMinor(delivery.method);
 
-  if (loading) return <CheckoutSkeleton />;
+  if (authLoading || !signedIn || loading) return <CheckoutSkeleton />;
 
   return (
     <main className={styles.page}>
-      <Link className={styles.back} href="/ready-to-wear">← Back to the shop</Link>
+      <Link className={styles.back} href="/ready-to-wear">← Back to shop</Link>
       <h1>Checkout</h1>
       <p className={styles.lede}>Your pieces, your details, and a secure payment.</p>
       <>
@@ -125,11 +146,13 @@ export default function Checkout() {
                 </>}
               </fieldset>
               <p className={styles.hint}>By continuing, you agree to our <Link href="/terms">terms</Link> and <Link href="/privacy">privacy policy</Link>. Bachs securely processes your payment.</p>
-              <button className={styles.button} type="submit" disabled={submitting || uncertain}>{submitting ? "Opening secure payment…" : `Pay ${formatMoney(subtotal + shipping)}`}</button>
+              {!ready && <p className={styles.hint} role="status">A product or selected size is unavailable. <button type="button" className={styles.cartEdit} onClick={openCart} disabled={submitting || uncertain}>Update your cart</button> before payment.</p>}
+              <button className={styles.button} type="submit" disabled={submitting || uncertain || !ready}>{submitting ? "Opening secure payment…" : `Pay ${formatMoney(subtotal + shipping)}`}</button>
             </form>
             <aside className={styles.summary} aria-label="Order summary">
               <h2>Your order</h2>
-              {lines.map((line) => <p className={styles.line} key={line.productId}><span>{line.name} × {line.quantity}</span><span>{formatMoney(line.lineAmountMinor)}</span></p>)}
+              <button type="button" className={styles.cartEdit} onClick={openCart} disabled={submitting || uncertain}>Edit size or quantity in your cart</button>
+              {lines.map((line, index) => <p className={styles.line} key={`${line.productId}:${index}`}><span>{line.name} · {line.size || "Choose size"} × {line.quantity}</span><span>{formatMoney(line.lineAmountMinor)}</span></p>)}
               <p className={styles.line}><span>Subtotal</span><span>{formatMoney(subtotal)}</span></p>
               <p className={styles.line}><span>{delivery.method === "pickup" ? "Pickup" : "Delivery"}</span><span>{shipping ? formatMoney(shipping) : "Free"}</span></p>
               <p className={`${styles.line} ${styles.total}`}><span>Total</span><span>{formatMoney(subtotal + shipping)}</span></p>

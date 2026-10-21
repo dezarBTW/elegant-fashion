@@ -55,9 +55,9 @@ export function pageMetadata(path) {
       siteName: "Elegant Style",
       title: socialTitle,
       description,
-      images: [{ url: `${SITE_URL}/images/elegant-style-navbar.png`, width: 1900, height: 636, alt: "Elegant Style" }],
+      images: [{ url: `${SITE_URL}/images/elegant-style-logo.png`, width: 2093, height: 1096, alt: "Elegant Style" }],
     },
-    twitter: { card: "summary", title: socialTitle, description, images: [`${SITE_URL}/images/elegant-style-navbar.png`] },
+    twitter: { card: "summary", title: socialTitle, description, images: [`${SITE_URL}/images/elegant-style-logo.png`] },
   };
 }
 
@@ -77,8 +77,8 @@ export const businessStructuredData = {
       "@id": `${SITE_URL}/#business`,
       name: "Elegant Style",
       url: SITE_URL,
-      logo: `${SITE_URL}/images/elegant-style-navbar.png`,
-      image: `${SITE_URL}/images/elegant-style-navbar.png`,
+      logo: `${SITE_URL}/images/elegant-style-logo.png`,
+      image: `${SITE_URL}/images/elegant-style-logo.png`,
       description: publicPages["/"].description,
       telephone: "+2348166361710",
       email: "patrickesther26@gmail.com",

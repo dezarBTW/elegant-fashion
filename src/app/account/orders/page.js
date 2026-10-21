@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { authenticatedFetch } from "@/lib/clientApi";
-import { CART_KEY, readCart } from "@/lib/checkout.mjs";
+import { writeCart, readCart } from "@/lib/checkout.mjs";
+import { availableSizes, productHref } from "@/lib/products.mjs";
 import { repurchaseCart } from "@/lib/accountContracts.mjs";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "../../admin/adminShell.module.css";
@@ -35,10 +36,11 @@ export default function AccountOrders() {
   async function repurchase(item) {
     setError(""); setMessage(""); setBusy(true);
     try {
-      const { data, error: productError } = await supabase.from("products").select("id").eq("id", item.productId).eq("is_active", true).maybeSingle();
+      const { data, error: productError } = await supabase.from("products").select("id,slug,available_sizes").eq("id", item.productId).eq("is_active", true).maybeSingle();
       if (productError) throw new Error("Unable to check availability. Try again.");
       if (!data) throw new Error("This product is no longer available.");
-      localStorage.setItem(CART_KEY, JSON.stringify(repurchaseCart(readCart(), item.productId)));
+      if (!item.size || !availableSizes(data).includes(item.size)) { window.location.assign(productHref(data)); return; }
+      writeCart(repurchaseCart(readCart(), item.productId, item.size));
       setMessage(`${item.name} added to your cart. Current prices apply at checkout.`);
     } catch (err) { setError(err.message || "Your cart could not be saved."); }
     finally { setBusy(false); }
@@ -68,7 +70,7 @@ export default function AccountOrders() {
         <h2 className={styles.cardTitle}>{new Date(order.created_at).toLocaleDateString("en-GB")}: {money(order.total_minor)}</h2>
         <p className={account.reference}>Order {order.id}</p><p>Payment: {order.payment_status} · Order progress: {order.fulfillment_status}</p>
         {order.customer_received_at && <p className={account.success}>You confirmed receipt on {new Date(order.customer_received_at).toLocaleString("en-GB")}.</p>}
-        {order.items.map((item) => <div className={account.item} key={item.productId}><h3>{item.name}</h3><p>{item.quantity} × {money(item.unitAmountMinor)} · {money(item.lineAmountMinor)}</p>
+        {order.items.map((item) => <div className={account.item} key={`${item.productId}:${item.size || ''}`}><h3>{item.name}{item.size && ` · Size ${item.size}`}</h3><p>{item.quantity} × {money(item.unitAmountMinor)} · {money(item.lineAmountMinor)}</p>
           <div className={account.actions}><button className={styles.btn} type="button" disabled={busy} onClick={() => repurchase(item)}>Buy again</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("refund", order, item)}>Request refund</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("complaint", order, item)}>Make a complaint</button></div>
         </div>)}
       </article>)}

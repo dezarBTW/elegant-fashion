@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 
 const LoginIcon = () => (
   <svg className={styles.authIcon} viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -71,28 +72,26 @@ const AdminIcon = () => (
   </svg>
 );
 
-const getEmailInitials = (email) => {
-  const localPart = email?.split('@')[0]?.trim() || '';
-  const parts = localPart.split(/[._-]+/).filter(Boolean);
-
-  if (parts.length > 1) {
-    return parts.slice(0, 2).map((part) => part[0]).join('').toUpperCase();
-  }
-
-  return localPart.slice(0, 2).toUpperCase() || '?';
-};
-
-const ProfileMenu = ({ mobile = false, user, onNavigate }) => (
-  <div className={`${styles.profileMenuWrapper} ${mobile ? styles.mobileProfileMenuWrapper : ""}`}>
+const ProfileMenu = ({ onNavigate }) => (
+  <div className={styles.profileMenuWrapper}>
     <Link href="/account" onClick={onNavigate}
-      className={`${styles.profileIcon} ${mobile ? styles.mobileProfileIcon : styles.drawerProfileIcon}`}
-      title={user.email || "My account"} aria-label="Open my account">
-      {getEmailInitials(user.email)}
+      className={styles.profileIcon}
+      title="My account" aria-label="Open my account">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.7" aria-hidden="true"><circle cx="12" cy="8" r="3.5" /><path d="M5 21v-2a7 7 0 0 1 14 0v2" /></svg>
     </Link>
   </div>
 );
 
+function AuthControls({ user, onLogout, onNavigate }) {
+  return <div className={styles.authSection}>{user ?
+    <button onClick={onLogout} className={styles.navLogout}><LogoutIcon />Log Out</button> : <>
+      <Link className={styles.authLink} href="/sign-in" onClick={onNavigate}><LoginIcon />Sign In</Link>
+      <Link className={`${styles.authLink} ${styles.authLinkPrimary}`} href="/sign-up" onClick={onNavigate}><UserPlusIcon />Sign Up</Link>
+    </>}</div>;
+}
+
 function NavbarContent({ user, logout, isAdmin }) {
+  const { count, openCart } = useCart();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNavbarVisible, setIsNavbarVisible] = useState(true);
@@ -101,6 +100,12 @@ function NavbarContent({ user, logout, isAdmin }) {
   const menuPanel = React.useRef(null);
   const closeMenu = () => setIsMenuOpen(false);
   const toggleMenu = () => setIsMenuOpen((previous) => !previous);
+
+  useEffect(() => {
+    const show = () => setIsNavbarVisible(true);
+    window.addEventListener('elegant-style-cart-added', show);
+    return () => window.removeEventListener('elegant-style-cart-added', show);
+  }, []);
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -188,20 +193,16 @@ function NavbarContent({ user, logout, isAdmin }) {
         <div className={styles.logoSection}>
           <Link href="/" className={styles.logo} onClick={closeMenu}>
             <Image
-              src="/images/elegant-style-navbar.png"
+              src="/images/elegant-style-logo.png"
               alt="Elegant Style"
-              width={1900}
-              height={636}
+              width={2093}
+              height={1096}
               className={styles.logoImage}
               sizes="111px"
               priority
             />
           </Link>
         </div>
-
-        {user && (
-          <ProfileMenu mobile user={user} onNavigate={closeMenu} />
-        )}
 
         <button
           ref={menuButton}
@@ -225,7 +226,7 @@ function NavbarContent({ user, logout, isAdmin }) {
 
         <div ref={menuPanel} id="primary-navigation" className={`${styles.navLinks} ${isMenuOpen ? styles.navLinksOpen : ""}`}>
           <Link href="/" className={styles.drawerLogo} onClick={closeMenu} aria-label="Elegant Style home">
-            <Image src="/images/elegant-style-navbar.png" alt="Elegant Style" width={1900} height={636} sizes="160px" className={styles.drawerLogoImage} />
+            <Image src="/images/elegant-style-logo.png" alt="Elegant Style" width={2093} height={1096} sizes="160px" className={styles.drawerLogoImage} />
           </Link>
           <div className={styles.navMenu}>
             <Link href="/" onClick={closeMenu}>
@@ -253,39 +254,15 @@ function NavbarContent({ user, logout, isAdmin }) {
             )}
           </div>
 
-          <div className={styles.authSection}>
-            {user ? (
-              <>
-                <ProfileMenu user={user} onNavigate={closeMenu} />
-                <button
-                  onClick={handleLogout}
-                  className={styles.navLogout}
-                >
-                  <LogoutIcon />
-                  Log Out
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  className={styles.authLink}
-                  href="/sign-in"
-                  onClick={closeMenu}
-                >
-                  <LoginIcon />
-                  Sign In
-                </Link> 
-                <Link
-                  className={`${styles.authLink} ${styles.authLinkPrimary}`}
-                  href="/sign-up"
-                  onClick={closeMenu}
-                >
-                  <UserPlusIcon />
-                  Sign Up
-                </Link>
-              </>
-            )}
-          </div>
+          <div className={styles.mobileAuth}><AuthControls user={user} onLogout={handleLogout} onNavigate={closeMenu} /></div>
+        </div>
+        <div className={styles.navActions}>
+          <button type="button" className={styles.cartButton} data-cart-target aria-label={`Open cart, ${count} units`} onClick={() => { closeMenu(); openCart(); }}>
+            <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 3h2l2.5 12h11L21 6H6" /><circle cx="9" cy="20" r="1" /><circle cx="18" cy="20" r="1" /></svg>
+            <span className={styles.cartBadge}>{count}</span>
+          </button>
+          {user && <ProfileMenu onNavigate={closeMenu} />}
+          <div className={styles.desktopAuth}><AuthControls user={user} onLogout={handleLogout} onNavigate={closeMenu} /></div>
         </div>
       </div>
     </nav>

@@ -14,14 +14,8 @@ const heroSlides = [
   { src: "/images/Hero/image%20%2823%29.jpg", alt: "Dark green lace gown with matching gele and coral accessories" },
 ];
 
-const collectionSlides = [
-  { name: "The Atelier Edit", src: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=1000&q=85", alt: "Curated clothing displayed in a bright fashion studio" },
-  { name: "After-Hours", src: "https://images.unsplash.com/photo-1544441893-675973e31985?auto=format&fit=crop&w=1000&q=85", alt: "Elegant evening outfit arranged in a fashion studio" },
-  { name: "Quiet Confidence", src: "https://images.unsplash.com/photo-1496217590455-aa63a8350eea?auto=format&fit=crop&w=1000&q=85", alt: "Contemporary neutral outfit on a fashion model" },
-  { name: "The Occasion", src: "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?auto=format&fit=crop&w=1000&q=85", alt: "Polished occasionwear displayed in a boutique" },
-  { name: "Modern Heritage", src: "https://images.unsplash.com/photo-1485968579580-b6d095142e6e?auto=format&fit=crop&w=1000&q=85", alt: "A curated rail of modern heritage garments" },
-  { name: "Signature Forms", src: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=1000&q=85", alt: "Editorial portrait from a signature fashion collection" },
-];
+// Keep the showcase empty until real collections are available.
+const collectionSlides = [];
 
 const brandHighlights = [
   { value: "22+", label: "Years of tailoring" },
@@ -57,7 +51,7 @@ export default function Home() {
 
   useEffect(() => {
     const carousel = carouselRef.current;
-    if (!carousel) return;
+    if (!carousel || collectionSlides.length === 0) return;
 
     let frame = null;
     let lastIndex = 0;
@@ -156,7 +150,7 @@ export default function Home() {
             </p>
 
             <div className={styles.carouselContainer}>
-              <button 
+              {collectionSlides.length > 1 && <button
                 className={`${styles.carouselBtn} ${styles.carouselPrev}`} 
                 onClick={() => {
                   if (carouselRef.current) {
@@ -166,10 +160,10 @@ export default function Home() {
                 aria-label="Previous items"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              </button>
+              </button>}
               
-              <div className={styles.collectionGrid} ref={carouselRef}>
-                {collectionSlides.map((item, index) => (
+              <div className={styles.collectionGrid} ref={carouselRef} aria-hidden={collectionSlides.length === 0 ? true : undefined}>
+                {collectionSlides.map((item) => (
                   <div key={item.name} className={styles.carouselItem}>
                     <article className={styles.collectionCard}>
                       <div className={styles.collectionImage}>
@@ -185,7 +179,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <button 
+              {collectionSlides.length > 1 && <button
                 className={`${styles.carouselBtn} ${styles.carouselNext}`}
                 onClick={() => {
                   if (carouselRef.current) {
@@ -195,9 +189,9 @@ export default function Home() {
                 aria-label="Next items"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
+              </button>}
 
-              <div className={styles.carouselPagination} aria-label="Carousel navigation">
+              {collectionSlides.length > 1 && <div className={styles.carouselPagination} aria-label="Carousel navigation">
                 {collectionSlides.map((_, index) => (
                   <button
                     key={index}
@@ -211,7 +205,7 @@ export default function Home() {
                     aria-current={index === carouselIndex ? 'true' : undefined}
                   />
                 ))}
-              </div>
+              </div>}
             </div>
           </div>
         </section>

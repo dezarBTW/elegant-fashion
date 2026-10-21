@@ -149,6 +149,17 @@ export default function StudentApplications() {
     );
   };
 
+  const retryNotification = async (student) => {
+    if (busyId) return;
+    setBusyId(student.id); setError("");
+    try {
+      const result = await authenticatedFetch("/api/admin/students", { method: "POST", body: JSON.stringify({ id: student.id }) });
+      setStudents(current => current.map(item => item.id === student.id ? result.student : item));
+      setSelected(current => current?.id === student.id ? result.student : current);
+    } catch (error) { setError(error.message); }
+    finally { setBusyId(null); }
+  };
+
   if (!isAdmin) return null;
 
   const selectedStatus = selected ? getStudentStatus(selected) : "pending";
@@ -301,6 +312,8 @@ export default function StudentApplications() {
               )}
             </div>
             <div style={{ marginTop: "0.75rem" }}>{renderActions(selected)}</div>
+            <p className={styles.meta}>{selected.registration_email_sent_at ? "Admin registration notification accepted by the email service." : "No admin notification delivery confirmation is recorded."}</p>
+            {!selected.registration_email_sent_at && <button type="button" className={styles.btn} disabled={busyId !== null} onClick={() => retryNotification(selected)}>{busyId === selected.id ? "Sending…" : "Retry admin email notification"}</button>}
           </section>
         </div>
       )}
