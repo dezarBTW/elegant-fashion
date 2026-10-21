@@ -1,0 +1,82 @@
+[
+  {
+    "schemaname": "public",
+    "tablename": "categories",
+    "policyname": "categories_admin_all",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "( SELECT is_admin_user() AS is_admin_user)",
+    "with_check": "( SELECT is_admin_user() AS is_admin_user)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "categories",
+    "policyname": "categories_public_read",
+    "permissive": "PERMISSIVE",
+    "roles": "{anon,authenticated}",
+    "cmd": "SELECT",
+    "qual": "is_active",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "product_categories",
+    "policyname": "product_categories_admin_all",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "( SELECT is_admin_user() AS is_admin_user)",
+    "with_check": "( SELECT is_admin_user() AS is_admin_user)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "product_categories",
+    "policyname": "product_categories_public_read",
+    "permissive": "PERMISSIVE",
+    "roles": "{anon,authenticated}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM products p\n  WHERE ((p.id = product_categories.product_id) AND p.is_active)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "product_images",
+    "policyname": "images_public_read",
+    "permissive": "PERMISSIVE",
+    "roles": "{anon,authenticated}",
+    "cmd": "SELECT",
+    "qual": "(EXISTS ( SELECT 1\n   FROM products p\n  WHERE ((p.id = product_images.product_id) AND p.is_active)))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "product_images",
+    "policyname": "product_images_admin_all",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "( SELECT is_admin_user() AS is_admin_user)",
+    "with_check": "( SELECT is_admin_user() AS is_admin_user)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "product_variants",
+    "policyname": "product_variants_admin_all",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "( SELECT is_admin_user() AS is_admin_user)",
+    "with_check": "( SELECT is_admin_user() AS is_admin_user)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "product_variants",
+    "policyname": "variants_public_read",
+    "permissive": "PERMISSIVE",
+    "roles": "{anon,authenticated}",
+    "cmd": "SELECT",
+    "qual": "(is_active AND (EXISTS ( SELECT 1\n   FROM products p\n  WHERE ((p.id = product_variants.product_id) AND p.is_active))))",
+    "with_check": null
+  }
+]

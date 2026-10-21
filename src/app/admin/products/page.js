@@ -1,5 +1,6 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
+import { loadAdminProductPage } from "@/lib/catalogPages.mjs";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import { authenticatedFetch } from '@/lib/clientApi';
@@ -35,71 +36,45 @@ export default function ProductsAdmin() {
   const [saving,setSaving]=useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [submitted, setSubmitted] = useState(false);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState('');
+  const [total, setTotal] = useState(0);
+  const [categoryOptions, setCategoryOptions] = useState(['All', ...BASE_CATEGORIES]);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [page, setPage] = useState(1);
 
-  const categoryOptions = useMemo(
-    () => ["All", ...new Set([...BASE_CATEGORIES, ...products.map((product) => product.category).filter(Boolean)])],
-    [products],
-  );
-
-  const filteredProducts = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return products.filter((product) => {
-      if (categoryFilter !== "All" && product.category !== categoryFilter) return false;
-      if (!term) return true;
-      const haystack = [product.name, product.category, product.description].filter(Boolean).join(" ").toLowerCase();
-      return haystack.includes(term);
-    });
-  }, [products, search, categoryFilter]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const pageProducts = filteredProducts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const goToPage = (nextPage) => {
     setPage(nextPage);
     window.scrollTo({ top: 0, behavior: "auto" });
   };
 
-  // Supabase returns at most 1000 rows per request, so keep asking until every product is loaded.
-  const fetchProducts = async () => {
-    const batchSize = 1000;
-    const all = [];
-
-    for (let from = 0; ; from += batchSize) {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .range(from, from + batchSize - 1);
-
-      if (error) {
-        console.error("Error fetching products:", error);
-        return;
-      }
-
-      all.push(...(data || []));
-      if (!data || data.length < batchSize) break;
-    }
-
-    const {data:stockRows,error:stockError}=await supabase.from('product_size_stock').select('*');
-    if(stockError){alert('Unable to load stock. Please refresh before editing.');return;}
-    setStocks(Object.fromEntries((stockRows||[]).map(row=>[row.product_id,row])));
-    setProducts(all);
-  };
-
   useEffect(() => {
     if (!isAdmin) return;
-    const frame = requestAnimationFrame(() => fetchProducts());
-    return () => cancelAnimationFrame(frame);
-  }, [submitted, isAdmin]);
+    const controller = new AbortController();
+    const load = async () => {
+      setListLoading(true); setListError('');
+      try {
+        const data = await loadAdminProductPage(supabase, { page, search, category: categoryFilter }, controller.signal);
+        if (controller.signal.aborted) return;
+        setProducts(data.products);
+        setStocks(Object.fromEntries(data.products.map(product => [product.id, product.stock])));
+        setTotal(data.total);
+        setCategoryOptions(['All', ...new Set([...BASE_CATEGORIES, ...(data.categories || [])])]);
+        if (data.page !== page) setPage(data.page);
+      } catch { if (!controller.signal.aborted) { setProducts([]); setStocks({}); setListError('Unable to load products and stock. Please refresh before editing.'); } }
+      finally { if (!controller.signal.aborted) setListLoading(false); }
+    };
+    const timer = setTimeout(load, 200);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [refreshVersion, isAdmin, page, search, categoryFilter]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setSubmitted(false);
 
     if (!user) {
       alert("Authentication error. Please sign in again.");
@@ -135,7 +110,7 @@ export default function ProductsAdmin() {
     try {
       const {available_sizes,...details}=productData;
       await authenticatedFetch('/api/admin/products',{method:'POST',body:JSON.stringify({id:editMode?editId:crypto.randomUUID(),revision:formData.stock_revision,product:details,quantities:Object.fromEntries(PRODUCT_SIZES.map(({value})=>[value,Number(formData.quantities[value])]))})});
-      invalidateCachedValue(PRODUCTS_CACHE_KEY);alert(editMode?'Product updated successfully':'Product inserted successfully');resetForm();setSubmitted(true);
+      invalidateCachedValue(PRODUCTS_CACHE_KEY);alert(editMode?'Product updated successfully':'Product inserted successfully');resetForm();setRefreshVersion(version => version + 1);
     }catch(error){alert(error.message);}finally{setSaving(false);}
   };
 
@@ -171,7 +146,6 @@ export default function ProductsAdmin() {
       return;
     }
 
-    setSubmitted(false);
     const { error } = await supabase
       .from("products")
       .delete()
@@ -183,7 +157,7 @@ export default function ProductsAdmin() {
     } else {
       invalidateCachedValue(PRODUCTS_CACHE_KEY);
       alert("Product deleted successfully");
-      setProducts((current) => current.filter((product) => product.id !== productId));
+      setRefreshVersion(version => version + 1);
     }
   };
 
@@ -378,13 +352,13 @@ export default function ProductsAdmin() {
         {/* Products List */}
         <div className="products-list-section">
           <h2>
-            Products ({filteredProducts.length}
-            {filteredProducts.length !== products.length ? ` of ${products.length}` : ""})
+            Products ({total})
           </h2>
 
           <div className={shellStyles.toolbar}>
             <input
               type="search"
+              maxLength={200}
               className={shellStyles.search}
               placeholder="Search products by name, category or description"
               value={search}
@@ -411,13 +385,14 @@ export default function ProductsAdmin() {
             </select>
           </div>
 
-          {pageProducts.length === 0 ? (
+          {listError && <p role="alert">{listError}</p>}
+          {listLoading ? <p role="status">Loading products and stock…</p> : !listError && products.length === 0 ? (
             <div className={shellStyles.empty}>
-              {products.length === 0 ? "No products yet. Add your first one above." : "No products match your search."}
+              {search || categoryFilter !== 'All' ? "No products match your search." : "No products yet. Add your first one above."}
             </div>
-          ) : (
+          ) : !listError && (
             <div className={shopStyles.products}>
-              {pageProducts.map((product, index) => (
+              {products.map((product, index) => (
                 <article
                   key={product.id}
                   className={shopStyles.productCard}
@@ -476,13 +451,13 @@ export default function ProductsAdmin() {
 
           {totalPages > 1 && (
             <nav className={shopStyles.pagination} aria-label="Product pages">
-              <button type="button" onClick={() => goToPage(currentPage - 1)} disabled={currentPage === 1}>
+              <button type="button" onClick={() => goToPage(currentPage - 1)} disabled={listLoading || currentPage === 1}>
                 Previous
               </button>
               <span>
                 {currentPage} <span aria-hidden="true">/</span> {totalPages}
               </span>
-              <button type="button" onClick={() => goToPage(currentPage + 1)} disabled={currentPage === totalPages}>
+              <button type="button" onClick={() => goToPage(currentPage + 1)} disabled={listLoading || currentPage === totalPages}>
                 Next
               </button>
             </nav>

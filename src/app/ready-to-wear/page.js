@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from "react";
 import styles from "./readytowear.module.css";
 import ShopProductCard from "@/components/ShopProductCard";
-import { matchesGender, SHOP_PAGE_SIZE } from "@/lib/products.mjs";
+import { SHOP_PAGE_SIZE } from "@/lib/products.mjs";
+import { loadShopPage } from "@/lib/catalogPages.mjs";
 import { supabase } from "@/lib/supabaseClient";
 import { ShopSkeleton } from "./ShopSkeleton";
 
@@ -15,62 +16,38 @@ export default function ReadyToWear() {
   const [loading, setLoading] = useState(true);
   const [gender, setGender] = useState("");
   const [error, setError] = useState("");
+  const [total, setTotal] = useState(null);
   const itemsPerPage = SHOP_PAGE_SIZE;
 
-  // Products are public (see "Public can view products" RLS policy), so
-  // every visitor should see them regardless of admin status — this page
-  // was previously gated behind `isAdmin`, which hid all products from
-  // ordinary customers.
   useEffect(() => {
-    let mounted = true;
+    const controller = new AbortController();
     const fetchProducts = async () => {
+      setLoading(true);
+      setError('');
       try {
-        const { data, error } = await supabase.from("products").select("*").eq("is_active", true).order("created_at", { ascending: false }).order("id", { ascending: true });
-        if (!mounted) return;
-        if (error) {
-          console.error("Error fetching products:", error);
-          setError("Unable to load the collection. Please refresh the page.");
-        } else {
-          setProducts(data || []);
-
-        }
-      } catch (error) { console.error("Error fetching products:", error); if (mounted) setError("Unable to load the collection. Please refresh the page."); }
-      finally { if (mounted) setLoading(false); }
+        const data = await loadShopPage(supabase, { page: currentPage, search: searchQuery, category: selectedCategory, price: priceRange, gender }, controller.signal);
+        if (controller.signal.aborted) return;
+        setProducts(data.products);
+        setTotal(data.total);
+        if (data.page !== currentPage) setCurrentPage(data.page);
+      } catch { if (!controller.signal.aborted) { setProducts([]); setError("Unable to load the collection. Please refresh the page."); } }
+      finally { if (!controller.signal.aborted) setLoading(false); }
     };
-    fetchProducts();
-    return () => { mounted = false; };
-  }, []);
+    const timer = setTimeout(fetchProducts, 200);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [currentPage, searchQuery, selectedCategory, priceRange, gender]);
 
   const categories = ["All", "Dresses", "Skirts", "Trousers", "Tops", "Jackets", "Accessories"];
 
-  const filteredProducts = products.filter(product => {
-    const categoryMatch = selectedCategory === "All" || product.category === selectedCategory;
-    const priceMatch = priceRange === "all" || 
-                      (priceRange === "low" && product.price <= 40000) ||
-                      (priceRange === "medium" && product.price > 40000 && product.price <= 60000) ||
-                      (priceRange === "high" && product.price > 60000);
-    const searchContent = [
-      product.name,
-      product.category,
-      product.description,
-      JSON.stringify(product.specifications || {}),
-    ].filter(Boolean).join(" ").toLowerCase();
-    const searchMatch = searchQuery === "" || searchContent.includes(searchQuery.trim().toLowerCase());
-    return categoryMatch && priceMatch && searchMatch && matchesGender(product, gender || "all");
-  });
-
-  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / itemsPerPage));
+  const totalPages = Math.max(1, Math.ceil((total || 0) / itemsPerPage));
   const activePage = Math.min(currentPage, totalPages);
-  const startIndex = (activePage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   const handlePageChange = (page) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
-  if (loading) return <ShopSkeleton count={itemsPerPage} />;
+  if (loading && total === null) return <ShopSkeleton count={itemsPerPage} />;
 
   return (
     <div className={styles.container}>
@@ -85,6 +62,7 @@ export default function ReadyToWear() {
                 <span className={styles.srOnly}>Search products by name, category, or details</span>
                 <input
                   type="search"
+                  maxLength={200}
                   placeholder="Name, category or details"
                   value={searchQuery}
                   onChange={(event) => {
@@ -147,13 +125,13 @@ export default function ReadyToWear() {
           </div>
 
           {error && <p role="alert">{error}</p>}
-          {currentProducts.length ? (
+          {loading ? <p role="status">Loading products…</p> : !error && products.length ? (
             <div className={styles.products}>
-              {currentProducts.map((product, index) => (
+              {products.map((product, index) => (
                 <ShopProductCard key={product.id} product={product} index={index} priority={index === 0} />
               ))}
             </div>
-          ) : (
+          ) : !error && (
             <div className={styles.emptyState}>
               <p className={styles.eyebrow}>NOTHING IN THIS EDIT</p>
               <h3>No pieces found</h3>
@@ -164,9 +142,9 @@ export default function ReadyToWear() {
 
           {totalPages > 1 && (
             <nav className={styles.pagination} aria-label="Product pages">
-              <button type="button" onClick={() => handlePageChange(activePage - 1)} disabled={activePage === 1}>Previous</button>
+              <button type="button" onClick={() => handlePageChange(activePage - 1)} disabled={loading || activePage === 1}>Previous</button>
               <span aria-live="polite">Page {activePage} of {totalPages}</span>
-              <button type="button" onClick={() => handlePageChange(activePage + 1)} disabled={activePage === totalPages}>Next</button>
+              <button type="button" onClick={() => handlePageChange(activePage + 1)} disabled={loading || activePage === totalPages}>Next</button>
             </nav>
           )}
         </section>

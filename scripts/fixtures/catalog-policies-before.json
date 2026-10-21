@@ -1,0 +1,222 @@
+[
+  {
+    "schemaname": "public",
+    "tablename": "product_size_stock",
+    "policyname": "stock_admin_read",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "is_admin_user()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "products",
+    "policyname": "Admins can delete products",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "DELETE",
+    "qual": "is_admin_user()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "products",
+    "policyname": "Admins can do anything on products",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "ALL",
+    "qual": "is_admin_user()",
+    "with_check": "is_admin_user()"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "products",
+    "policyname": "Admins can insert products",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "is_admin_user()"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "products",
+    "policyname": "Admins can update products",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "is_admin_user()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "products",
+    "policyname": "products_public_read",
+    "permissive": "PERMISSIVE",
+    "roles": "{anon,authenticated}",
+    "cmd": "SELECT",
+    "qual": "is_active",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "Admins can delete students",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "DELETE",
+    "qual": "is_admin_user()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "Admins can update all students",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "is_admin_user()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "Admins can view all students",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "is_admin_user()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "Students can insert own data",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "(auth.uid() = user_id)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "Students can update own data",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": "((auth.uid() = user_id) AND (accepted = ( SELECT students_1.accepted\n   FROM students students_1\n  WHERE (students_1.id = students_1.id))))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "Students can view own data",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = user_id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "students_account_read",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(is_active_account() AND ((user_id = ( SELECT auth.uid() AS uid)) OR is_active_account_admin()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "students",
+    "policyname": "students_account_read_guard",
+    "permissive": "RESTRICTIVE",
+    "roles": "{authenticated}",
+    "cmd": "SELECT",
+    "qual": "(is_active_account() AND ((user_id = ( SELECT auth.uid() AS uid)) OR is_active_account_admin()))",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "Admins can update all users",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "UPDATE",
+    "qual": "is_admin_user()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "Admins can view all users",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "is_admin_user()",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "Service role can insert users",
+    "permissive": "PERMISSIVE",
+    "roles": "{service_role}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "true"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "Users can view own data",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "Users can view own row",
+    "permissive": "PERMISSIVE",
+    "roles": "{public}",
+    "cmd": "SELECT",
+    "qual": "(auth.uid() = id)",
+    "with_check": null
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "users_active_updates",
+    "permissive": "RESTRICTIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(is_active IS TRUE)",
+    "with_check": "(is_active IS TRUE)"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "users_insert_own_not_admin",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "INSERT",
+    "qual": null,
+    "with_check": "((id = ( SELECT auth.uid() AS uid)) AND (COALESCE(is_admin, false) = false))"
+  },
+  {
+    "schemaname": "public",
+    "tablename": "users",
+    "policyname": "users_update_own_not_admin",
+    "permissive": "PERMISSIVE",
+    "roles": "{authenticated}",
+    "cmd": "UPDATE",
+    "qual": "(id = ( SELECT auth.uid() AS uid))",
+    "with_check": "((id = ( SELECT auth.uid() AS uid)) AND (COALESCE(is_admin, false) = is_admin_user()))"
+  }
+]
