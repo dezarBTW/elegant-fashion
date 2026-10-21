@@ -8,6 +8,7 @@ import { deliveryFeeMinor, priceCart, previewCheckoutCart, PICKUP_ADDRESS } from
 import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { CHECKOUT_SIGN_IN } from "@/lib/authLinks.mjs";
+import { usePurchaseLimits } from '@/hooks/usePurchaseLimits';
 import styles from "./checkout.module.css";
 import { CheckoutSkeleton } from "./CheckoutSkeleton";
 
@@ -23,7 +24,8 @@ export default function Checkout() {
   const signedIn = Boolean(user && !user.is_anonymous);
   const [products, setProducts] = useState([]);
   const productIds = [...new Set(cart.map(item => item.id))].sort().join(",");
-  const { lines, subtotalMinor: subtotal, ready } = previewCheckoutCart(cart, products);
+  const availability = usePurchaseLimits(productIds);
+  const { lines, subtotalMinor: subtotal, ready } = previewCheckoutCart(cart, products, availability.limits);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -101,6 +103,7 @@ export default function Checkout() {
         body: JSON.stringify({ attemptId: attemptId.current, items: priced.lines.map(({ productId, quantity, size }) => ({ productId, quantity, size })), customer, delivery }),
       });
       const result = await response.json();
+      if (response.status===409 && !result.uncertain) availability.refresh().catch(()=>{});
       if (controller.signal.aborted) return;
       if (response.status === 401) {
         await supabase.auth.signOut({ scope: "local" }).catch(() => {});
@@ -129,7 +132,7 @@ export default function Checkout() {
       <p className={styles.lede}>Your pieces, your details, and a secure payment.</p>
       <>
         {cancelled && <p className={styles.notice} role="status">You returned from payment. Your cart is saved. If you already paid, check your order status before starting another payment.</p>}
-        {error && <p className={styles.error} role="alert">{error}</p>}
+        {(error||availability.error) && <p className={styles.error} role="alert">{error||availability.error}</p>}
         {reference && <p className={styles.reference}>Order reference: {reference}. <Link href={`/checkout/success?order_id=${reference}`}>Check order status</Link></p>}
         {uncertain && <p>Contact the shop on <a href="tel:+2348166361710">08166361710</a> with your order reference.</p>}
         {!lines.length ? <p>Your cart is empty or contains an unavailable item. <Link href="/ready-to-wear">Return to the shop</Link>.</p> :

@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
+import { authenticatedFetch } from '@/lib/clientApi';
 import { useAuth } from "@/contexts/AuthContext";
 import { consumeRateLimit, formatRetryMessage, sanitizeText, validateImageFile } from "@/lib/sanitizeInput";
 import { invalidateCachedValue } from "@/lib/browserCache";
@@ -27,8 +28,11 @@ export default function ProductsAdmin() {
     gender: "",
     description: "",
     available_sizes: [],
+    quantities:{S:0,M:0,L:0,XL:0,XXL:0},stock_revision:null,
     image: ""
   });
+  const [stocks,setStocks]=useState({});
+  const [saving,setSaving]=useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
   const [submitted, setSubmitted] = useState(false);
@@ -81,6 +85,9 @@ export default function ProductsAdmin() {
       if (!data || data.length < batchSize) break;
     }
 
+    const {data:stockRows,error:stockError}=await supabase.from('product_size_stock').select('*');
+    if(stockError){alert('Unable to load stock. Please refresh before editing.');return;}
+    setStocks(Object.fromEntries((stockRows||[]).map(row=>[row.product_id,row])));
     setProducts(all);
   };
 
@@ -119,41 +126,17 @@ export default function ProductsAdmin() {
       alert("Select Male fashion, Female fashion or Unisex for this product.");
       return;
     }
-    if (!editMode && !productData.available_sizes.length) {
-      alert("Select at least one available size for this new product.");
+    if (!editMode && !Object.values(formData.quantities).some(value=>Number(value)>0)) {
+      alert("Enter stock for at least one size for this new product.");
       return;
     }
 
-    if (editMode && editId) {
-      const { error } = await supabase
-        .from("products")
-        .update(productData)
-        .eq("id", editId);
-
-      if (error) {
-        console.error("Error updating product:", error);
-        alert("Error updating product");
-      } else {
-        invalidateCachedValue(PRODUCTS_CACHE_KEY);
-        alert("Product updated successfully");
-        resetForm();
-        setSubmitted(true);
-      }
-    } else {
-      const { error } = await supabase
-        .from("products")
-        .insert([productData]);
-
-      if (error) {
-        console.error("Error inserting product:", error);
-        alert("Error inserting product");
-      } else {
-        invalidateCachedValue(PRODUCTS_CACHE_KEY);
-        alert("Product inserted successfully");
-        resetForm();
-        setSubmitted(true);
-      }
-    }
+    if(saving)return;setSaving(true);
+    try {
+      const {available_sizes,...details}=productData;
+      await authenticatedFetch('/api/admin/products',{method:'POST',body:JSON.stringify({id:editMode?editId:crypto.randomUUID(),revision:formData.stock_revision,product:details,quantities:Object.fromEntries(PRODUCT_SIZES.map(({value})=>[value,Number(formData.quantities[value])]))})});
+      invalidateCachedValue(PRODUCTS_CACHE_KEY);alert(editMode?'Product updated successfully':'Product inserted successfully');resetForm();setSubmitted(true);
+    }catch(error){alert(error.message);}finally{setSaving(false);}
   };
 
   const handleEdit = (product) => {
@@ -166,6 +149,7 @@ export default function ProductsAdmin() {
       gender: product.gender || "",
       description: product.description || "",
       available_sizes: availableSizes(product),
+      quantities:stocks[product.id]?.quantities||{S:0,M:0,L:0,XL:0,XXL:0},stock_revision:stocks[product.id]?.revision??null,
       image: product.image
     });
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -195,7 +179,7 @@ export default function ProductsAdmin() {
 
     if (error) {
       console.error("Error deleting product:", error);
-      alert("Error deleting product");
+      alert(error.code==='23514'?'This product has a pending payment reservation. Resolve that payment before deleting it.':'Error deleting product');
     } else {
       invalidateCachedValue(PRODUCTS_CACHE_KEY);
       alert("Product deleted successfully");
@@ -213,6 +197,7 @@ export default function ProductsAdmin() {
       gender: "",
       description: "",
       available_sizes: [],
+    quantities:{S:0,M:0,L:0,XL:0,XXL:0},stock_revision:null,
       image: ""
     });
   };
@@ -371,14 +356,14 @@ export default function ProductsAdmin() {
               <label htmlFor="product-description">Brief product description</label>
               <textarea id="product-description" name="description" rows={4} maxLength={2000} value={formData.description} onChange={handleChange} placeholder="Describe the fabric, fit and key details." required />
             </div>
-            <fieldset className="available-sizes">
-              <legend>Available sizes</legend>
-              <p>Select every size currently available. When editing, uncheck sizes that are no longer available.</p>
-              <div>{PRODUCT_SIZES.map(option => <label key={option.value}><input type="checkbox" checked={formData.available_sizes.includes(option.value)} onChange={event => setFormData(current => ({ ...current, available_sizes: event.target.checked ? [...current.available_sizes, option.value] : current.available_sizes.filter(size => size !== option.value) }))} />{option.label}</label>)}</div>
+            <fieldset className="available-sizes" disabled={saving}>
+              <legend>Stock quantity for each size</legend>
+              <p>Enter units currently in stock for each size. Use 0 for unavailable sizes. Stock includes units reserved for pending payments.</p>
+              <div>{PRODUCT_SIZES.map(option=><label key={option.value}>{option.label}<input type="number" aria-label={`Stock for ${option.label}`} min="0" max="999999" step="1" required value={formData.quantities[option.value]} onChange={event=>setFormData(current=>({...current,quantities:{...current.quantities,[option.value]:event.target.value}}))} /></label>)}</div>
             </fieldset>
 
             <div className="form-actions">
-              <button type="submit" className="submit-btn">
+              <button type="submit" className="submit-btn" disabled={saving}>
                 {editMode ? "Update Product" : "Add Product"}
               </button>
               {editMode && (
@@ -458,7 +443,7 @@ export default function ProductsAdmin() {
                     <span className={shopStyles.productCategory}>{product.category || "Uncategorised"}</span>
                     <h3 className={shopStyles.productName}>{product.name}</h3>
                     <p className={shopStyles.productCategory}>{PRODUCT_GENDERS.find(option => option.value === product.gender)?.label || 'Gender not set — edit to choose'}</p>
-                    <p className={shopStyles.productCategory}>Sizes: {availableSizes(product).join(', ') || 'None available'}</p>
+                    <p className={shopStyles.productCategory}>Stock: {PRODUCT_SIZES.map(({value})=>`${value}: ${stocks[product.id]?.quantities[value]||0}`).join(' · ')}</p>
                     <div className={shopStyles.productMeta}>
                       <span className={shopStyles.productPrice}>
                         ₦{Number(product.sale_price || product.price).toLocaleString("en-NG")}

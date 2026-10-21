@@ -2,6 +2,7 @@
   "name": "firstapp",
   "version": "0.1.0",
   "private": true,
+  "engines": { "node": "24.x" },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,6 +10,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@bachs/sdk": "1.0.0",
     "@supabase/supabase-js": "^2.101.1",
     "bootstrap": "^5.3.8",
     "heic2any": "^0.0.4",

@@ -54,6 +54,8 @@ export function CartProvider({ children }) {
   const addItem = (product, quantity, size, source) => {
     if (!availableSizes(product).includes(size)) { setNotice('Choose an available size before adding this product.'); return false; }
     try {
+      const already=current.current.find(item=>item.id===product.id&&item.size===size)?.quantity||0;
+      if (!product.purchase_limits || already+quantity>(product.purchase_limits[size]||0)) throw new Error('The selected quantity is no longer available. Update your cart or choose another size.');
       save(addCartItem(current.current, product.id, quantity, size));
       setNotice(`${product.name} added to your cart. Size ${size}, quantity ${quantity}.`);
       animateToCart(source);

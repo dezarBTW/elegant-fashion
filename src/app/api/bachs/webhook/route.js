@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { verifyBachsSignature, paymentMatchesOrder } from "@/lib/bachs.mjs";
+import { webhooks } from '@bachs/sdk';
+import { paymentMatchesOrder } from "@/lib/bachs.mjs";
 import { checkoutDatabase } from "@/lib/checkoutServer";
 import { sendOrderEmails } from "@/lib/orderEmails.mjs";
 
@@ -11,9 +12,9 @@ export async function POST(request) {
   if (!secret) return NextResponse.json({ error: "Webhook is not configured." }, { status: 503 });
   const raw = await request.text();
   if (raw.length > 128000) return NextResponse.json({ error: "Payload too large." }, { status: 413 });
-  if (!verifyBachsSignature(raw, request.headers, secret)) return NextResponse.json({ error: "Invalid signature." }, { status: 401 });
   let event;
-  try { event = JSON.parse(raw); } catch { return NextResponse.json({ error: "Invalid payload." }, { status: 400 }); }
+  try { event=webhooks.constructEvent(raw,request.headers,secret); }
+  catch { return NextResponse.json({error:'Invalid signature or payload.'},{status:401}); }
   // checkout.completed can be a free checkout. Only a collected payment fulfils orders.
   if (event.type !== "collection.succeeded") return NextResponse.json({ received: true });
   const data = event.data;

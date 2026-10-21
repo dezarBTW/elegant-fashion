@@ -1,6 +1,7 @@
 // Loopback-only load harness. Executes real checkout and webhook handlers against
 // isolated PostgreSQL. Auth identity and payment/email providers are simulated.
 // This measures local handler behaviour, NOT Vercel/Supabase/provider capacity.
+import {webhooks} from '@bachs/sdk';
 import {createServer, request as httpRequest, Agent} from 'node:http';
 import {readFile,writeFile} from 'node:fs/promises';
 import {performance} from 'node:perf_hooks';
@@ -61,7 +62,7 @@ const context=vm.createContext({URL,Response,Buffer,AbortSignal,Date,console:{er
  const id=options.headers['Idempotency-Key'];await new Promise(r=>setTimeout(r,10));
  const response=provider.get(id)||{checkout_id:'isolated_'+id,checkout_url:'https://sandbox-checkout.bachs.io/'+id};provider.set(id,response);return Response.json(response);
 }});
-const deps={'@supabase/supabase-js':{createClient(){}},'./checkoutServer.js':{checkoutDatabase:()=>adapter},'./orderManagement.mjs':management,'next/server':{NextResponse},'node:crypto':crypto,zod:{z},'@/lib/checkoutServer':{...receipts,checkoutDatabase:()=>adapter},'@/lib/orderManagement.mjs':management,'@/lib/checkout.mjs':checkout,'@/lib/bachs.mjs':bachs,'@/lib/products.mjs':{SIZE_VALUES},'@/lib/seo.mjs':{SITE_URL:'http://localhost'},'@/lib/orderEmails.mjs':{sendOrderEmails:async order=>emails.push(order.id)}};
+const deps={'@bachs/sdk':{webhooks},'@/lib/bachsServer':{bachsClient:apiKey=>({checkoutSessions:{create:async(input,options)=>{const r=await context.fetch('https://sandbox-api.bachs.io/v1/checkout-sessions',{headers:{Authorization:'Bearer '+apiKey,'Idempotency-Key':options.idempotencyKey},body:JSON.stringify(input)});if(!r.ok)throw Object.assign(new Error('Rejected'),{status:r.status});return r.json();}}})},'@supabase/supabase-js':{createClient(){}},'./checkoutServer.js':{checkoutDatabase:()=>adapter},'./orderManagement.mjs':management,'next/server':{NextResponse},'node:crypto':crypto,zod:{z},'@/lib/checkoutServer':{...receipts,checkoutDatabase:()=>adapter},'@/lib/orderManagement.mjs':management,'@/lib/checkout.mjs':checkout,'@/lib/bachs.mjs':bachs,'@/lib/products.mjs':{SIZE_VALUES},'@/lib/seo.mjs':{SITE_URL:'http://localhost'},'@/lib/orderEmails.mjs':{sendOrderEmails:async order=>emails.push(order.id)}};
 const link=name=>{if(!deps[name])throw Error(name);return new vm.SyntheticModule(Object.keys(deps[name]),function(){for(const [k,v]of Object.entries(deps[name]))this.setExport(k,v);},{context});};
 async function load(file){const m=new vm.SourceTextModule(await readFile(file,'utf8'),{context});await m.link(link);await m.evaluate();return m.namespace;}
 deps['@/lib/accountServer']=await load('src/lib/accountServer.js');
@@ -93,7 +94,7 @@ for(const count of [50,200,1000]){
  const times=responses.map(r=>r.ms).sort((a,b)=>a-b),statuses={};for(const r of responses)statuses[r.status]=(statuses[r.status]||0)+1;
  const orders=(await db.query('select id,checkout_id,total_minor from shop_orders')).rows;
  const webhookStart=performance.now();const webhookResults=await Promise.all(orders.map(async order=>{
-  const raw=JSON.stringify({id:'event_'+order.id,type:'collection.succeeded',data:{reference:order.id,checkout_id:order.checkout_id,charge_id:'charge_'+order.id,status:'SUCCEEDED',currency:'NGN',amount:'18000.00'}});
+  const raw=JSON.stringify({id:'event_'+order.id,created_at:new Date().toISOString(),organization_id:'org_fixture',type:'collection.succeeded',data:{reference:order.id,checkout_id:order.checkout_id,charge_id:'charge_'+order.id,status:'SUCCEEDED',currency:'NGN',amount:'18000.00'}});
   const timestamp=Math.floor(Date.now()/1000),sig=crypto.createHmac('sha256',env.BACHS_WEBHOOK_SECRET).update(`${timestamp}.${raw}`).digest('hex');
   const send=async()=>{try{const r=await localFetch(origin+'/api/bachs/webhook',{method:'POST',headers:{'Content-Type':'application/json','x-bachs-signature-v2':`t=${timestamp},v1=${sig}`},body:raw});await r.text();return r.status;}catch{return 0;}};return Promise.all([send(),send()]);
  }));

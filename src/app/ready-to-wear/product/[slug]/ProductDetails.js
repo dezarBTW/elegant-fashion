@@ -5,13 +5,15 @@ import { imagePath } from '@/lib/imagePath.mjs';
 import Link from 'next/link';
 import { availableSizes, productPrice } from '@/lib/products.mjs';
 import { useCart } from '@/contexts/CartContext';
+import { usePurchaseLimits } from '@/hooks/usePurchaseLimits';
 import ShopProductCard from '@/components/ShopProductCard';
 import ProductOptions from '@/components/ProductOptions';
 import shop from '../../readytowear.module.css';
 import styles from './product.module.css';
 
 export default function ProductDetails({ product, recommendations }) {
-  const { addItem } = useCart();
+  const { addItem, items } = useCart();
+  const availability = usePurchaseLimits(product.id);
   const [size, setSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [request, setRequest] = useState({ name: '', email: '', phone: '', size: '', colour: '', details: '', website: '' });
@@ -20,7 +22,10 @@ export default function ProductDetails({ product, recommendations }) {
   const [error, setError] = useState('');
   const requestId = useRef(null);
   const requestBody = useRef(null);
-  const sizes = availableSizes(product);
+  const limits = availability.limits[product.id] || {};
+  const sizes = availableSizes(product).filter(size => limits[size] > 0);
+  const inCart = items.find(item => item.id === product.id && item.size === size)?.quantity || 0;
+  const maxQuantity = Math.max(0,(limits[size] || 0)-inCart);
   const changeRequest = event => { setRequest({ ...request, [event.target.name]: event.target.value }); setMessage(''); };
   const submitRequest = async event => {
     event.preventDefault();
@@ -44,10 +49,11 @@ export default function ProductDetails({ product, recommendations }) {
         <p className={styles.category}>{product.category || 'Ready to wear'}</p><h1 id="product-name">{product.name}</h1>
         <p className={styles.price}>₦{productPrice(product).toLocaleString('en-NG')}{product.sale_price != null && Number(product.sale_price) < Number(product.price) && <del>₦{Number(product.price).toLocaleString('en-NG')}</del>}</p>
         <p className={styles.description}>{product.description || `Discover ${product.name} from our ${product.category?.toLowerCase() || 'ready-to-wear'} collection. Contact us if you need more details before ordering.`}</p>
-        <form onSubmit={event => { event.preventDefault(); addItem(product, quantity, size, event.currentTarget); }}>
-          <ProductOptions name={product.name} sizes={sizes} size={size} quantity={quantity} onSizeChange={setSize} onQuantityChange={setQuantity} />
+        <form onSubmit={async event => { event.preventDefault(); const source=event.currentTarget; try { const fresh=await availability.refresh(); addItem({...product,purchase_limits:fresh[product.id]||{}}, quantity, size, source); } catch(error){setError(error.message);} }}>
+          <ProductOptions name={product.name} sizes={sizes} size={size} quantity={quantity} maxQuantity={maxQuantity} onSizeChange={size => {setSize(size);setQuantity(1);}} onQuantityChange={setQuantity} />
+          {availability.error && <p role="alert" className={styles.error}>{availability.error}</p>}
           <p className={styles.hint}>{sizes.length ? 'Choose your size and quantity. Unavailable sizes are disabled.' : 'No sizes are currently available. You can request this product below.'}</p>
-          <button type="submit" className={styles.add} disabled={!sizes.includes(size)}>Add to cart</button>
+          <button type="submit" className={styles.add} disabled={!sizes.includes(size)||!maxQuantity||quantity>maxQuantity}>Add to cart</button>
         </form>
       </div>
     </section>

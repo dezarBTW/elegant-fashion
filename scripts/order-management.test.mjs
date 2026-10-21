@@ -1,3 +1,4 @@
+import { webhooks } from '@bachs/sdk';
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFile } from "node:fs/promises";
@@ -73,6 +74,7 @@ async function route(file, db, mailer = async () => {}, fulfillmentMailer = asyn
   const source = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
   const routeModule = new vm.SourceTextModule(source, { context });
   const dependencies = {
+    "@bachs/sdk": { webhooks },
     "next/server": { NextResponse: Response },
     "zod": { z },
     "@/lib/checkoutServer": { checkoutDatabase: () => db, createReceiptConfirmation, receiptHash },
@@ -92,7 +94,7 @@ async function route(file, db, mailer = async () => {}, fulfillmentMailer = asyn
 }
 
 function webhook(data = {}) {
-  const body = JSON.stringify({ id: "evt_test", type: "collection.succeeded", data: { charge_id: "ch_test", checkout_id: "chk_test", reference: id, status: "SUCCEEDED", currency: "NGN", amount: "52000.00", ...data } });
+  const body = JSON.stringify({ id: "evt_test", created_at:new Date().toISOString(),organization_id:"org_fixture", type: "collection.succeeded", data: { charge_id: "ch_test", checkout_id: "chk_test", reference: id, status: "SUCCEEDED", currency: "NGN", amount: "52000.00", ...data } });
   const timestamp = String(Math.floor(Date.now() / 1000));
   const signature = createHmac("sha256", secret).update(`${timestamp}.${body}`).digest("hex");
   return new Request("https://elegantstyle.com.ng/api/bachs/webhook", { method: "POST", body, headers: { "x-bachs-signature-v2": `t=${timestamp},v1=${signature}` } });

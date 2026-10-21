@@ -17,7 +17,7 @@ const tokenFor = label => 'header.'+Buffer.from(JSON.stringify({session_id:'cccc
 const origin='https://elegantstyle.com.ng';
 const body={attemptId,items:[{productId,quantity:3,size:'M'}],customer:{name:'Test Customer',email:'customer@example.invalid',phone:'08012345678'},delivery:{method:'pickup'}};
 
-async function setup({ confirmed=true, active=true, anonymous=false }={}) {
+async function setup({ confirmed=true, active=true, anonymous=false, stockError=null }={}) {
   const orders=[],providerCalls=[],reads=[];
   const user={id:userId,email:'customer@example.invalid',email_confirmed_at:confirmed?'2026-10-21':null,is_anonymous:anonymous};
   const db={
@@ -26,7 +26,7 @@ async function setup({ confirmed=true, active=true, anonymous=false }={}) {
     from(table){
       reads.push(table);let inserted,patch;const filters=[];
       const run=()=>{
-        if(inserted){orders.push({...inserted});return {data:null};}
+        if(inserted){if(stockError)return {data:null,error:{code:stockError}};orders.push({...inserted});return {data:null};}
         const rows=table==='users'?[{id:userId,is_active:active}]:table==='products'?[{id:productId,name:'Dress',price:100,is_active:true,available_sizes:['M']}]:orders;
         const matches=rows.filter(row=>filters.every(([key,value])=>row[key]===value));
         if(patch)matches.forEach(row=>Object.assign(row,patch));
@@ -39,6 +39,7 @@ async function setup({ confirmed=true, active=true, anonymous=false }={}) {
   const context=vm.createContext({URL,URLSearchParams,Response,console:{error(){}},AbortSignal,process:{env:{BACHS_API_KEY:'sk_sandbox_fixture',BACHS_WEBHOOK_SECRET:'fixture',SUPABASE_SERVICE_ROLE_KEY:'fixture'}},fetch:async(url,options)=>{providerCalls.push({url,options});return Response.json({checkout_id:'fixture',checkout_url:'https://sandbox-checkout.bachs.io/fixture'});}});
   const deps={
     '@supabase/supabase-js':{createClient(){}},'./checkoutServer.js':{checkoutDatabase:()=>db},'./orderManagement.mjs':management,
+    '@/lib/bachsServer':{bachsClient:apiKey=>({checkoutSessions:{create:async(input,options)=>{const response=await context.fetch('https://sandbox-api.bachs.io/v1/checkout-sessions',{headers:{Authorization:'Bearer '+apiKey,'Idempotency-Key':options.idempotencyKey},body:JSON.stringify(input)});if(!response.ok)throw Object.assign(new Error('Provider rejected'),{status:response.status});return response.json();}}})},
     'next/server':{NextResponse},'node:crypto':crypto,zod:{z},'@/lib/checkoutServer':{hasOrderAccess:()=>true,receiptHash:value=>value,setOrderCookie:response=>response},
     '@/lib/checkout.mjs':checkout,'@/lib/bachs.mjs':bachs,'@/lib/seo.mjs':{SITE_URL:origin},'@/lib/products.mjs':{SIZE_VALUES},'@/lib/orderManagement.mjs':management
   };
@@ -82,4 +83,9 @@ test('a valid session cannot resume another account’s checkout',async()=>{
   endpoint.orders[0].user_id='bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
   const response=await endpoint.POST(endpoint.request());
   assert.equal(response.status,403);assert.equal(endpoint.providerCalls.length,1);
+});
+
+test('a failed database stock reservation returns 409 without creating a payment session',async()=>{
+ const endpoint=await setup({stockError:'P0001'});const response=await endpoint.POST(endpoint.request());
+ assert.equal(response.status,409);assert.match((await response.json()).error,/quantity is no longer available/);assert.equal(endpoint.orders.length,0);assert.equal(endpoint.providerCalls.length,0);
 });

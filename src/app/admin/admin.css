@@ -287,7 +287,7 @@
 .available-sizes { min-width:0; padding:16px; border:1px solid var(--line); border-radius:8px; margin-bottom:20px; }
 .available-sizes legend { font-size:1rem; font-weight:600; padding-inline:6px; }
 .available-sizes p { font-size:.8rem; color:var(--stone); margin-bottom:12px; }
-.available-sizes>div { display:flex; flex-wrap:wrap; gap:12px 20px; }
-.available-sizes label { display:flex; align-items:center; gap:8px; min-height:40px; font-size:.85rem; }
-.available-sizes input { width:18px; height:18px; accent-color:var(--gold-deep); }
+.available-sizes>div { display:grid; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); gap:12px 20px; }
+.available-sizes label { display:grid; align-items:start; gap:8px; min-width:0; font-size:.85rem; }
+.available-sizes input { width:100%; min-width:0; min-height:44px; padding:10px; border:1px solid var(--line); border-radius:6px; background:var(--white); color:var(--ink); }
 .product-form textarea { width:100%; padding:12px; border:1px solid var(--line); border-radius:8px; resize:vertical; background:var(--white); color:var(--ink); }

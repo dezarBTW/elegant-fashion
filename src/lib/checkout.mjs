@@ -59,7 +59,7 @@ export function readCart() {
 }
 
 // Preview pending selections without weakening the server's strict priceCart check.
-export function previewCheckoutCart(cart, products) {
+export function previewCheckoutCart(cart, products, limits) {
   const lines = normalizeCart(cart).map(item => {
     const product = products.find(product => product.id === item.id && product.is_active === true);
     const sizes = product ? availableSizes(product) : [];
@@ -67,7 +67,7 @@ export function previewCheckoutCart(cart, products) {
     const unitAmountMinor = product ? moneyToMinor(product.sale_price ?? product.price) : 0;
     return { productId: item.id, name: product?.name || "Unavailable product", size, quantity: item.quantity, availableSizes: sizes, unitAmountMinor, lineAmountMinor: unitAmountMinor * item.quantity };
   });
-  return { lines, subtotalMinor: lines.reduce((total, line) => total + line.lineAmountMinor, 0), ready: lines.length > 0 && lines.every(line => Boolean(line.size)) };
+  return { lines, subtotalMinor: lines.reduce((total, line) => total + line.lineAmountMinor, 0), ready: lines.length > 0 && lines.every(line => Boolean(line.size) && (limits === undefined || line.quantity <= (limits[line.productId]?.[line.size]||0))) };
 }
 
 export function updateCheckoutItem(cart, index, changes) {

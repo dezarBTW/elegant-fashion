@@ -3,7 +3,7 @@ import { useId } from 'react';
 import { PRODUCT_SIZES } from '@/lib/products.mjs';
 import styles from './ProductOptions.module.css';
 
-export default function ProductOptions({ name, sizes, size, quantity, onSizeChange, onQuantityChange, disabled = false }) {
+export default function ProductOptions({ name, sizes, size, quantity, onSizeChange, onQuantityChange, maxQuantity = 10, disabled = false }) {
   const group = useId();
   return <div className={styles.options}>
     <fieldset disabled={disabled} className={styles.sizes}>
@@ -13,6 +13,6 @@ export default function ProductOptions({ name, sizes, size, quantity, onSizeChan
         <span>{option.value}</span>
       </label>)}
     </fieldset>
-    <label className={styles.quantity}>Quantity<select aria-label={`Quantity for ${name}`} value={quantity} disabled={disabled || !sizes.length} onChange={event => onQuantityChange(Number(event.target.value))}>{Array.from({ length: 10 }, (_, index) => <option key={index} value={index + 1}>{index + 1}</option>)}</select></label>
+    <label className={styles.quantity}>Quantity<select aria-label={`Quantity for ${name}`} value={quantity} disabled={disabled || !size || !sizes.length || !maxQuantity} onChange={event => onQuantityChange(Number(event.target.value))}>{quantity>maxQuantity && <option value={quantity} disabled>{quantity} — update selection</option>}{Array.from({ length:Math.min(10,maxQuantity) }, (_, index) => <option key={index} value={index+1}>{index+1}</option>)}</select></label>
   </div>;
 }

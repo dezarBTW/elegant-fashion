@@ -1,3 +1,4 @@
+import { bachsClient } from '@/lib/bachsServer';
 import { NextResponse } from "next/server";
 import { randomBytes, createHash, createHmac } from "node:crypto";
 import { z } from "zod";
@@ -56,8 +57,7 @@ export async function POST(request) {
 
   const apiKey = process.env.BACHS_API_KEY;
   if (!apiKey || !process.env.BACHS_WEBHOOK_SECRET) return errorResponse("Online payments are not available yet. Please try again later.", 503);
-  let baseUrl;
-  try { baseUrl = bachsBaseUrl(apiKey); } catch { return errorResponse("Online payments are not configured.", 503); }
+  try { bachsBaseUrl(apiKey); } catch { return errorResponse("Online payments are not configured.", 503); }
 
   const { db, user } = account;
   const fingerprint = createHash("sha256").update(JSON.stringify(input)).digest("hex");
@@ -101,35 +101,23 @@ export async function POST(request) {
     });
     if (insertError) {
       token = undefined;
+      if (insertError.code === 'P0001' || insertError.code === '23503') return errorResponse('The selected size or quantity is no longer available. Please update your cart.',409);
       if (insertError.code === '23505') return errorResponse('This checkout is already being processed. Wait for the original request before trying again.', 409, { orderId: id, uncertain: true });
       throw insertError;
     }
 
     // A lost response is uncertain: don't automatically create a second session.
-    let response;
+    let session;
     try {
-      response = await fetch(`${baseUrl}/v1/checkout-sessions`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": id },
-        body: JSON.stringify({
-          pricing: { currency: "NGN", amount: decimalAmount(totalMinor) },
-          billing_currency: "NGN", customer: { email: input.customer.email, name: input.customer.name, phone_number: input.customer.phone.replace(/^0/, "+234") },
-          reference: id, metadata: { order_id: id },
-          success_url: `${SITE_URL}/checkout/success?order_id=${id}`,
-          cancel_url: `${SITE_URL}/checkout?cancelled=1`,
-        }),
-        signal: AbortSignal.timeout(20000),
-      });
-    } catch {
-      await db.from("shop_orders").update({ checkout_state: "unknown" }).eq("id", id);
-      return respond({ error: "We couldn't confirm payment setup. Please contact the shop with your order reference before trying again.", orderId: id, uncertain: true }, 503);
+      session=await bachsClient(apiKey).checkoutSessions.create({
+        pricing:{currency:'NGN',amount:decimalAmount(totalMinor)},billing_currency:'NGN',
+        customer:{email:input.customer.email,name:input.customer.name,phone_number:input.customer.phone.replace(/^0/,'+234')},
+        reference:id,metadata:{order_id:id},success_url:`${SITE_URL}/checkout/success?order_id=${id}`,cancel_url:`${SITE_URL}/checkout?cancelled=1`
+      },{idempotencyKey:id});
+    }catch(error){
+      await db.from('shop_orders').update({checkout_state:'unknown'}).eq('id',id);
+      return respond({error:"We couldn't confirm payment setup. Please contact the shop with your order reference before trying again.",orderId:id,uncertain:true},error?.status?502:503);
     }
-    if (!response.ok) {
-      await db.from("shop_orders").update({ checkout_state: "unknown" }).eq("id", id);
-      console.error("Bachs checkout rejected", response.status);
-      return respond({ error: "Payment setup could not be confirmed. Please contact the shop with your order reference.", orderId: id, uncertain: true }, 502);
-    }
-    const session = await response.json();
     if (!session.checkout_id || !validCheckoutUrl(session.checkout_url, apiKey)) throw new Error("Invalid Bachs checkout response.");
     const { error: saveError } = await db.from("shop_orders").update({ checkout_state: "open", checkout_id: session.checkout_id, checkout_url: session.checkout_url }).eq("id", id);
     if (saveError) throw saveError;
