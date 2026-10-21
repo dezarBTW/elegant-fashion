@@ -1,6 +1,7 @@
 'use client';
 import { useRef, useState } from 'react';
 import Image from 'next/image';
+import { imagePath } from '@/lib/imagePath.mjs';
 import Link from 'next/link';
 import { availableSizes, productPrice } from '@/lib/products.mjs';
 import { useCart } from '@/contexts/CartContext';
@@ -38,7 +39,7 @@ export default function ProductDetails({ product, recommendations }) {
   return <div className={shop.container}><main className={styles.page}>
     <nav className={styles.breadcrumb} aria-label="Breadcrumb"><Link href="/ready-to-wear">Ready-to-wear</Link><span aria-hidden="true">/</span><span>{product.name}</span></nav>
     <section className={styles.details} data-product aria-labelledby="product-name">
-      <div className={styles.image}>{product.image ? <Image data-product-image src={product.image} alt={product.name} fill priority sizes="(max-width: 768px) 100vw, 50vw" /> : <span>Image unavailable</span>}</div>
+      <div className={styles.image}>{product.image ? <Image data-product-image src={imagePath(product.image)} alt={product.name} fill priority sizes="(max-width: 768px) 100vw, 50vw" /> : <span>Image unavailable</span>}</div>
       <div className={styles.info}>
         <p className={styles.category}>{product.category || 'Ready to wear'}</p><h1 id="product-name">{product.name}</h1>
         <p className={styles.price}>₦{productPrice(product).toLocaleString('en-NG')}{product.sale_price != null && Number(product.sale_price) < Number(product.price) && <del>₦{Number(product.price).toLocaleString('en-NG')}</del>}</p>

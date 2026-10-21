@@ -58,7 +58,7 @@ export default function ForgotPassword() {
     <main className="auth-page">
       <section className="auth-media" aria-hidden="true">
         <Image
-          src="/images/Hero/image%20%2823%29.jpg"
+          src="/images/Hero/image (23).jpg"
           alt=""
           fill
           priority

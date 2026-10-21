@@ -99,7 +99,11 @@ export async function POST(request) {
       delivery: input.delivery, items: pricing.lines, subtotal_minor: pricing.subtotalMinor,
       shipping_minor: shippingMinor, total_minor: totalMinor, receipt_hash: receiptHash(token), request_fingerprint: fingerprint,
     });
-    if (insertError) { token = undefined; throw insertError; }
+    if (insertError) {
+      token = undefined;
+      if (insertError.code === '23505') return errorResponse('This checkout is already being processed. Wait for the original request before trying again.', 409, { orderId: id, uncertain: true });
+      throw insertError;
+    }
 
     // A lost response is uncertain: don't automatically create a second session.
     let response;

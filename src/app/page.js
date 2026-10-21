@@ -8,10 +8,10 @@ import { watchCopyrightYear } from "@/lib/copyrightYear.mjs";
 import SocialCarousel from "@/components/SocialCarousel";
 
 const heroSlides = [
-  { src: "/images/Hero/image%20%2820%29.jpg", alt: "Jeweled blue Ankara evening gown" },
-  { src: "/images/Hero/image%20%2821%29.jpg", alt: "Powder-blue lace outfit with a matching gele" },
-  { src: "/images/Hero/image%20%2822%29.jpg", alt: "Gold beaded occasion gown with a matching gele" },
-  { src: "/images/Hero/image%20%2823%29.jpg", alt: "Dark green lace gown with matching gele and coral accessories" },
+  { src: "/images/Hero/image (20).jpg", alt: "Jeweled blue Ankara evening gown" },
+  { src: "/images/Hero/image (21).jpg", alt: "Powder-blue lace outfit with a matching gele" },
+  { src: "/images/Hero/image (22).jpg", alt: "Gold beaded occasion gown with a matching gele" },
+  { src: "/images/Hero/image (23).jpg", alt: "Dark green lace gown with matching gele and coral accessories" },
 ];
 
 // Keep the showcase empty until real collections are available.

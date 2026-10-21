@@ -2,7 +2,7 @@
 import React from "react"
 import { supabase } from "@/lib/supabaseClient";
 import { CONFIRMATION_REDIRECT, authReturnPath, withAuthReturn } from "@/lib/authLinks.mjs";
-import {useState, useEffect, useRef} from "react";
+import {useState} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,48 +20,11 @@ function SignUpForm() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
-    const [emailMessage, setEmailMessage] = useState("");
-    const [checkingEmail, setCheckingEmail] = useState(false);
     // Set once sign-up succeeds and the user must confirm their email.
     const [sentTo, setSentTo] = useState("");
     const [resending, setResending] = useState(false);
     const [resendMessage, setResendMessage] = useState("");
     const router = useRouter();
-
-    // Monotonically increasing request ids so a slow, older response can never
-    // clobber the result of a newer one (fixes race condition on fast typing).
-    const emailRequestId = useRef(0);
-
-    // Real-time email availability check (debounced).
-    useEffect(() => {
-        const safeEmail = sanitizeEmail(email);
-
-        if (!safeEmail) {
-            setEmailMessage("");
-            setCheckingEmail(false);
-        }
-
-        if (!safeEmail) return;
-
-        const timer = setTimeout(async () => {
-            const thisRequestId = ++emailRequestId.current;
-            setCheckingEmail(true);
-            const { data, error } = await supabase.rpc("check_email_exists", { check_email: safeEmail });
-            // Only apply this result if it's still the latest request AND
-            // the field hasn't changed to a different value in the meantime.
-            if (thisRequestId === emailRequestId.current && sanitizeEmail(email) === safeEmail) {
-                if (error) {
-                    console.error(error);
-                    setEmailMessage("Unable to verify email right now.");
-                } else {
-                    setEmailMessage(data ? "This email is already in use." : "");
-                }
-                setCheckingEmail(false);
-            }
-        }, 400);
-
-        return () => clearTimeout(timer);
-    }, [email]);
 
     const createUser = async () => {
         const safeEmail = sanitizeEmail(email);
@@ -89,23 +52,6 @@ function SignUpForm() {
 
         setLoading(true);
         setMessage("");
-
-        // Check email availability again immediately before signup.
-        const { data: emailTaken, error: lookupError } = await supabase
-            .rpc("check_email_exists", { check_email: safeEmail });
-
-        if (lookupError) {
-            console.error(lookupError);
-            setMessage("Unable to verify details. Please try again.");
-            setLoading(false);
-            return;
-        }
-
-        if (emailTaken) {
-            setMessage("An account with that email already exists.");
-            setLoading(false);
-            return;
-        }
 
         try {
             const { data, error } = await supabase.auth.signUp({
@@ -194,7 +140,7 @@ function SignUpForm() {
         }
     };
 
-    // Keep submission disabled while email verification is pending or invalid.
+    // Keep submission disabled until required fields are filled.
     const safeEmailValue = sanitizeEmail(email);
     const isDisabled =
         loading ||
@@ -208,7 +154,7 @@ function SignUpForm() {
         <main className="auth-page auth-signup-page">
             <section className="auth-media" aria-hidden="true">
                 <Image
-                    src="/images/Hero/image%20%2823%29.jpg"
+                    src="/images/Hero/image (23).jpg"
                     alt=""
                     fill
                     priority
@@ -257,9 +203,7 @@ function SignUpForm() {
                 <form className="auth-form" onSubmit={(event) => { event.preventDefault(); createUser(); }}>
                     <div className="form-group">
                         <label htmlFor="email">Email address</label>
-                        <input id="email" className="input" value={email} onChange={(e) => setEmail(sanitizeEmail(e.target.value))} type="email" autoComplete="email" aria-invalid={!!emailMessage} required />
-                        {checkingEmail && <p className="field-hint">Checking email...</p>}
-                        {!checkingEmail && emailMessage && <p className="field-error">{emailMessage}</p>}
+                        <input id="email" className="input" value={email} onChange={(e) => setEmail(sanitizeEmail(e.target.value))} type="email" autoComplete="email" required />
                     </div>
                     <div className="form-group">
                         <label htmlFor="password">Password</label>

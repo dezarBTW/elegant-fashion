@@ -18,6 +18,8 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  if (ids.some(id => !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))) return NextResponse.json({error:'Invalid variant ID.'}, {status:400});
+
   if (ids.length > 200) {
     return NextResponse.json(
       { error: 'Maximum 200 variant IDs per request' },

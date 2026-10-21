@@ -232,9 +232,12 @@ function getClientIp(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  if (request.headers.get('origin') !== new URL(request.url).origin) return NextResponse.json({error:'Invalid request origin.'}, {status:403});
   let body: unknown;
   try {
-    body = await request.json();
+    const raw = await request.text();
+    if (raw.length > 16000) return NextResponse.json({error:'Request is too large.'}, {status:413});
+    body = JSON.parse(raw);
   } catch {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }

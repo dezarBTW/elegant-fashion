@@ -7,7 +7,7 @@ export function registrationAdminEmail(student, recipient) {
     ["Date of birth", student.date_of_birth], ["Age", student.age], ["Gender", student.gender], ["Nationality", student.nationality],
     ["Marital status", student.marital_status], ["State of origin", student.state_of_origin], ["Address", student.address],
     ["Programme", student.chosen_programme], ["Sponsorship", student.sponsorship], ["Sponsor organization", student.sponsor_organization || "Not applicable"],
-    ["Passport photograph", student.passport_photo], ["Application status", student.status || "pending"],
+    ["Passport photograph", "View securely in the admin dashboard"], ["Application status", student.status || "pending"],
     ["Submitted", student.created_at || "Recorded on application"], ["Declaration accepted", student.declaration_accepted_at || "Confirmed during submission"],
   ];
   return {

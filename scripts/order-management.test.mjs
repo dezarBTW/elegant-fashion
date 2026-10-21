@@ -11,6 +11,7 @@ import { createReceiptConfirmation, receiptHash } from "../src/lib/checkoutServe
 
 const id = "11111111-1111-4111-8111-111111111111";
 const adminId = "22222222-2222-4222-8222-222222222222";
+const validToken = 'header.'+Buffer.from(JSON.stringify({session_id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc'})).toString('base64url')+'.signature';
 const secret = "webhook-unit-test-only";
 const fixture = () => ({
   id, customer_name: "Test Customer", customer_email: "customer@example.invalid", customer_phone: "08012345678",
@@ -26,7 +27,8 @@ function database(orders = [fixture()], profile = { id: adminId, is_admin: true,
   const reads = [];
   return {
     orders, updates, reads,
-    auth: { getUser: async (token) => token === "valid" ? { data: { user: { id: adminId, user_metadata: { is_admin: true } } }, error: null } : { data: { user: null }, error: { message: "Invalid token" } } },
+    rpc: async () => ({data:true,error:null}),
+    auth: { getUser: async (token) => token === validToken ? { data: { user: { id: adminId, user_metadata: { is_admin: true } } }, error: null } : { data: { user: null }, error: { message: "Invalid token" } } },
     from(table) {
       reads.push(table);
       const rows = table === "users" ? (profile ? [profile] : []) : orders;
@@ -96,7 +98,7 @@ function webhook(data = {}) {
   return new Request("https://elegantstyle.com.ng/api/bachs/webhook", { method: "POST", body, headers: { "x-bachs-signature-v2": `t=${timestamp},v1=${signature}` } });
 }
 const adminRequest = (method = "GET", payload, token = "valid", query = "") => new Request(`https://elegantstyle.com.ng/api/admin/orders${query}`, {
-  method, headers: { ...(token ? { authorization: `Bearer ${token}` } : {}), "content-type": "application/json" },
+  method, headers: { ...(token ? { authorization: `Bearer ${token === "valid" ? validToken : token}` } : {}), "content-type": "application/json" },
   ...(payload ? { body: JSON.stringify(payload) } : {}),
 });
 

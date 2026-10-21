@@ -1,9 +1,9 @@
 "use client";
+import PassportPhoto from "@/components/PassportPhoto";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import styles from "./registration.module.css";
-import Image from "next/image";
 import { REGISTRATION_COMPLETE_MESSAGE } from "@/lib/registration.mjs";
 
 export default function RegistrationDetails() {
@@ -105,8 +105,7 @@ export default function RegistrationDetails() {
         {/* Passport Photo Section */}
         <div className={styles.passportSection}>
           {registration.passport_photo ? (
-            <Image
-              src={registration.passport_photo}
+            <PassportPhoto value={registration.passport_photo}
               alt="Passport Photograph"
               width={200}
               height={200}

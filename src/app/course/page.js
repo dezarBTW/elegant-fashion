@@ -1,4 +1,5 @@
 "use client";
+import PassportPhoto from "@/components/PassportPhoto";
 import styles from "./fashionschool.css";
 import { useState, useEffect } from "react";
 import { authenticatedFetch } from "@/lib/clientApi";
@@ -143,8 +144,11 @@ export default function Course() {
   useEffect(() => {
     if (!user) return;
     const draft = getCachedValue(`registration-draft:${user.id}`);
-    if (draft) setFormData((current) => ({ ...current, ...draft }));
-    setDraftLoaded(true);
+    const frame = requestAnimationFrame(() => {
+      if (draft) setFormData((current) => ({ ...current, ...draft }));
+      setDraftLoaded(true);
+    });
+    return () => cancelAnimationFrame(frame);
   }, [user]);
 
   useEffect(() => {
@@ -709,9 +713,8 @@ export default function Course() {
             )}
             {formData.passport_photo && (
               <div className="passport-preview">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={formData.passport_photo}
+                <PassportPhoto
+                  value={formData.passport_photo}
                   alt="Passport Preview"
                   className="passport-image"
                 />

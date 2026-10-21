@@ -16,6 +16,12 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(parseInt(searchParams.get('limit') || '20', 10), 50);
   const page = parseInt(searchParams.get('page') || '1', 10);
 
+  if (!Number.isSafeInteger(page) || page < 1 || page > 10000 || !Number.isSafeInteger(limit) || limit < 1 ||
+    [minPrice,maxPrice].some(value => value !== undefined && (!Number.isFinite(value) || value < 0)) ||
+    (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice)) {
+    return NextResponse.json({error:'Invalid search filters or page.'}, {status:400});
+  }
+  if (query && query.length > 200) return NextResponse.json({error:'Search query is too long.'}, {status:400});
   // Validate query
   if (!query || query.length < 2) {
     return NextResponse.json(
@@ -34,7 +40,7 @@ export async function GET(req: NextRequest) {
         rating, reviews, created_at,
         product_images(url, position, alt_text),
         product_categories!inner(categories!inner(id, name, slug))
-      `
+      `, { count: 'exact' }
       )
       .eq('is_active', true)
       .textSearch('search_vector', query, {

@@ -13,6 +13,7 @@ import { authReturnPath, withAuthReturn, CHECKOUT_SIGN_IN } from '../src/lib/aut
 const userId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 const productId='11111111-1111-4111-8111-111111111111';
 const attemptId='22222222-2222-4222-8222-222222222222';
+const tokenFor = label => 'header.'+Buffer.from(JSON.stringify({session_id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc',label})).toString('base64url')+'.signature';
 const origin='https://elegantstyle.com.ng';
 const body={attemptId,items:[{productId,quantity:3,size:'M'}],customer:{name:'Test Customer',email:'customer@example.invalid',phone:'08012345678'},delivery:{method:'pickup'}};
 
@@ -20,7 +21,7 @@ async function setup({ confirmed=true, active=true, anonymous=false }={}) {
   const orders=[],providerCalls=[],reads=[];
   const user={id:userId,email:'customer@example.invalid',email_confirmed_at:confirmed?'2026-10-21':null,is_anonymous:anonymous};
   const db={
-    auth:{getUser:async token=>({data:{user:token==='valid'?user:token==='other'?{...user,id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'}:null},error:!['valid','other'].includes(token)?{message:'Invalid session'}:null})},
+    auth:{getUser:async token=>({data:{user:token===tokenFor('valid')?user:token===tokenFor('other')?{...user,id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'}:null},error:![tokenFor('valid'),tokenFor('other')].includes(token)?{message:'Invalid session'}:null})},
     rpc:async()=>({data:true}),
     from(table){
       reads.push(table);let inserted,patch;const filters=[];
@@ -47,7 +48,7 @@ async function setup({ confirmed=true, active=true, anonymous=false }={}) {
   deps['@/lib/accountServer']={requireActiveAccount:accountModule.namespace.requireActiveAccount};
   const routeModule=new vm.SourceTextModule(await readFile(new URL('../src/app/api/checkout/route.js',import.meta.url),'utf8'),{context});
   await routeModule.link(synthetic);await routeModule.evaluate();
-  const request=(token='valid',value=body)=>new Request(`${origin}/api/checkout`,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',...(token?{Authorization:`Bearer ${token}`}:{})},body:JSON.stringify(value)});
+  const request=(token='valid',value=body)=>new Request(`${origin}/api/checkout`,{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',...(token?{Authorization:`Bearer ${tokenFor(token)}`}:{})},body:JSON.stringify(value)});
   return {POST:routeModule.namespace.POST,request,orders,providerCalls,reads};
 }
 

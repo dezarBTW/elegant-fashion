@@ -16,6 +16,7 @@ const formatMoney = (minor) => `₦${(minor / 100).toLocaleString("en-NG", { min
 export default function Checkout() {
   const router = useRouter();
   const attemptId = useRef(null);
+  const pendingCheckout = useRef(null);
   const attemptedCart = useRef(null);
   const { items: cart, openCart } = useCart();
   const { user, loading: authLoading } = useAuth();
@@ -31,6 +32,8 @@ export default function Checkout() {
   const [cancelled, setCancelled] = useState(false);
   const [customer, setCustomer] = useState({ name: "", email: "", phone: "" });
   const [delivery, setDelivery] = useState({ method: "pickup", address: "", city: "", state: "" });
+
+  useEffect(() => () => { pendingCheckout.current?.abort(); }, [signedIn, user?.id]);
 
   useEffect(() => {
     if (!authLoading && !signedIn) router.replace(CHECKOUT_SIGN_IN);
@@ -90,11 +93,15 @@ export default function Checkout() {
       const snapshot = JSON.stringify(priced.lines.map(({ productId, quantity, size }) => ({ productId, quantity, size })));
       if (attemptedCart.current !== snapshot) { attemptId.current = null; attemptedCart.current = snapshot; }
       attemptId.current ||= crypto.randomUUID();
+      const controller = new AbortController();
+      pendingCheckout.current = controller;
       const response = await fetch("/api/checkout", {
+        signal: controller.signal,
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.session.access_token}` },
         body: JSON.stringify({ attemptId: attemptId.current, items: priced.lines.map(({ productId, quantity, size }) => ({ productId, quantity, size })), customer, delivery }),
       });
       const result = await response.json();
+      if (controller.signal.aborted) return;
       if (response.status === 401) {
         await supabase.auth.signOut({ scope: "local" }).catch(() => {});
         router.replace(CHECKOUT_SIGN_IN);
@@ -108,7 +115,7 @@ export default function Checkout() {
       if (result.paid) { router.push(`/checkout/success?order_id=${result.orderId}`); return; }
       try { sessionStorage.setItem("es_pending_order", result.orderId); } catch { /* Receipt remains available after the provider redirect. */ }
       window.location.assign(result.checkoutUrl);
-    } catch (err) { setError(err.message || "Connection lost. Try again to resume this checkout."); }
+    } catch (err) { if (err.name !== 'AbortError') setError(err.message || "Connection lost. Try again to resume this checkout."); }
     finally { setSubmitting(false); }
   };
   const shipping = deliveryFeeMinor(delivery.method);

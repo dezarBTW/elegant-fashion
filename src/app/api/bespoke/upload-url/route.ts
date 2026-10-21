@@ -53,49 +53,21 @@ function getClientIp(request: NextRequest) {
 }
 
 async function isRateLimited(request: NextRequest) {
-  const ip = getClientIp(request);
-  const hash = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(`${ip}:bespoke-upload`),
-  );
-  const ipHash = Array.from(new Uint8Array(hash))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-
-  try {
-    const supabaseAdmin = getSupabaseAdmin();
-    const { data, error } = await supabaseAdmin.rpc(
-      "consume_bespoke_request_rate_limit",
-      { p_ip_hash: ipHash },
-    );
-    if (error) {
-      console.warn("Falling back to in-memory rate limit for bespoke uploads:", error.message);
-      return false;
-    }
-    return data === false;
-  } catch (error) {
-    console.warn("Supabase rate limit not available; using in-memory fallback.", error);
-  }
-
-  const now = Date.now();
-  const existing = inMemoryRateLimit.get(ipHash);
-  if (!existing || existing.resetAt <= now) {
-    inMemoryRateLimit.set(ipHash, { count: 1, resetAt: now + 60 * 60 * 1000 });
-    return false;
-  }
-
-  if (existing.count >= 5) {
-    return true;
-  }
-
-  existing.count += 1;
-  inMemoryRateLimit.set(ipHash, existing);
-  return false;
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(getClientIp(request) + ':bespoke-upload'));
+  const ipHash = Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+  const { data, error } = await getSupabaseAdmin().rpc('consume_bespoke_request_rate_limit', { p_ip_hash: ipHash });
+  if (error || typeof data !== 'boolean') throw new Error('Upload rate limiter unavailable');
+  return !data;
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body: unknown = await request.json();
+    if (request.headers.get('origin') !== new URL(request.url).origin) return NextResponse.json({error:'Invalid request origin.'}, {status:403});
+    const raw = await request.text();
+    if (raw.length > 16000) return NextResponse.json({error:'Request is too large.'}, {status:413});
+    let body: unknown;
+    try { body = JSON.parse(raw); } catch { return NextResponse.json({error:'Invalid request body.'}, {status:400}); }
+    if (await isRateLimited(request)) return NextResponse.json({error:'Too many image upload requests. Please try again in an hour.'}, {status:429});
 
     const legacyRequest = legacyRequestSchema.safeParse(body);
     if (legacyRequest.success) {
@@ -211,7 +183,7 @@ export async function POST(request: NextRequest) {
     console.error("Bespoke signed upload URL error:", error);
     return NextResponse.json(
       { error: "Could not prepare your images. Please try again." },
-      { status: 500 },
+      { status: 503 },
     );
   }
 }

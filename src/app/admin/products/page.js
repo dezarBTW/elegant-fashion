@@ -85,9 +85,9 @@ export default function ProductsAdmin() {
   };
 
   useEffect(() => {
-    if (isAdmin) {
-      fetchProducts();
-    }
+    if (!isAdmin) return;
+    const frame = requestAnimationFrame(() => fetchProducts());
+    return () => cancelAnimationFrame(frame);
   }, [submitted, isAdmin]);
 
   const handleSubmit = async (e) => {

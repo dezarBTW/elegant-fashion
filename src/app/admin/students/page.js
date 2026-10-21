@@ -1,4 +1,5 @@
 "use client";
+import PassportPhoto from "@/components/PassportPhoto";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
@@ -60,7 +61,9 @@ export default function StudentApplications() {
   }, []);
 
   useEffect(() => {
-    if (isAdmin) loadStudents();
+    if (!isAdmin) return;
+    const frame = requestAnimationFrame(() => loadStudents());
+    return () => cancelAnimationFrame(frame);
   }, [isAdmin, loadStudents]);
 
   useEffect(() => {
@@ -265,8 +268,7 @@ export default function StudentApplications() {
 
             <div className={styles.detailLayout}>
               {selected.passport_photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={selected.passport_photo} alt={`Passport photo of ${fullName(selected)}`} className={styles.passport} />
+                <PassportPhoto value={selected.passport_photo} alt={`Passport photo of ${fullName(selected)}`} className={styles.passport} />
               ) : (
                 <div className={styles.noPassport}>No passport photo</div>
               )}

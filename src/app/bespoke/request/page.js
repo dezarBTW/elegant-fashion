@@ -121,7 +121,7 @@ export default function BespokeRequestPage() {
   const [submitStage, setSubmitStage] = useState("");
   const fileInputRef = useRef(null);
   const imagesRef = useRef(images);
-  imagesRef.current = images;
+  useEffect(() => { imagesRef.current = images; }, [images]);
 
   useEffect(
     () => () => {

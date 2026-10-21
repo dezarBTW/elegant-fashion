@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { imagePath } from '@/lib/imagePath.mjs';
 import Link from 'next/link';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -46,7 +47,7 @@ export default function CartContents({ onNavigate }) {
       {loading ? <p role="status">Loading your cart…</p> : !lines.length ? <p>Your cart is empty. <Link href="/ready-to-wear" onClick={onNavigate}>Browse products</Link>.</p> : lines.map((item, index) => {
         const sizes = item.product ? availableSizes(item.product) : [];
         return <article className={styles.item} key={`${item.id}:${index}`}>
-          <div>{item.product?.image && <Link href={productHref(item.product)} onClick={onNavigate}><Image src={item.product.image} alt={item.product.name} width={72} height={96} /></Link>}</div>
+          <div>{item.product?.image && <Link href={productHref(item.product)} onClick={onNavigate}><Image src={imagePath(item.product.image)} alt={item.product.name} width={72} height={96} /></Link>}</div>
           <div><h3>{item.product ? <Link href={productHref(item.product)} onClick={onNavigate}>{item.product.name}</Link> : 'Unavailable product'}</h3>
             {item.product && <>
               <p>₦{productPrice(item.product).toLocaleString('en-NG')} each</p>
