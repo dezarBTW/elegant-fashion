@@ -1,5 +1,6 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useAdminList } from '@/hooks/useAdminList';
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { consumeRateLimit, formatRetryMessage } from "@/lib/sanitizeInput";
@@ -18,80 +19,33 @@ const badgeClass = (status) => {
 // they are shown through short-lived signed links that only admins are allowed to create.
 export default function BespokeRequests() {
   const { user, isAdmin } = useAuth();
-  const [requests, setRequests] = useState([]);
   const [imageUrls, setImageUrls] = useState({});
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [photoError, setPhotoError] = useState('');
   const [tab, setTab] = useState("all");
   const [search, setSearch] = useState("");
   const [busyId, setBusyId] = useState(null);
-
-  const loadRequests = useCallback(async () => {
-    const { data, error: fetchError } = await supabase
-      .from("bespoke_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (fetchError) {
-      console.error("Could not load bespoke requests:", fetchError);
-      setError("Could not load bespoke requests. Please refresh the page.");
-      setLoading(false);
-      return;
-    }
-
-    setError("");
-    const rows = data || [];
-    setRequests(rows);
-    setLoading(false);
-
-    const paths = rows.flatMap((row) => row.image_paths || []);
-    if (paths.length === 0) {
-      setImageUrls({});
-      return;
-    }
-
-    const { data: signed, error: signError } = await supabase.storage
-      .from(BUCKET)
-      .createSignedUrls(paths, SIGNED_URL_SECONDS);
-
-    if (signError) {
-      console.error("Could not create photo links:", signError);
-      return;
-    }
-
-    const urls = {};
-    (signed || []).forEach((item) => {
-      if (item.path && item.signedUrl) urls[item.path] = item.signedUrl;
-    });
-    setImageUrls(urls);
-  }, []);
+  const [page, setPage] = useState(1);
+  const [version, setVersion] = useState(0);
+  const { rows: requests, loading, counts, total, error: loadError } = useAdminList('bespoke', isAdmin, { page, status: tab, search, version, onPage: setPage });
 
   useEffect(() => {
-    if (!isAdmin) return;
-    const timer = setTimeout(loadRequests, 0);
-    return () => clearTimeout(timer);
-  }, [isAdmin, loadRequests]);
-
-  const counts = useMemo(() => {
-    const result = { all: requests.length };
-    BESPOKE_STATUSES.forEach((status) => {
-      result[status.key] = 0;
-    });
-    requests.forEach((request) => {
-      if (result[request.status] !== undefined) result[request.status] += 1;
-    });
-    return result;
-  }, [requests]);
-
-  const visible = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return requests.filter((request) => {
-      if (tab !== "all" && request.status !== tab) return false;
-      if (!term) return true;
-      const haystack = `${request.name || ""} ${request.phone || ""} ${request.description || ""}`.toLowerCase();
-      return haystack.includes(term);
-    });
-  }, [requests, tab, search]);
+    if (!isAdmin || loading) return;
+    let current = true;
+    const sign = async () => {
+      setImageUrls({});
+      setPhotoError('');
+      const paths = [...new Set(requests.flatMap(row => row.image_paths || []))];
+      if (!paths.length) return;
+      try {
+        const {data,error} = await supabase.storage.from(BUCKET).createSignedUrls(paths,SIGNED_URL_SECONDS);
+        if (error) throw error;
+        if (current) setImageUrls(Object.fromEntries((data || []).filter(item => item.path && item.signedUrl).map(item => [item.path,item.signedUrl])));
+      } catch { if (current) setPhotoError('Unable to load reference photos. Refresh to try again.'); }
+    };
+    sign();
+    return () => { current = false; };
+  }, [isAdmin, loading, requests]);
 
   const updateStatus = async (request, nextStatus) => {
     if (!user || busyId || request.status === nextStatus) return;
@@ -118,9 +72,7 @@ export default function BespokeRequests() {
       return;
     }
 
-    setRequests((current) =>
-      current.map((item) => (item.id === request.id ? { ...item, status: nextStatus } : item)),
-    );
+    setVersion(current => current + 1);
   };
 
   const deleteRequest = async (request) => {
@@ -151,7 +103,7 @@ export default function BespokeRequests() {
     }
 
     // The database queues the request's photos for removal from storage automatically.
-    setRequests((current) => current.filter((item) => item.id !== request.id));
+    setVersion(current => current + 1);
   };
 
   if (!isAdmin) return null;
@@ -165,12 +117,12 @@ export default function BespokeRequests() {
           <h1 className={styles.pageTitle}>Bespoke requests</h1>
           <p className={styles.pageSub}>Outfit requests from customers. Track each one from first contact to delivery.</p>
         </div>
-        <button type="button" className={styles.btn} onClick={loadRequests}>
+        <button type="button" className={styles.btn} onClick={() => { setError(''); setVersion(current => current + 1); }} disabled={loading}>
           Refresh
         </button>
       </div>
 
-      {error && <div className={styles.error} role="alert">{error}</div>}
+      {(error || loadError || photoError) && <div className={styles.error} role="alert">{error || loadError || photoError}</div>}
 
       <div className={styles.tabs} role="tablist" aria-label="Request status">
         {tabs.map((item) => (
@@ -180,7 +132,7 @@ export default function BespokeRequests() {
             role="tab"
             aria-selected={tab === item.key}
             className={`${styles.tab} ${tab === item.key ? styles.tabActive : ""}`}
-            onClick={() => setTab(item.key)}
+            onClick={() => { setTab(item.key); setPage(1); }}
           >
             {item.label} ({counts[item.key] ?? 0})
           </button>
@@ -190,23 +142,24 @@ export default function BespokeRequests() {
       <div className={styles.toolbar}>
         <input
           type="search"
+          maxLength={200}
           className={styles.search}
           placeholder="Search by name, phone or description"
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => { setSearch(event.target.value); setPage(1); }}
           aria-label="Search requests"
         />
       </div>
 
       {loading ? (
         <div className={styles.empty} role="status">Loading requests...</div>
-      ) : visible.length === 0 ? (
+      ) : loadError ? null : requests.length === 0 ? (
         <div className={styles.empty}>
           {search || tab !== "all" ? "No requests match this view." : "No bespoke requests yet."}
         </div>
       ) : (
         <div className={styles.list}>
-          {visible.map((request) => {
+          {requests.map((request) => {
             const whatsApp = toWhatsAppUrl(request.phone);
             const busy = busyId === request.id;
             const photos = (request.image_paths || []).filter((path) => imageUrls[path]);
@@ -279,6 +232,11 @@ export default function BespokeRequests() {
           })}
         </div>
       )}
+      {total > 15 && <nav className={styles.actions} aria-label="Bespoke pages">
+        <button className={styles.btn} disabled={loading || page === 1} onClick={() => { setPage(page - 1); window.scrollTo({top:0,behavior:'auto'}); }}>Previous</button>
+        <span>Page {page} of {Math.ceil(total / 15)}</span>
+        <button className={styles.btn} disabled={loading || page * 15 >= total} onClick={() => { setPage(page + 1); window.scrollTo({top:0,behavior:'auto'}); }}>Next</button>
+      </nav>}
     </>
   );
 }

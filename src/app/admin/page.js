@@ -5,14 +5,6 @@ import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 import styles from "./adminShell.module.css";
 
-async function countRows(table, applyFilter) {
-  let query = supabase.from(table).select("id", { count: "exact", head: true });
-  if (applyFilter) query = applyFilter(query);
-  const { count, error } = await query;
-  if (error) throw error;
-  return count ?? 0;
-}
-
 // Landing page of the admin area: a quick count of what needs attention.
 export default function AdminOverview() {
   const { isAdmin } = useAuth();
@@ -25,16 +17,11 @@ export default function AdminOverview() {
 
     const loadStats = async () => {
       try {
-        const [products, pendingStudents, acceptedStudents, newBespoke, totalBespoke] = await Promise.all([
-          countRows("products"),
-          countRows("students", (query) => query.eq("status", "pending")),
-          countRows("students", (query) => query.eq("status", "accepted")),
-          countRows("bespoke_requests", (query) => query.eq("status", "new")),
-          countRows("bespoke_requests"),
-        ]);
+        const { data, error } = await supabase.rpc('get_admin_overview');
+        if (error) throw error;
 
         if (active) {
-          setStats({ products, pendingStudents, acceptedStudents, newBespoke, totalBespoke });
+          setStats(data);
         }
       } catch (err) {
         console.error("Could not load admin overview:", err);

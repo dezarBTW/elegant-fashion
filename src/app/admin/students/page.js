@@ -1,7 +1,7 @@
 "use client";
 import PassportPhoto from "@/components/PassportPhoto";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { useEffect, useState } from "react";
+import { useAdminList } from '@/hooks/useAdminList';
 import { useAuth } from "@/contexts/AuthContext";
 import { consumeRateLimit, formatRetryMessage } from "@/lib/sanitizeInput";
 import { formatDate, formatDateTime, getProgrammePrice, getStudentStatus, toWhatsAppUrl } from "../adminUtils";
@@ -27,44 +27,23 @@ const fullName = (student) =>
 // the students table (enforced by row-level security in the database).
 export default function StudentApplications() {
   const { user, isAdmin } = useAuth();
-  const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [tab, setTab] = useState("pending");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
   const [busyId, setBusyId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [version, setVersion] = useState(0);
+  const { rows: students, loading, counts, total, error: loadError } = useAdminList('students', isAdmin, { page, status: tab, search, version, onPage: setPage });
 
   // Old links like /course/accepted-students send people here with ?tab=accepted.
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("tab");
     if (TABS.some((item) => item.key === requested)) {
-      const frame = requestAnimationFrame(() => setTab(requested));
+      const frame = requestAnimationFrame(() => { setTab(requested); setPage(1); });
       return () => cancelAnimationFrame(frame);
     }
   }, []);
-
-  const loadStudents = useCallback(async () => {
-    const { data, error: fetchError } = await supabase
-      .from("students")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (fetchError) {
-      console.error("Could not load students:", fetchError);
-      setError("Could not load student applications. Please refresh the page.");
-    } else {
-      setStudents(data || []);
-      setError("");
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    if (!isAdmin) return;
-    const frame = requestAnimationFrame(() => loadStudents());
-    return () => cancelAnimationFrame(frame);
-  }, [isAdmin, loadStudents]);
 
   useEffect(() => {
     if (!selected) return undefined;
@@ -74,25 +53,6 @@ export default function StudentApplications() {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [selected]);
-
-  const counts = useMemo(() => {
-    const result = { all: students.length, pending: 0, accepted: 0, declined: 0 };
-    students.forEach((student) => {
-      const status = getStudentStatus(student);
-      if (result[status] !== undefined) result[status] += 1;
-    });
-    return result;
-  }, [students]);
-
-  const visible = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return students.filter((student) => {
-      if (tab !== "all" && getStudentStatus(student) !== tab) return false;
-      if (!term) return true;
-      const haystack = `${fullName(student)} ${student.email || ""} ${student.telephone || ""}`.toLowerCase();
-      return haystack.includes(term);
-    });
-  }, [students, tab, search]);
 
   const updateStatus = async (student, nextStatus) => {
     if (!user || busyId) return;
@@ -112,7 +72,7 @@ export default function StudentApplications() {
 
     try {
       const result = await authenticatedFetch("/api/admin/students", { method: "PATCH", body: JSON.stringify({ id: student.id, status: nextStatus }) });
-      setStudents((current) => current.map((item) => item.id === student.id ? result.student : item));
+      setVersion(current => current + 1);
       setSelected((current) => current?.id === student.id ? result.student : current);
     } catch (error) { setError(error.message || "Could not update this application."); }
     finally { setBusyId(null); }
@@ -157,7 +117,7 @@ export default function StudentApplications() {
     setBusyId(student.id); setError("");
     try {
       const result = await authenticatedFetch("/api/admin/students", { method: "POST", body: JSON.stringify({ id: student.id }) });
-      setStudents(current => current.map(item => item.id === student.id ? result.student : item));
+      setVersion(current => current + 1);
       setSelected(current => current?.id === student.id ? result.student : current);
     } catch (error) { setError(error.message); }
     finally { setBusyId(null); }
@@ -177,7 +137,7 @@ export default function StudentApplications() {
         </div>
       </div>
 
-      {error && <div className={styles.error} role="alert">{error}</div>}
+      {(error || loadError) && <div className={styles.error} role="alert">{error || loadError}</div>}
 
       <div className={styles.tabs} role="tablist" aria-label="Application status">
         {TABS.map((item) => (
@@ -187,9 +147,9 @@ export default function StudentApplications() {
             role="tab"
             aria-selected={tab === item.key}
             className={`${styles.tab} ${tab === item.key ? styles.tabActive : ""}`}
-            onClick={() => setTab(item.key)}
+            onClick={() => { setTab(item.key); setPage(1); }}
           >
-            {item.label} ({counts[item.key]})
+            {item.label} ({counts[item.key] ?? 0})
           </button>
         ))}
       </div>
@@ -197,23 +157,24 @@ export default function StudentApplications() {
       <div className={styles.toolbar}>
         <input
           type="search"
+          maxLength={200}
           className={styles.search}
           placeholder="Search by name, email or phone"
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={(event) => { setSearch(event.target.value); setPage(1); }}
           aria-label="Search applications"
         />
       </div>
 
       {loading ? (
         <div className={styles.empty} role="status">Loading applications...</div>
-      ) : visible.length === 0 ? (
+      ) : loadError ? null : students.length === 0 ? (
         <div className={styles.empty}>
           {search ? "No applications match your search." : "No applications in this list."}
         </div>
       ) : (
         <div className={styles.list}>
-          {visible.map((student) => {
+          {students.map((student) => {
             const status = getStudentStatus(student);
             return (
               <article key={student.id} className={styles.card}>
@@ -243,6 +204,12 @@ export default function StudentApplications() {
           })}
         </div>
       )}
+
+      {total > 25 && <nav className={styles.actions} aria-label="Student pages">
+        <button className={styles.btn} disabled={loading || page === 1} onClick={() => { setPage(page - 1); window.scrollTo({top:0,behavior:'auto'}); }}>Previous</button>
+        <span>Page {page} of {Math.ceil(total / 25)}</span>
+        <button className={styles.btn} disabled={loading || page * 25 >= total} onClick={() => { setPage(page + 1); window.scrollTo({top:0,behavior:'auto'}); }}>Next</button>
+      </nav>}
 
       {selected && (
         <div className={styles.modalOverlay} role="presentation" onClick={() => setSelected(null)}>

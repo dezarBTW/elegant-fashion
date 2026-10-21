@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { authenticatedFetch } from '@/lib/clientApi';
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,8 +13,21 @@ export default function AccountShell({ children }) {
   const { user, loading, isAdmin } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const identity = user ? `${user.id}:${user.email}` : '';
+  const [link, setLink] = useState({ identity: '', error: '' });
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    if (loading || !identity) return;
+    const controller = new AbortController();
+    authenticatedFetch('/api/account/link-orders', { method: 'POST', signal: controller.signal })
+      .then(() => { if (!controller.signal.aborted) setLink({ identity, error: '' }); })
+      .catch(error => { if (!controller.signal.aborted) setLink({ identity, error: error.message }); });
+    return () => controller.abort();
+  }, [loading, identity, retry]);
   useEffect(() => { if (!loading && !user) router.replace("/sign-in"); }, [user, loading, router]);
   if (loading || !user) return <div className={styles.centerBox} role="status">{loading ? "Loading your account…" : "Redirecting to sign in…"}</div>;
+  if (link.identity !== identity) return <div className={styles.centerBox} role="status">Loading your account…</div>;
+  if (link.error) return <div className={styles.centerBox}><p role="alert">{link.error}</p><button className={styles.btn} onClick={() => setRetry(value => value + 1)}>Try again</button></div>;
   return <div className={styles.shell}><div className={styles.inner}>
     <nav className={styles.sidebar} aria-label="Account sections">
       <span className={styles.sideTitle}>My account</span>

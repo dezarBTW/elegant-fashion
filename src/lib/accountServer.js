@@ -31,9 +31,8 @@ export async function readAccountBody(request, schema, maxLength = 16000) {
 }
 
 export async function claimAccountOrders(db, user) {
-  // Only a server-verified, confirmed email can claim an unassigned guest order.
-  const { error } = await db.from("shop_orders").update({ user_id: user.id })
-    .is("user_id", null).eq("customer_email", user.email.toLowerCase());
+  // Service-only RPC validates the verified email and records a one-time claim.
+  const { error } = await db.rpc('link_legacy_account_orders', { p_user_id: user.id, p_email: user.email.toLowerCase() });
   if (error) throw error;
 }
 

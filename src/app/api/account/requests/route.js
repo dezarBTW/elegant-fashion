@@ -1,5 +1,5 @@
 import { after, NextResponse } from "next/server";
-import { claimAccountOrders, readAccountBody, requireActiveAccount } from "@/lib/accountServer";
+import { readAccountBody, requireActiveAccount } from "@/lib/accountServer";
 import { requestQuerySchema, requestSchema, REQUEST_TABLES } from "@/lib/accountContracts.mjs";
 import { notifySupportRequest } from "@/lib/supportEmails.mjs";
 import { OrderRequestError } from "@/lib/orderManagement.mjs";
@@ -31,7 +31,6 @@ export async function POST(request) {
     const { data: allowed, error: limitError } = await db.rpc("consume_account_action_limit", { p_user_id: user.id, p_action: input.kind });
     if (limitError) throw limitError;
     if (!allowed) throw new OrderRequestError("Too many requests. Please wait an hour before submitting another.", 429);
-    await claimAccountOrders(db, user);
     const { data: order, error: orderError } = await db.from("shop_orders").select("id,items,customer_email,user_id,payment_status").eq("id", input.orderId).eq("user_id", user.id).maybeSingle();
     if (orderError) throw orderError;
     const item = order?.items?.find((line) => line.productId === input.productId);

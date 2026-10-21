@@ -62,7 +62,7 @@ export default function AccountOrders() {
 
   return <>
     <div className={styles.pageHeader}><div><h1 className={styles.pageTitle}>My orders</h1><p className={styles.pageSub}>Your paid ready-to-wear purchases and order progress.</p></div></div>
-    <p className={account.hint}>Orders are matched to your verified account email. Guest checkout still works. <Link href="/account/requests">View refunds & complaints</Link>.</p>
+    <p className={account.hint}>Your purchases are linked to your verified account email. <Link href="/account/requests">View refunds & complaints</Link>.</p>
     {error && <p className={styles.error} role="alert">{error}</p>}
     {message && <p className={account.success} role="status">{message} <Link href="/checkout">Go to checkout</Link></p>}
     {loading ? <p role="status">Loading your orders…</p> : !orders.length ? <p className={styles.empty}>No paid orders match this account email yet. <Link href="/ready-to-wear">Visit the shop</Link>.</p> : <div className={account.stack}>

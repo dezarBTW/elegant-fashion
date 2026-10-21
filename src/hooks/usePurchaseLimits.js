@@ -1,15 +1,25 @@
 'use client';
-import {useCallback,useEffect,useState} from 'react';
-import {supabase} from '@/lib/supabaseClient';
-export function usePurchaseLimits(ids){
- const [state,setState]=useState({ids:'',limits:{},error:''});
- const refresh=useCallback(async()=>{
-  try{
-   const keys=ids?ids.split(','):[];const limits={};
-   for(let i=0;i<keys.length;i+=50){const {data,error}=await supabase.rpc('get_size_purchase_limits',{p_product_ids:keys.slice(i,i+50)});if(error)throw error;for(const row of data||[])limits[row.product_id]=row.purchase_limits;}
-   setState({ids,limits,error:''});return limits;
-  }catch{setState({ids,limits:{},error:'Unable to check availability. Please try again.'});throw new Error('Unable to check availability. Please try again.');}
- },[ids]);
- useEffect(()=>{const update=()=>refresh().catch(()=>{});update();const timer=setInterval(update,15000);window.addEventListener('focus',update);return()=>{clearInterval(timer);window.removeEventListener('focus',update);};},[refresh]);
- return {limits:state.ids===ids?state.limits:{},error:state.ids===ids?state.error:'',loaded:state.ids===ids,refresh};
+import { useCallback, useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+import { createPurchaseLimitStore } from '@/lib/purchaseLimitStore.mjs';
+
+const store = createPurchaseLimitStore({
+  async fetchLimits(ids) {
+    const { data, error } = await supabase.rpc('get_size_purchase_limits', { p_product_ids: ids }).abortSignal(AbortSignal.timeout(10000));
+    if (error) throw error;
+    return Object.fromEntries((data || []).map(row => [row.product_id, row.purchase_limits]));
+  },
+  isVisible: () => typeof document !== 'undefined' && !document.hidden,
+  listen(callback) {
+    window.addEventListener('focus', callback);
+    document.addEventListener('visibilitychange', callback);
+    return () => { window.removeEventListener('focus', callback); document.removeEventListener('visibilitychange', callback); };
+  },
+});
+
+export function usePurchaseLimits(ids) {
+  const [state, setState] = useState({ ids: '', limits: {}, error: '', loaded: false });
+  useEffect(() => store.subscribe(ids ? ids.split(',') : [], snapshot => setState({ ids, ...snapshot })), [ids]);
+  const refresh = useCallback(() => store.refresh(ids ? ids.split(',') : []), [ids]);
+  return { limits: state.ids === ids ? state.limits : {}, error: state.ids === ids ? state.error : '', loaded: state.ids === ids && state.loaded, refresh };
 }

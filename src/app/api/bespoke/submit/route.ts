@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { after, NextRequest, NextResponse } from "next/server";
+import { verifyBespokeImages } from '@/lib/bespokeImages.mjs';
 import { z } from "zod";
 import { ADMIN_NOTIFY_EMAIL } from "@/lib/orderEmails.mjs";
 
@@ -94,24 +95,21 @@ async function sendNotificationEmail(data: {
   const supabaseAdmin = getSupabaseAdmin();
   const attachments: { filename: string; content: string }[] = [];
   const imageLinks: { filename: string; url: string }[] = [];
+  const { data: signedImages, error: signError } = data.imagePaths.length
+    ? await supabaseAdmin.storage.from(BUCKET_NAME).createSignedUrls(data.imagePaths, 7 * 24 * 60 * 60)
+    : { data: [], error: null };
+  if (signError) console.error('Could not sign bespoke reference links', signError.message);
+  const signedByPath = new Map((signedImages || []).map(item => [item.path, item.signedUrl]));
 
   const imageResults = await Promise.all(
     data.imagePaths.map(async (path) => {
       const fileName = path.split("/").pop() || "reference-image";
       let link: { filename: string; url: string } | null = null;
       try {
-        const { data: signedData, error: signedError } =
-          await supabaseAdmin.storage
-            .from(BUCKET_NAME)
-            .createSignedUrl(path, 7 * 24 * 60 * 60);
-        if (signedError || !signedData?.signedUrl) {
-          throw new Error(
-            signedError?.message || `Could not sign image link for ${path}`,
-          );
-        }
-
-        link = { filename: fileName, url: signedData.signedUrl };
-        const imageResponse = await fetch(signedData.signedUrl, {
+        const signedUrl = signedByPath.get(path);
+        if (!signedUrl) throw new Error(`Could not sign image link for ${path}`);
+        link = { filename: fileName, url: signedUrl };
+        const imageResponse = await fetch(signedUrl, {
           signal: AbortSignal.timeout(12000),
         });
         if (!imageResponse.ok) {
@@ -288,23 +286,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    for (const path of parsed.data.imagePaths) {
-      const fileName = path.split("/").pop();
-      const { data: storedFiles, error: storageError } =
-        await supabaseAdmin.storage.from(BUCKET_NAME).list("requests", {
-          limit: 100,
-          search: fileName,
-        });
-
-      if (storageError) {
-        throw new Error(`Could not verify an uploaded image: ${storageError.message}`);
-      }
-      if (!storedFiles?.some((file) => file.name === fileName)) {
-        return NextResponse.json(
-          { error: "One of your reference images could not be found. Please upload it again." },
-          { status: 400 },
-        );
-      }
+    if (!await verifyBespokeImages(supabaseAdmin, BUCKET_NAME, parsed.data.imagePaths)) {
+      return NextResponse.json(
+        { error: "One of your reference images could not be found. Please upload it again." },
+        { status: 400 },
+      );
     }
 
     const { name, phone, description, imagePaths } = parsed.data;

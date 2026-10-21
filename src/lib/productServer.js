@@ -1,6 +1,5 @@
 import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { recommendProducts } from './products.mjs';
 
 function catalogDatabase() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -16,7 +15,7 @@ export const getPublicProduct = cache(async slug => {
 
 export async function getRecommendations(product) {
   if (!product.category) return [];
-  const { data, error } = await catalogDatabase().from('products').select('*').eq('is_active', true).eq('category', product.category).neq('id', product.id).order('created_at', { ascending: false }).limit(100);
+  const { data, error } = await catalogDatabase().rpc('get_similar_products', { p_product_id: product.id });
   if (error) { console.error('Product recommendations unavailable', error.code); return []; }
-  return recommendProducts(product, data || []);
+  return data || [];
 }
