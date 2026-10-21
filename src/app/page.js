@@ -101,7 +101,7 @@ export default function Home() {
               <div
                 key={slide.src}
                 className={`${styles.heroSlide} ${index === activeSlide ? styles.heroSlideActive : ""}`}
-                style={{ backgroundImage: `url(${slide.src})` }}
+                style={{ backgroundImage: `url("${slide.src}")` }}
                 role="img"
                 aria-label={slide.alt}
                 aria-hidden={index !== activeSlide}
