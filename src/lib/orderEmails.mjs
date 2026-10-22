@@ -2,6 +2,8 @@ import { PICKUP_ADDRESS } from "./checkout.mjs";
 import { SITE_URL } from "./seo.mjs";
 
 export const ADMIN_NOTIFY_EMAIL = "elegantyoufashion18@gmail.com";
+// Customers who hit Reply reach a real inbox; replies also help inbox placement.
+export const REPLY_TO_EMAIL = "elegantyoufashion18@gmail.com";
 
 export function escapeEmailHtml(value) {
   return String(value ?? "").replace(/[&<>"']/g, (character) => ({
@@ -29,7 +31,7 @@ export async function sendServiceEmail(message, { env = process.env, fetchImpl =
         const response = await fetchImpl("https://api.resend.com/emails", {
           method: "POST",
           headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json", "Idempotency-Key": idempotencyKey },
-          body: JSON.stringify({ from: env.RESEND_FROM_EMAIL, ...email, to: [email.to], subject: email.subject.replace(/[\r\n]/g, " ") }),
+          body: JSON.stringify({ from: env.RESEND_FROM_EMAIL, reply_to: REPLY_TO_EMAIL, ...email, to: [email.to], subject: email.subject.replace(/[\r\n]/g, " ") }),
           signal: AbortSignal.timeout(12000),
         });
         if (response.ok) return true;
@@ -116,8 +118,8 @@ export function buildOrderEmails(order, shopRecipient) {
     {
       kind: "customer", to: order.customer_email,
       subject: `Your Elegant Style receipt — ${reference}`,
-      html: wrap("Payment received", `<p>Hello ${safe(order.customer_name)},</p><p>Thank you. We have received payment for your order.</p>${details}<p>We will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710 and quote your order reference.</p><p>We will email you again when your order ${delivery.method === "pickup" ? "is ready for pickup" : "has shipped"}.</p>`),
-      text: `Hello ${order.customer_name},\nThank you. Your order is paid.\n${commonText}\nWe will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710. We will email you again when your order ${delivery.method === "pickup" ? "is ready for pickup" : "has shipped"}.`,
+      html: wrap("Payment received", `<p>Hello ${safe(order.customer_name)},</p><p>Thank you. We have received payment for your order.</p>${details}<p>We will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710 and quote your order reference.</p><p>We will email you again when your order ${delivery.method === "pickup" ? "is ready for pickup" : "has shipped"}. If you have any questions, just reply to this email.</p>`),
+      text: `Hello ${order.customer_name},\nThank you. Your order is paid.\n${commonText}\nWe will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710. We will email you again when your order ${delivery.method === "pickup" ? "is ready for pickup" : "has shipped"}. If you have any questions, just reply to this email.`,
     },
     {
       kind: "shop", to: shopRecipient,
@@ -144,7 +146,7 @@ export async function sendOrderEmails(order, { env = process.env, fetchImpl = fe
             "Content-Type": "application/json",
             "Idempotency-Key": `paid-order/${order.id}/${kind}`,
           },
-          body: JSON.stringify({ from: env.RESEND_FROM_EMAIL, to: [to], ...message }),
+          body: JSON.stringify({ from: env.RESEND_FROM_EMAIL, to: [to], ...(kind === "customer" ? { reply_to: REPLY_TO_EMAIL } : {}), ...message }),
           signal: AbortSignal.timeout(12000),
         });
         if (!response.ok) throw new Error(`Resend returned HTTP ${response.status}`);
