@@ -31,7 +31,8 @@ export async function readAccountBody(request, schema, maxLength = 16000) {
 }
 
 export async function claimAccountOrders(db, user) {
-  // Service-only RPC validates the verified email and records a one-time claim.
+  // Call only after requireActiveAccount: identity comes from verified Auth,
+  // never request JSON. The service-only RPC records a once-per-email claim.
   const { error } = await db.rpc('link_legacy_account_orders', { p_user_id: user.id, p_email: user.email.toLowerCase() });
   if (error) throw error;
 }

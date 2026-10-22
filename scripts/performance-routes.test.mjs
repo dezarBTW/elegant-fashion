@@ -6,7 +6,7 @@ import { readFile } from 'node:fs/promises';
 import { webcrypto } from 'node:crypto';
 import { z } from 'zod';
 import { verifyBespokeImages } from '../src/lib/bespokeImages.mjs';
-import { OrderRequestError } from '../src/lib/orderManagement.mjs';
+import { OrderRequestError, requireLiveSession } from '../src/lib/orderManagement.mjs';
 
 const origin='https://fixture.example.invalid';
 async function moduleAt(file,deps,extra={}){
@@ -45,4 +45,18 @@ test('account-link endpoint checks origin and authentication and returns clear f
  assert.equal((await m.POST(request('/api/account/link-orders',undefined,'https://other.invalid'))).status,403);
  assert.equal((await m.POST(request('/api/account/link-orders'))).status,401);assert.equal(calls,0);
  authenticated=true;assert.equal((await m.POST(request('/api/account/link-orders'))).status,200);assert.equal(calls,1);
+});
+
+test('linking takes identity only from verified Auth and rejects unverified, inactive and revoked accounts',async()=>{
+ const user={id:'11111111-1111-4111-8111-111111111111',email:'verified@example.invalid',email_confirmed_at:'2026-01-01',is_anonymous:false};
+ const token='h.'+Buffer.from(JSON.stringify({session_id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc'})).toString('base64url')+'.s';
+ let mode='valid',calls=[];
+ const db={auth:{getUser:async()=>({data:{user:{...user,email_confirmed_at:mode==='unverified'?null:user.email_confirmed_at,is_anonymous:mode==='anonymous'}},error:mode==='invalid'?{}:null})},
+  rpc:async(name,args)=>{if(name==='is_live_account_session')return {data:mode!=='revoked'};calls.push(args);return {data:0};},
+  from:()=>({select(){return this;},eq(){return this;},maybeSingle:async()=>({data:{is_active:mode!=='inactive'}})})};
+ const account=await moduleAt('src/lib/accountServer.js',{'@supabase/supabase-js':{createClient(){}},'./checkoutServer.js':{checkoutDatabase:()=>db},'./orderManagement.mjs':{OrderRequestError,requireLiveSession}});
+ const m=await moduleAt('src/app/api/account/link-orders/route.js',{'next/server':{NextResponse:Response},'@/lib/accountServer':{...account},'@/lib/orderManagement.mjs':{OrderRequestError}});
+ const req=()=>new Request(origin+'/api/account/link-orders',{method:'POST',headers:{Origin:origin,Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({p_user_id:'forged',p_email:'someone-else@example.invalid'})});
+ assert.equal((await m.POST(req())).status,200);assert.deepEqual(JSON.parse(JSON.stringify(calls)),[{p_user_id:user.id,p_email:user.email}]);
+ for(const [scenario,status]of[['unverified',401],['anonymous',401],['revoked',401],['inactive',403],['invalid',401]]){mode=scenario;const before=calls.length;assert.equal((await m.POST(req())).status,status);assert.equal(calls.length,before);}
 });

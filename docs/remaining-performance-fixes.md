@@ -19,12 +19,14 @@
   six card projections. Ranking keeps distinct-word overlap, price proximity and
   the featured bonus. Inactive/current products and products without approved
   sizes are excluded. Category normalization has a matching partial index.
-- Account entry links historical guest orders through an authenticated POST before
-  rendering account pages. A service-only RPC validates the verified email against
-  Auth, records a one-time account/email marker and updates only unassigned orders.
+- Order/refund sections link historical guest orders through an authenticated POST
+  before reading order data. The server verifies identity with Auth and checks the
+  live session; the service-only RPC records a one-time account/email marker and
+  updates only unassigned orders. It does not read the protected Auth tables.
   Order-history GETs and refund/complaint submissions no longer perform claims.
-  Linking failures show an error and retry control instead of silently hiding old
-  orders. Email changes can link a newly verified email once as well.
+  Linking failures stay inside the order section, with navigation and profile
+  settings available. The profile does not require linking. Email changes can
+  link a newly verified email once as well.
 - Dashboard metrics use one authorized RPC and one aggregate scan per source table,
   replacing five count requests. Four missing complaint/refund foreign-key indexes
   are added. Product listing indexes were already addressed in the previous fix.
@@ -53,3 +55,12 @@ Browser recovery tests passed for list, photo and account-link failures. Supabas
 performance advisors now report no missing foreign-key indexes, per-row auth
 InitPlan warnings or overlapping permissive-policy warnings. Private claim tracking
 has RLS and no browser grants/policies; its advisor information notice is expected.
+
+Account-link permission regression (22 October): hosted `service_role` cannot read
+`auth.users`. The server already verifies native Auth identity, confirmed email,
+session and active profile before invoking the service-only linking function. The
+function now uses that verified identity without broadening Auth-table access.
+Regression coverage reproduces the former failure under the actual role grants,
+checks repeat claims and rejects forged identity, revoked sessions and browser
+roles. All 117 tests, targeted lint, the production build and browser recovery
+checks passed. A rollback-only check also succeeded as the live service role.
