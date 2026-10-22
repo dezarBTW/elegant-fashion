@@ -145,7 +145,12 @@ export default function Course() {
     if (!user) return;
     const draft = getCachedValue(`registration-draft:${user.id}`);
     const frame = requestAnimationFrame(() => {
-      if (draft) setFormData((current) => ({ ...current, ...draft }));
+      // Pre-fill the email from the account; a saved draft or the user's own edit wins.
+      setFormData((current) => ({
+        ...current,
+        ...(draft || {}),
+        email: draft?.email || current.email || sanitizeEmail(user.email || ""),
+      }));
       setDraftLoaded(true);
     });
     return () => cancelAnimationFrame(frame);

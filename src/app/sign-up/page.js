@@ -64,7 +64,16 @@ function SignUpForm() {
                 }
             });
 
-            if (error) {
+            const alreadyRegistered =
+                error?.code === "user_already_exists" ||
+                /already (registered|been registered|exists)/i.test(error?.message || "") ||
+                // With email confirmation on, Supabase hides duplicates by returning a
+                // user with no identities instead of an error.
+                (!error && Array.isArray(data?.user?.identities) && data.user.identities.length === 0);
+
+            if (alreadyRegistered) {
+                setMessage("An account with this email already exists. Please sign in instead.");
+            } else if (error) {
                 console.error(error);
                 setMessage(error.message || "Error creating account");
             } else if (data?.session) {
@@ -144,8 +153,6 @@ function SignUpForm() {
     const safeEmailValue = sanitizeEmail(email);
     const isDisabled =
         loading ||
-        checkingEmail ||
-        !!emailMessage ||
         !safeEmailValue ||
         !password ||
         !confirmPassword;

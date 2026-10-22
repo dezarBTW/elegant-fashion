@@ -37,6 +37,12 @@ export default function Checkout() {
 
   useEffect(() => () => { pendingCheckout.current?.abort(); }, [signedIn, user?.id]);
 
+  // Pre-fill the email with the account's email; the customer can still change it.
+  useEffect(() => {
+    if (!signedIn || !user?.email) return;
+    setCustomer((current) => (current.email ? current : { ...current, email: user.email }));
+  }, [signedIn, user?.email]);
+
   useEffect(() => {
     if (!authLoading && !signedIn) router.replace(CHECKOUT_SIGN_IN);
   }, [authLoading, signedIn, router]);
