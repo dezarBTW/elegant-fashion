@@ -9,6 +9,7 @@ import Link from "next/link";
 import "../auth-atelier.css";
 import "../auth-extras.css";
 import { consumeRateLimit, formatRetryMessage, sanitizeEmail } from "@/lib/sanitizeInput";
+import { suggestEmailAddress } from '@/lib/emailSuggestion.mjs';
 
 function SignUpForm() {
     const search = useSearchParams();
@@ -151,6 +152,7 @@ function SignUpForm() {
 
     // Keep submission disabled until required fields are filled.
     const safeEmailValue = sanitizeEmail(email);
+    const suggestedEmail = suggestEmailAddress(safeEmailValue);
     const isDisabled =
         loading ||
         !safeEmailValue ||
@@ -210,7 +212,10 @@ function SignUpForm() {
                 <form className="auth-form" onSubmit={(event) => { event.preventDefault(); createUser(); }}>
                     <div className="form-group">
                         <label htmlFor="email">Email address</label>
-                        <input id="email" className="input" value={email} onChange={(e) => setEmail(sanitizeEmail(e.target.value))} type="email" autoComplete="email" required />
+                        <input id="email" className="input" value={email} onChange={(e) => setEmail(sanitizeEmail(e.target.value))} type="email" autoComplete="email" aria-describedby={suggestedEmail ? 'email-suggestion' : undefined} required />
+                        {suggestedEmail && <p id="email-suggestion" className="auth-email-suggestion" role="status">
+                            Did you mean <button type="button" className="auth-link-button" onClick={() => { setEmail(suggestedEmail); setMessage(''); }}>{suggestedEmail}</button>?
+                        </p>}
                     </div>
                     <div className="form-group">
                         <label htmlFor="password">Password</label>

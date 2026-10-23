@@ -47,6 +47,19 @@
   color: var(--gold-deep);
 }
 
+.auth-email-suggestion {
+  margin: 0.6rem 0 0;
+  color: var(--stone);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.auth-email-suggestion .auth-link-button {
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
 .auth-email-strong {
   color: var(--ink);
   font-weight: 600;
