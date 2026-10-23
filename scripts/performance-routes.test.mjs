@@ -15,6 +15,26 @@ async function moduleAt(file,deps,extra={}){
  await m.link(name=>{const values=deps[name];if(!values)throw Error(name);return new vm.SyntheticModule(Object.keys(values),function(){for(const[key,value]of Object.entries(values))this.setExport(key,value);},{context});});await m.evaluate();return m.namespace;
 }
 const request=(path,body,requestOrigin=origin)=>new Request(origin+path,{method:'POST',headers:{Origin:requestOrigin,'Content-Type':'application/json'},body:body===undefined?undefined:JSON.stringify(body)});
+test('media deletion requires admin and valid origin, protects reserved stock and reports cleanup failures', async()=>{
+ let denied=false,dbError=null,cleanupFailed=false,calls=0;
+ const db={rpc:async()=>{calls++;return {data:[],error:dbError};}};
+ const m=await moduleAt('src/app/api/admin/media/route.js',{
+  'next/server':{NextResponse:Response},zod:{z},'@/lib/checkoutServer':{checkoutDatabase:()=>db},
+  '@/lib/accountServer':{checkRequestOrigin(req){if(req.headers.get('Origin')!==origin)throw new OrderRequestError('Invalid origin',403);},async readAccountBody(req,schema){if(req.headers.get('Origin')!==origin)throw new OrderRequestError('Invalid origin',403);const parsed=schema.safeParse(await req.json());if(!parsed.success)throw new OrderRequestError('Invalid input',400);return parsed.data;}},
+  '@/lib/orderManagement.mjs':{OrderRequestError,async requireOrderAdmin(){if(denied)throw new OrderRequestError('Forbidden',403);}},
+  '@/lib/storageCleanup.mjs':{async removeQueuedMedia(){return {failed:cleanupFailed?1:0};}},
+  '@/lib/registration.mjs':{studentReviewSchema:z.object({id:z.union([z.number().int().positive(),z.string().regex(/^[1-9]\d*$/)])})},
+ });
+ const req=(body,site=origin)=>request('/api/admin/media',body,site);
+ denied=true;assert.equal((await m.DELETE(req({kind:'student',id:1}))).status,403);assert.equal(calls,0);
+ denied=false;assert.equal((await m.DELETE(req({kind:'student',id:1},'https://evil.invalid'))).status,403);assert.equal(calls,0);
+ assert.equal((await m.DELETE(req({kind:'student',id:1,path:'forged.jpg'}))).status,400);assert.equal(calls,0);
+ dbError={code:'23514'};assert.equal((await m.DELETE(req({kind:'product',id:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'}))).status,409);
+ dbError=null;cleanupFailed=true;
+ const result=await m.DELETE(req({kind:'student',id:1}));assert.equal(result.status,200);assert.equal((await result.json()).cleanupPending,true);
+ assert.equal((await m.POST(req())).status,503);
+ cleanupFailed=false;assert.equal((await m.POST(req())).status,200);
+});
 test('bespoke submission verifies references before inserting and batches email signing once',async()=>{
  const callbacks=[],inserts=[],sent=[];let signCalls=0;
  const db={rpc:async()=>({data:true}),storage:{from:()=>({list:async(_folder,{search})=>({data:[{name:search}]}),createSignedUrls:async paths=>{signCalls++;return {data:paths.map(path=>({path,signedUrl:'https://images.example.invalid/'+path}))};}})},from:()=>({insert(row){inserts.push(row);return this;},select(){return this;},single:async()=>({data:{id:'11111111-1111-4111-8111-111111111111',created_at:'2026-01-01'}})})};

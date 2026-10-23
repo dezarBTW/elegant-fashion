@@ -4,6 +4,7 @@ import { loadAdminProductPage } from "@/lib/catalogPages.mjs";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import { authenticatedFetch } from '@/lib/clientApi';
+import MediaCleanupNotice from '@/components/MediaCleanupNotice';
 import { useAuth } from "@/contexts/AuthContext";
 import { consumeRateLimit, formatRetryMessage, sanitizeText, validateImageFile } from "@/lib/sanitizeInput";
 import { invalidateCachedValue } from "@/lib/browserCache";
@@ -33,6 +34,7 @@ export default function ProductsAdmin() {
     image: ""
   });
   const [stocks,setStocks]=useState({});
+  const [cleanupWarning, setCleanupWarning] = useState('');
   const [saving,setSaving]=useState(false);
   const [editMode, setEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
@@ -146,19 +148,14 @@ export default function ProductsAdmin() {
       return;
     }
 
-    const { error } = await supabase
-      .from("products")
-      .delete()
-      .eq("id", productId);
-
-    if (error) {
-      console.error("Error deleting product:", error);
-      alert(error.code==='23514'?'This product has a pending payment reservation. Resolve that payment before deleting it.':'Error deleting product');
-    } else {
+    try {
+      const result = await authenticatedFetch('/api/admin/media', { method: 'DELETE', body: JSON.stringify({ kind: 'product', id: productId }) });
+      setCleanupWarning(result.warning || '');
       invalidateCachedValue(PRODUCTS_CACHE_KEY);
-      alert("Product deleted successfully");
+      if (!result.cleanupPending) alert("Product and its unused images deleted successfully");
+      if (editId === productId) resetForm();
       setRefreshVersion(version => version + 1);
-    }
+    } catch (error) { alert(error.message); }
   };
 
   const resetForm = () => {
@@ -385,6 +382,7 @@ export default function ProductsAdmin() {
             </select>
           </div>
 
+          <MediaCleanupNotice message={cleanupWarning} onClear={() => setCleanupWarning('')} />
           {listError && <p role="alert">{listError}</p>}
           {listLoading ? <p role="status">Loading products and stock…</p> : !listError && products.length === 0 ? (
             <div className={shellStyles.empty}>

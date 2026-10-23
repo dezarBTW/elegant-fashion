@@ -27,14 +27,18 @@ Deno.serve(async () => {
   }
 
   const byBucket = new Map<string, { id: number; path: string }[]>();
+  let removed = 0;
+  let failed = 0;
   for (const row of rows) {
+    // A queued path may have been reused since the delete transaction committed.
+    // Never delete files still referenced by a live registration/request/product.
+    const check = await supabase.rpc('storage_path_in_use', { p_bucket: row.bucket, p_path: row.path });
+    if (check.error) { failed++; continue; }
+    if (check.data) continue;
     const list = byBucket.get(row.bucket) ?? [];
     list.push({ id: row.id, path: row.path });
     byBucket.set(row.bucket, list);
   }
-
-  let removed = 0;
-  let failed = 0;
 
   for (const [bucket, items] of byBucket) {
     const { error: removeError } = await supabase.storage

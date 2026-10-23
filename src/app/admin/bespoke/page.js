@@ -6,6 +6,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { consumeRateLimit, formatRetryMessage } from "@/lib/sanitizeInput";
 import { BESPOKE_STATUSES, formatDateTime, toWhatsAppUrl } from "../adminUtils";
 import styles from "../adminShell.module.css";
+import { authenticatedFetch } from '@/lib/clientApi';
+import MediaCleanupNotice from '@/components/MediaCleanupNotice';
 
 const BUCKET = "bespoke-requests";
 const SIGNED_URL_SECONDS = 60 * 60;
@@ -21,6 +23,7 @@ export default function BespokeRequests() {
   const { user, isAdmin } = useAuth();
   const [imageUrls, setImageUrls] = useState({});
   const [error, setError] = useState("");
+  const [cleanupWarning, setCleanupWarning] = useState('');
   const [photoError, setPhotoError] = useState('');
   const [tab, setTab] = useState("all");
   const [search, setSearch] = useState("");
@@ -92,18 +95,12 @@ export default function BespokeRequests() {
     setBusyId(request.id);
     setError("");
 
-    const { error: deleteError } = await supabase.from("bespoke_requests").delete().eq("id", request.id);
-
-    setBusyId(null);
-
-    if (deleteError) {
-      console.error("Could not delete request:", deleteError);
-      setError("Could not delete this request. Please try again.");
-      return;
-    }
-
-    // The database queues the request's photos for removal from storage automatically.
-    setVersion(current => current + 1);
+    try {
+      const result = await authenticatedFetch('/api/admin/media', { method: 'DELETE', body: JSON.stringify({ kind: 'bespoke', id: request.id }) });
+      setCleanupWarning(result.warning || '');
+      setVersion(current => current + 1);
+    } catch (error) { setError(error.message); }
+    finally { setBusyId(null); }
   };
 
   if (!isAdmin) return null;
@@ -123,6 +120,7 @@ export default function BespokeRequests() {
       </div>
 
       {(error || loadError || photoError) && <div className={styles.error} role="alert">{error || loadError || photoError}</div>}
+      <MediaCleanupNotice message={cleanupWarning} onClear={() => setCleanupWarning('')} />
 
       <div className={styles.tabs} role="tablist" aria-label="Request status">
         {tabs.map((item) => (

@@ -1,5 +1,6 @@
 "use client";
 import PassportPhoto from "@/components/PassportPhoto";
+import MediaCleanupNotice from '@/components/MediaCleanupNotice';
 import { useEffect, useState } from "react";
 import { useAdminList } from '@/hooks/useAdminList';
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +29,7 @@ const fullName = (student) =>
 export default function StudentApplications() {
   const { user, isAdmin } = useAuth();
   const [error, setError] = useState("");
+  const [cleanupWarning, setCleanupWarning] = useState('');
   const [tab, setTab] = useState("pending");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
@@ -78,11 +80,23 @@ export default function StudentApplications() {
     finally { setBusyId(null); }
   };
 
+  const deleteStudent = async student => {
+    if (!user || busyId || !window.confirm(`Permanently delete the registration from ${fullName(student)} and its passport photo? This cannot be undone.`)) return;
+    setBusyId(student.id); setError('');
+    try {
+      const result = await authenticatedFetch('/api/admin/media', { method: 'DELETE', body: JSON.stringify({ kind: 'student', id: student.id }) });
+      setCleanupWarning(result.warning || '');
+      setSelected(null); setVersion(current => current + 1);
+    } catch (error) { setError(error.message); }
+    finally { setBusyId(null); }
+  };
+
   const renderActions = (student) => {
     const status = getStudentStatus(student);
     const busy = busyId === student.id;
     return (
       <div className={styles.actions}>
+        <button type="button" className={`${styles.btn} ${styles.btnDanger}`} disabled={busyId !== null} onClick={() => deleteStudent(student)}>Delete registration</button>
         {status !== "accepted" && (
           <button
             type="button"
@@ -138,6 +152,7 @@ export default function StudentApplications() {
       </div>
 
       {(error || loadError) && <div className={styles.error} role="alert">{error || loadError}</div>}
+      <MediaCleanupNotice message={cleanupWarning} onClear={() => setCleanupWarning('')} />
 
       <div className={styles.tabs} role="tablist" aria-label="Application status">
         {TABS.map((item) => (
