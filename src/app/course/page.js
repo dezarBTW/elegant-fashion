@@ -127,6 +127,7 @@ export default function Course() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [registrationId, setRegistrationId] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [passportUploaded, setPassportUploaded] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -191,6 +192,7 @@ export default function Course() {
   const handlePassportUpload = async (e) => {
     const file = e.target.files[0];
     if (!file || !user) return;
+    setPassportUploaded(false);
 
     const validation = validateImageFile(file);
     if (!validation.valid) {
@@ -256,7 +258,7 @@ export default function Course() {
         setUploadProgress(0);
       }, 1500);
 
-      alert("Passport photo uploaded successfully!");
+      setPassportUploaded(true);
     } catch (error) {
       console.error("Passport upload error:", error);
       alert(passportUploadError(error));
@@ -716,6 +718,12 @@ export default function Course() {
             {uploadProgress === 100 && (
               <div className="upload-progress-container">
                 <div className="upload-progress-bar" style={{ width: '100%' }}></div>
+              </div>
+            )}
+            {passportUploaded && (
+              <div className="passport-upload-success" role="status" aria-live="polite">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="m8 12 3 3 5-6" /></svg>
+                <span>Your passport photo has been uploaded successfully.</span>
               </div>
             )}
             {formData.passport_photo && (
