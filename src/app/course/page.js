@@ -1,4 +1,5 @@
 "use client";
+import { passportUploadError } from '@/lib/passportUpload.mjs';
 import PassportPhoto from "@/components/PassportPhoto";
 import styles from "./fashionschool.css";
 import { useState, useEffect } from "react";
@@ -198,6 +199,7 @@ export default function Course() {
       return;
     }
 
+    let progressInterval;
     try {
       const filePath = `${user.id}/passport.${validation.extension}`;
 
@@ -208,7 +210,7 @@ export default function Course() {
       setUploadProgress(1); // Ensure bar is visible immediately
       
       // Simulate progress increments
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           // Slow down progress as it gets higher to simulate realistic upload
           const increment = prev < 30 ? 10 : prev < 70 ? 5 : prev < 90 ? 2 : 1;
@@ -230,7 +232,7 @@ export default function Course() {
       
       if (uploadError) {
         console.error("Upload error:", uploadError);
-        alert(`Error uploading passport: ${uploadError.message || "Please try again."}`);
+        alert(passportUploadError(uploadError));
         setUploadProgress(0);
         return;
       }
@@ -257,9 +259,9 @@ export default function Course() {
       alert("Passport photo uploaded successfully!");
     } catch (error) {
       console.error("Passport upload error:", error);
-      alert(`Error uploading passport: ${error?.message || "Please try again."}`);
+      alert(passportUploadError(error));
       setUploadProgress(0);
-    }
+    } finally { clearInterval(progressInterval); }
   };
 
   const fieldsToValidate = formData.sponsorship === "Scholarship" ? [...requiredFields, "sponsor_organization"] : requiredFields;
