@@ -106,23 +106,24 @@ select:not(:disabled) {
   cursor: pointer;
 }
 
-::selection {
-  background: rgba(201, 169, 98, 0.3);
-}
-
 a {
   color: inherit;
   text-decoration: none;
 }
 
-::selection {
-  background: var(--gold);
-  color: var(--ink);
-}
-
 :focus-visible {
   outline: 2px solid var(--gold-deep);
   outline-offset: 2px;
+}
+
+/* Use the field's existing border for focus instead of an outer ring. */
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea):focus {
+  outline: none;
+  box-shadow: none;
+}
+
+:is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea):focus-visible:not([aria-invalid="true"]) {
+  border-color: var(--gold-deep);
 }
 
 .backToTop {
