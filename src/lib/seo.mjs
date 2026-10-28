@@ -1,6 +1,7 @@
 import { socialLinks } from "./socialLinks.mjs";
 
 export const SITE_URL = "https://elegantstyle.com.ng";
+const HERO_IMAGE_URL = `${SITE_URL}/images/og-hero.jpg`;
 
 export const publicPages = {
   "/": {
@@ -55,9 +56,9 @@ export function pageMetadata(path) {
       siteName: "Elegant Style",
       title: socialTitle,
       description,
-      images: [{ url: `${SITE_URL}/images/elegant-style-logo.png`, width: 2093, height: 1096, alt: "Elegant Style" }],
+      images: [{ url: HERO_IMAGE_URL, width: 1200, height: 630, alt: "Model wearing an Elegant Style blue occasion gown" }],
     },
-    twitter: { card: "summary", title: socialTitle, description, images: [`${SITE_URL}/images/elegant-style-logo.png`] },
+    twitter: { card: "summary_large_image", title: socialTitle, description, images: [HERO_IMAGE_URL] },
   };
 }
 
@@ -78,7 +79,7 @@ export const businessStructuredData = {
       name: "Elegant Style",
       url: SITE_URL,
       logo: `${SITE_URL}/images/elegant-style-logo.png`,
-      image: `${SITE_URL}/images/elegant-style-logo.png`,
+      image: HERO_IMAGE_URL,
       description: publicPages["/"].description,
       telephone: "+2348166361710",
       email: "patrickesther26@gmail.com",
