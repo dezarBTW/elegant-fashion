@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@bachs/sdk": "1.0.0",
-    "@supabase/supabase-js": "^2.101.1",
+    "@supabase/supabase-js": "^2.118.0",
     "bootstrap": "^5.3.8",
     "heic2any": "^0.0.4",
     "next": "16.4.2",
