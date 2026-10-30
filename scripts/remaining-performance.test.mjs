@@ -36,10 +36,13 @@ test('stock requests respect the 50-product RPC bound and empty sets make no req
 });
 test('four bespoke objects verify concurrently with exact names and failed storage checks fail closed', async () => {
   let active=0,peak=0;
-  const db={storage:{from:()=>({list:async(_folder,{search})=>{active++;peak=Math.max(peak,active);await settle();active--;return {data:[{name:search}]};}})}};
+  const image=new Blob([Uint8Array.from([0xff,0xd8,0xff,0,0,0,0,0,0,0,0,0])]);
+  const db={storage:{from:()=>({list:async(_folder,{search})=>{active++;peak=Math.max(peak,active);await settle();active--;return {data:[{name:search,metadata:{size:image.size}}]};},download:async()=>({data:image})})}};
   assert.equal(await verifyBespokeImages(db,'private',['requests/a.jpg','requests/b.jpg','requests/c.jpg','requests/d.jpg']),true);assert.equal(peak,4);
   const missing={storage:{from:()=>({list:async()=>({data:[{name:'prefix-a.jpg'}]})})}};
   assert.equal(await verifyBespokeImages(missing,'private',['requests/a.jpg']),false);
+  const spoofed={storage:{from:()=>({list:async()=>({data:[{name:'a.jpg',metadata:{size:12}}]}),download:async()=>({data:new Blob(['<script>x</script>'])})})}};
+  assert.equal(await verifyBespokeImages(spoofed,'private',['requests/a.jpg']),false);
   const broken={storage:{from:()=>({list:async()=>({error:{message:'offline'}})})}};
   await assert.rejects(verifyBespokeImages(broken,'private',['requests/a.jpg']),/Unable to verify/);
   await assert.rejects(verifyBespokeImages(db,'private',Array(5).fill('requests/a.jpg')),/Invalid/);

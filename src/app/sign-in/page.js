@@ -75,15 +75,9 @@ function SignInForm() {
       });
 
       if (error) {
-        const notConfirmed =
-          error.code === "email_not_confirmed" || /not confirmed/i.test(error.message || "");
-
-        if (notConfirmed) {
-          setUnconfirmedEmail(safeEmail);
-          setMessage("Please confirm your email address first. We sent you a link when you signed up.");
-        } else {
-          setMessage(error.message || "Unable to sign in. Please try again.");
-        }
+        setUnconfirmedEmail(safeEmail);
+        setMessage(error.status === 429 ? "Too many sign-in attempts. Please wait and try again." :
+          "Unable to sign in. Check your details or confirm your email.");
         setLoading(false);
         return;
       }
@@ -139,9 +133,9 @@ function SignInForm() {
       });
 
       setResendMessage(
-        error
-          ? (error.message || "We couldn't resend the email. Please try again shortly.")
-          : "We've sent the confirmation email again. Check your inbox and spam folder."
+        error && (error.status === 429 || /rate limit/i.test(error.message || ""))
+          ? "Too many emails were requested. Please wait before trying again."
+          : "If this address needs confirmation, a new link will arrive shortly."
       );
     } catch {
       setResendMessage("We couldn't resend the email. Please try again shortly.");

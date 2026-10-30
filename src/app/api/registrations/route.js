@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { registrationSchema } from "@/lib/registration.mjs";
 import { readAccountBody, requireActiveAccount } from "@/lib/accountServer";
 import { OrderRequestError } from "@/lib/orderManagement.mjs";
+import { hasImageSignature } from "@/lib/imageSignature.mjs";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,11 @@ export async function POST(request) {
     const file = files?.find((entry) => entry.name === fileName);
     if (fileError || !file || !["image/jpeg", "image/png"].includes(file.metadata?.mimetype) ||
       Number(file.metadata?.size || 0) <= 0 || Number(file.metadata.size) > 5 * 1024 * 1024) {
+      throw new OrderRequestError("Your passport photograph could not be verified. Upload it again.", 400);
+    }
+    const { data: image, error: downloadError } = await db.storage.from("student-passports").download(`${user.id}/${fileName}`);
+    if (downloadError || !image || image.size <= 0 || image.size > 5 * 1024 * 1024 ||
+      !hasImageSignature(new Uint8Array(await image.arrayBuffer()), fileName)) {
       throw new OrderRequestError("Your passport photograph could not be verified. Upload it again.", 400);
     }
     const { data, error } = await db.rpc("submit_student_application", { p_user_id: user.id, p_details: input });

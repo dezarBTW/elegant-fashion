@@ -40,8 +40,8 @@ function SignUpForm() {
             return;
         }
 
-        if (password.length < 6) {
-            setMessage("Password must be at least 6 characters");
+        if (password.length < 8) {
+            setMessage("Password must be at least 8 characters");
             return;
         }
 
@@ -73,7 +73,9 @@ function SignUpForm() {
                 (!error && Array.isArray(data?.user?.identities) && data.user.identities.length === 0);
 
             if (alreadyRegistered) {
-                setMessage("An account with this email already exists. Please sign in instead.");
+                // Give the same response as a new registration so this form does
+                // not reveal whether an email address belongs to an account.
+                setSentTo(safeEmail);
             } else if (error) {
                 console.error(error);
                 setMessage(error.message || "Error creating account");
@@ -115,9 +117,9 @@ function SignUpForm() {
             });
 
             setResendMessage(
-                error
-                    ? (error.message || "We couldn't resend the email. Please try again shortly.")
-                    : "We've sent the confirmation email again."
+                error && (error.status === 429 || /rate limit/i.test(error.message || ""))
+                    ? "Too many emails were requested. Please wait before trying again."
+                    : "If this address needs confirmation, a new link will arrive shortly."
             );
         } catch {
             setResendMessage("We couldn't resend the email. Please try again shortly.");
@@ -188,11 +190,11 @@ function SignUpForm() {
                         </div>
                         <h1 id="sign-up-heading">Check your email</h1>
                         <p className="auth-lede">
-                            We&apos;ve sent a confirmation link to{" "}
+                            If this address can be registered, we&apos;ll send a confirmation link to{" "}
                             <span className="auth-email-strong">{sentTo}</span>. Open it to
-                            activate your account, then you&apos;re in.
+                            activate your account.
                         </p>
-                        <p className="auth-aside">You need to confirm your email before you can sign in.</p>
+                        <p className="auth-aside">Already have an account? <Link href="/sign-in">Sign in</Link>.</p>
                         {resendMessage && <div className="auth-notice" role="status">{resendMessage}</div>}
                         <p className="auth-aside">
                             Can&apos;t see it? Check your spam folder, or{" "}
@@ -220,7 +222,7 @@ function SignUpForm() {
                     <div className="form-group">
                         <label htmlFor="password">Password</label>
                         <div className="password-field">
-                            <input id="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? "text" : "password"} autoComplete="new-password" minLength="6" required />
+                            <input id="password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} type={showPassword ? "text" : "password"} autoComplete="new-password" minLength="8" required />
                             <button type="button" className="password-toggle" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword((prev) => !prev)}>
                                 {showPassword ? "Hide" : "Show"}
                             </button>
@@ -229,7 +231,7 @@ function SignUpForm() {
                     <div className="form-group">
                         <label htmlFor="confirm-password">Confirm password</label>
                         <div className="password-field">
-                            <input id="confirm-password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" minLength="6" required />
+                            <input id="confirm-password" className="input" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" minLength="8" required />
                             <button type="button" className="password-toggle" aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"} onClick={() => setShowConfirmPassword((prev) => !prev)}>
                                 {showConfirmPassword ? "Hide" : "Show"}
                             </button>

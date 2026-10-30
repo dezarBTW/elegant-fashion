@@ -3,6 +3,7 @@ import { z } from "zod";
 import { checkoutDatabase, createReceiptConfirmation } from "@/lib/checkoutServer";
 import { sendFulfillmentEmail, sendsReceiptLink } from "@/lib/orderEmails.mjs";
 import { FULFILLMENT_STATUSES, PAYMENT_STATUSES, ORDER_COLUMNS, OrderRequestError, requireOrderAdmin, nextFulfillmentStatuses } from "@/lib/orderManagement.mjs";
+import { checkRequestOrigin } from "@/lib/accountServer";
 
 export const runtime = "nodejs";
 const pageSize = 25;
@@ -45,8 +46,7 @@ export async function PATCH(request) {
   try {
     const db = checkoutDatabase();
     await requireOrderAdmin(request, db);
-    const origin = request.headers.get("origin");
-    if (origin && origin !== new URL(request.url).origin) return json({ error: "Invalid request origin." }, 403);
+    checkRequestOrigin(request);
     const raw = await request.text();
     if (raw.length > 2000) return json({ error: "Request is too large." }, 413);
     let parsed;

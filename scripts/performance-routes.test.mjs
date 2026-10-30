@@ -6,6 +6,7 @@ import { readFile } from 'node:fs/promises';
 import { webcrypto } from 'node:crypto';
 import { z } from 'zod';
 import { verifyBespokeImages } from '../src/lib/bespokeImages.mjs';
+import { hasImageSignature } from '../src/lib/imageSignature.mjs';
 import { OrderRequestError, requireLiveSession } from '../src/lib/orderManagement.mjs';
 
 const origin='https://fixture.example.invalid';
@@ -37,7 +38,8 @@ test('media deletion requires admin and valid origin, protects reserved stock an
 });
 test('bespoke submission verifies references before inserting and batches email signing once',async()=>{
  const callbacks=[],inserts=[],sent=[];let signCalls=0;
- const db={rpc:async()=>({data:true}),storage:{from:()=>({list:async(_folder,{search})=>({data:[{name:search}]}),createSignedUrls:async paths=>{signCalls++;return {data:paths.map(path=>({path,signedUrl:'https://images.example.invalid/'+path}))};}})},from:()=>({insert(row){inserts.push(row);return this;},select(){return this;},single:async()=>({data:{id:'11111111-1111-4111-8111-111111111111',created_at:'2026-01-01'}})})};
+ const image=new Blob([Uint8Array.from([0xff,0xd8,0xff,0,0,0,0,0,0,0,0,0])]);
+ const db={rpc:async()=>({data:true}),storage:{from:()=>({list:async(_folder,{search})=>({data:[{name:search,metadata:{size:image.size}}]}),download:async()=>({data:image}),createSignedUrls:async paths=>{signCalls++;return {data:paths.map(path=>({path,signedUrl:'https://images.example.invalid/'+path}))};}})},from:()=>({insert(row){inserts.push(row);return this;},select(){return this;},single:async()=>({data:{id:'11111111-1111-4111-8111-111111111111',created_at:'2026-01-01'}})})};
  const m=await moduleAt('src/app/api/bespoke/submit/route.ts',{'next/server':{after:callback=>callbacks.push(callback),NextRequest:Request,NextResponse:Response},'@supabase/supabase-js':{createClient:()=>db},zod:{z},'@/lib/orderEmails.mjs':{ADMIN_NOTIFY_EMAIL:'elegantyoufashion18@gmail.com'},'@/lib/bespokeImages.mjs':{verifyBespokeImages}},{process:{env:{NEXT_PUBLIC_SUPABASE_URL:origin,SUPABASE_SERVICE_ROLE_KEY:'fixture',RESEND_API_KEY:'fixture',RESEND_FROM_EMAIL:'fixture@example.invalid'}},fetch:async(url,options)=>{if(url.startsWith('https://images.example.invalid/'))return new Response('fixture');sent.push(JSON.parse(options.body));return Response.json({id:'fixture'});}});
  const body={name:'Fixture Customer',phone:'08012345678',description:'Please tailor a blue cotton gown.',imagePaths:Array.from({length:4},(_,i)=>'requests/00000000-0000-4000-8000-'+String(i+1).padStart(12,'0')+'.jpg')};
  const response=await m.POST(request('/api/bespoke/submit',body));assert.equal(response.status,200);assert.equal(inserts.length,1);
@@ -49,6 +51,21 @@ test('missing bespoke objects and storage failures cannot create requests',async
   const m=await moduleAt('src/app/api/bespoke/submit/route.ts',{'next/server':{after(){},NextRequest:Request,NextResponse:Response},'@supabase/supabase-js':{createClient:()=>db},zod:{z},'@/lib/orderEmails.mjs':{ADMIN_NOTIFY_EMAIL:'fixture@example.invalid'},'@/lib/bespokeImages.mjs':{verifyBespokeImages}},{process:{env:{NEXT_PUBLIC_SUPABASE_URL:origin,SUPABASE_SERVICE_ROLE_KEY:'fixture'}}});
   const r=await m.POST(request('/api/bespoke/submit',{phone:'08012345678',description:'Please tailor a blue cotton gown.',imagePaths:['requests/00000000-0000-4000-8000-000000000001.jpg']}));assert.equal(r.status,failure==='missing'?400:500);assert.ok((await r.json()).error);assert.equal(inserts,0);
  }
+});
+test('registration rejects a spoofed passport before saving the application',async()=>{
+ const userId='aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';let saved=0;
+ let image=new Blob([Uint8Array.from([0xff,0xd8,0xff,0,0,0,0,0,0,0,0,0])]);
+ const db={storage:{from:()=>({list:async()=>({data:[{name:'passport.jpg',metadata:{mimetype:'image/jpeg',size:image.size}}]}),download:async()=>({data:image})})},rpc:async()=>{saved++;return {data:{id:1}};}};
+ const m=await moduleAt('src/app/api/registrations/route.js',{
+  'next/server':{NextResponse:Response},'@/lib/registration.mjs':{registrationSchema:z.any()},
+  '@/lib/accountServer':{requireActiveAccount:async()=>({db,user:{id:userId}}),readAccountBody:async req=>req.json()},
+  '@/lib/orderManagement.mjs':{OrderRequestError},'@/lib/imageSignature.mjs':{hasImageSignature},
+ },{process:{env:{NEXT_PUBLIC_SUPABASE_URL:origin}}});
+ const photo=origin+'/storage/v1/object/public/student-passports/'+userId+'/passport.jpg';
+ const submit=()=>m.POST(request('/api/registrations',{passport_photo:photo}));
+ assert.equal((await submit()).status,201);assert.equal(saved,1);
+ image=new Blob(['<script>bad</script>']);
+ assert.equal((await submit()).status,400);assert.equal(saved,1);
 });
 test('order-history reads execute no claim RPC or database write',async()=>{
  const query={select(){return this;},eq(){return this;},order(){return this;},range:async()=>({data:[],count:0})};
