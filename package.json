@@ -10,7 +10,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@bachs/sdk": "1.0.0",
+    "@bachs/sdk": "2.0.0",
     "@supabase/supabase-js": "^2.101.1",
     "bootstrap": "^5.3.8",
     "heic2any": "^0.0.4",
