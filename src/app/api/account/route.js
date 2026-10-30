@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { accountActionSchema } from "@/lib/accountContracts.mjs";
 import { passwordClient, readAccountBody, requireActiveAccount } from "@/lib/accountServer";
+import { hasGoogleIdentity, hashDeactivationCode } from "@/lib/accountDeactivation.mjs";
 import { OrderRequestError } from "@/lib/orderManagement.mjs";
 
 export const runtime = "nodejs";
@@ -10,12 +11,24 @@ export async function POST(request) {
   try {
     const { db, user, token } = await requireActiveAccount(request);
     const input = await readAccountBody(request, accountActionSchema, 4000);
-    const { data: allowed, error: limitError } = await db.rpc("consume_account_action_limit", { p_user_id: user.id, p_action: input.action });
+    const codeAction = input.action === "deactivate_code";
+    if (codeAction && !await hasGoogleIdentity(db, user.id)) throw new OrderRequestError("This account uses password confirmation.", 403);
+    const { data: allowed, error: limitError } = await db.rpc("consume_account_action_limit", {
+      p_user_id: user.id, p_action: codeAction ? "deactivate_code_verify" : input.action,
+    });
     if (limitError) throw limitError;
     if (!allowed) throw new OrderRequestError("Too many attempts. Please wait 15 minutes before trying again.", 429);
-    auth = passwordClient();
-    const { data, error: passwordError } = await auth.auth.signInWithPassword({ email: user.email, password: input.currentPassword });
-    if (passwordError || data.user?.id !== user.id) throw new OrderRequestError("Your current password is incorrect.", 400);
+    if (codeAction) {
+      const { data: valid, error: codeError } = await db.rpc("consume_account_deactivation_code", {
+        p_user_id: user.id, p_code_hash: hashDeactivationCode(user.id, input.code),
+      });
+      if (codeError) throw codeError;
+      if (!valid) throw new OrderRequestError("Code is invalid or expired. Request a new code if needed.", 400);
+    } else {
+      auth = passwordClient();
+      const { data, error: passwordError } = await auth.auth.signInWithPassword({ email: user.email, password: input.currentPassword });
+      if (passwordError || data.user?.id !== user.id) throw new OrderRequestError("Your current password is incorrect.", 400);
+    }
     if (input.action === "password") {
       const { error } = await auth.auth.updateUser({ password: input.newPassword });
       if (error) throw new OrderRequestError("Password could not be changed. Check the password requirements and try again.", 400);

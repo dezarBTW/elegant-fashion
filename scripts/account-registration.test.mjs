@@ -85,6 +85,10 @@ test("request review only accepts forward status changes", () => {
 test("account changes require password confirmation and enforce password bounds", () => {
   assert.equal(accountActionSchema.safeParse({ action: "deactivate", currentPassword: "current", confirmed: true }).success, true);
   assert.equal(accountActionSchema.safeParse({ action: "deactivate", currentPassword: "current", confirmed: false }).success, false);
+  assert.equal(accountActionSchema.safeParse({ action: "deactivate_code", code: "001234", confirmed: true }).success, true);
+  assert.equal(accountActionSchema.safeParse({ action: "deactivate_code", code: "12345", confirmed: true }).success, false);
+  assert.equal(accountActionSchema.safeParse({ action: "deactivate_code", code: "123456", confirmed: false }).success, false);
+  assert.equal(accountActionSchema.safeParse({ action: "deactivate_code", code: "123456", confirmed: true, userId: id }).success, false);
   assert.equal(accountActionSchema.safeParse({ action: "password", currentPassword: "current", newPassword: "short" }).success, false);
   assert.equal(accountActionSchema.safeParse({ action: "password", currentPassword: "current", newPassword: "long-password" }).success, true);
 });

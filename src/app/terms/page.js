@@ -73,7 +73,7 @@ export default function TermsOfService() {
               You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account. You agree to notify us immediately of any unauthorized use of your account.
             </p>
             <p>
-              Use an email address you control and complete email confirmation when prompted. Password recovery is available through the sign-in page. The profile avatar opens your account dashboard, where you can view your details, change your password, and deactivate your account after confirming your current password. If you signed in with Google and have no password, use password recovery to set one before these password-confirmed actions. Deactivation marks the account inactive, disables account access, and signs you out; it does not erase applications, orders, support requests, or other records. Contact us separately about reactivation, deletion, or an existing order.
+              Use an email address you control and complete email confirmation when prompted. Password recovery is available through the sign-in page. The profile avatar opens your account dashboard, where you can view your details and deactivate your account. Password accounts confirm their current password; Google-connected accounts can confirm deactivation with a six-digit code sent to their account email. Deactivation marks the account inactive, disables account access, and signs you out; it does not erase applications, orders, support requests, or other records. Contact us separately about reactivation, deletion, or an existing order.
             </p>
 
             <h3>Course Registration</h3>

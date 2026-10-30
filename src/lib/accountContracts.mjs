@@ -24,6 +24,7 @@ export const requestReviewSchema = z.object({
 export const accountActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("password"), currentPassword: z.string().min(1).max(256), newPassword: z.string().min(8, "Use at least 8 characters.").max(128) }).strict(),
   z.object({ action: z.literal("deactivate"), currentPassword: z.string().min(1).max(256), confirmed: z.literal(true) }).strict(),
+  z.object({ action: z.literal("deactivate_code"), code: z.string().regex(/^\d{6}$/, "Enter the six-digit code."), confirmed: z.literal(true) }).strict(),
 ]);
 
 export function repurchaseCart(cart, productId, size = "") {
