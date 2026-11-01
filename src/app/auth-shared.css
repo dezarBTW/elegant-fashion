@@ -482,7 +482,14 @@
     color: var(--white);
   }
 
+  .input:hover {
+    background: #241f1a;
+  }
+
   .input:focus {
+    background: #1d1915;
+    color: var(--white);
+    caret-color: var(--white);
     border-color: var(--gold);
     box-shadow: 0 0 0 4px rgba(201, 169, 98, 0.18);
   }

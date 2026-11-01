@@ -262,7 +262,7 @@
   gap: 0.55rem;
 }
 
-.form-group label,
+.auth-page .form-group label,
 .field-label-row {
   display: flex;
   align-items: baseline;
@@ -274,7 +274,7 @@
   letter-spacing: -0.01em;
 }
 
-.form-group label .label-note {
+.auth-page .form-group label .label-note {
   color: var(--stone);
   font-size: 0.74rem;
   font-weight: 400;
@@ -308,7 +308,7 @@
   width: 100%;
 }
 
-.input {
+.auth-page .input {
   width: 100%;
   min-height: 52px;
   padding: 0.95rem 1.1rem;
@@ -321,17 +321,17 @@
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.input::placeholder {
+.auth-page .input::placeholder {
   color: var(--stone-light);
   letter-spacing: 0.01em;
 }
 
-.input:hover {
+.auth-page .input:hover {
   background: #faf8f3;
   border-color: rgba(161, 122, 70, 0.12);
 }
 
-.input:focus {
+.auth-page .input:focus {
   background: var(--white);
   border-color: var(--gold-deep);
   box-shadow: 
@@ -340,16 +340,16 @@
   transform: translateY(-1px);
 }
 
-.input[aria-invalid="true"] {
+.auth-page .input[aria-invalid="true"] {
   border-color: var(--danger);
   background: rgba(173, 67, 56, 0.02);
 }
 
-.input[aria-invalid="true"]:focus {
+.auth-page .input[aria-invalid="true"]:focus {
   box-shadow: 0 0 0 4px rgba(173, 67, 56, 0.12);
 }
 
-.input:disabled {
+.auth-page .input:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -786,7 +786,7 @@
     gap: 0.5rem;
   }
   
-  .input {
+  .auth-page .input {
     min-height: 50px;
     padding: 0.85rem 1rem;
     font-size: 1rem;
@@ -829,7 +829,7 @@
 }
 
 /* Accessibility - Focus visible states */
-.input:focus-visible {
+.auth-page .input:focus-visible {
   outline: none;
   box-shadow: 
     0 0 0 4px rgba(161, 122, 70, 0.12),
@@ -861,7 +861,7 @@
   .auth-loading .spinner,
   .auth-submit,
   .google-button,
-  .input,
+  .auth-page .input,
   .deactivated-button,
   .auth-media img,
   .auth-media-copy,
@@ -886,7 +886,7 @@
   }
 
   .auth-panel h1,
-  .form-group label,
+  .auth-page .form-group label,
   .field-label-row,
   .auth-switch a,
   .password-toggle:hover,
@@ -900,18 +900,18 @@
     color: #c7bfb4;
   }
 
-  .input,
+  .auth-page .input,
   .google-button {
     background: #1d1915;
     border-color: rgba(255, 253, 249, 0.14);
     color: var(--white);
   }
 
-  .input:hover {
+  .auth-page .input:hover {
     background: #241f1a;
   }
 
-  .input:focus {
+  .auth-page .input:focus {
     background: #1d1915;
     color: var(--white);
     caret-color: var(--white);
