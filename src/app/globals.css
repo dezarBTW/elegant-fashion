@@ -106,6 +106,11 @@ select:not(:disabled) {
   cursor: pointer;
 }
 
+/* Android's default tap flash is rectangular, even on rounded controls. */
+:is(a, button, summary, input[type="button"], input[type="submit"], input[type="reset"], [role="button"]) {
+  -webkit-tap-highlight-color: transparent;
+}
+
 a {
   color: inherit;
   text-decoration: none;
