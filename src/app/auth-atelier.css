@@ -1,6 +1,7 @@
 /* Auth pages - Atelier split layout */
 
 .auth-page {
+  color-scheme: light;
   min-height: calc(100dvh - 70px);
   display: grid;
   grid-template-columns: minmax(280px, 0.9fr) minmax(340px, 1.1fr);
@@ -876,71 +877,6 @@
   .google-button:active,
   .deactivated-button:active {
     transform: none;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .auth-page,
-  .auth-panel {
-    background: #161311;
-  }
-
-  .auth-panel h1,
-  .auth-page .form-group label,
-  .field-label-row,
-  .auth-switch a,
-  .password-toggle:hover,
-  .password-toggle:focus-visible {
-    color: var(--white);
-  }
-
-  .auth-lede,
-  .auth-switch,
-  .field-hint {
-    color: #c7bfb4;
-  }
-
-  .auth-page .input,
-  .google-button {
-    background: #1d1915;
-    border-color: rgba(255, 253, 249, 0.14);
-    color: var(--white);
-  }
-
-  .auth-page .input:hover {
-    background: #241f1a;
-  }
-
-  .auth-page .input:focus {
-    background: #1d1915;
-    color: var(--white);
-    caret-color: var(--white);
-    border-color: var(--gold);
-    box-shadow: 0 0 0 4px rgba(201, 169, 98, 0.18);
-  }
-
-  .password-toggle {
-    color: #c7bfb4;
-  }
-
-  .auth-submit,
-  .deactivated-button {
-    background: var(--white);
-    color: var(--ink);
-  }
-
-  .google-button:hover,
-  .password-toggle:hover,
-  .password-toggle:focus-visible {
-    background: #241f1a;
-  }
-
-  .deactivated-modal {
-    background: #1d1915;
-  }
-
-  .deactivated-modal h2 {
-    color: var(--white);
   }
 }
 

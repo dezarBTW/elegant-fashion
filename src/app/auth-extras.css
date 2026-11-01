@@ -72,14 +72,3 @@
   font-size: 0.88rem;
   line-height: 1.6;
 }
-
-@media (prefers-color-scheme: dark) {
-  .auth-email-strong,
-  .auth-link-button:hover {
-    color: var(--white);
-  }
-
-  .auth-aside {
-    color: #c7bfb4;
-  }
-}
