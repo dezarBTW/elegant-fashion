@@ -747,6 +747,7 @@
   }
   
   .auth-panel {
+    margin: 0;
     padding: 3.5rem 2.5rem;
   }
 }
@@ -906,9 +907,20 @@
     color: var(--white);
   }
 
+  .input:hover {
+    background: #241f1a;
+  }
+
   .input:focus {
+    background: #1d1915;
+    color: var(--white);
+    caret-color: var(--white);
     border-color: var(--gold);
     box-shadow: 0 0 0 4px rgba(201, 169, 98, 0.18);
+  }
+
+  .password-toggle {
+    color: #c7bfb4;
   }
 
   .auth-submit,
