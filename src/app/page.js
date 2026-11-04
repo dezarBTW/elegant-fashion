@@ -2,10 +2,11 @@
 import styles from "./page.module.css";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { businessStructuredData } from "@/lib/seo.mjs";
 import { watchCopyrightYear } from "@/lib/copyrightYear.mjs";
 import SocialCarousel from "@/components/SocialCarousel";
+import HomeRunwayLookbook from "@/components/HomeRunwayLookbook";
 
 const heroSlides = [
   { src: "/images/Hero/image (20).jpg", alt: "Jeweled blue Ankara evening gown" },
@@ -13,9 +14,6 @@ const heroSlides = [
   { src: "/images/Hero/image (22).jpg", alt: "Gold beaded occasion gown with a matching gele" },
   { src: "/images/Hero/image (23).jpg", alt: "Dark green lace gown with matching gele and coral accessories" },
 ];
-
-// Keep the showcase empty until real collections are available.
-const collectionSlides = [];
 
 const brandHighlights = [
   { value: "22+", label: "Years of tailoring" },
@@ -31,10 +29,7 @@ const servicePillars = [
 
 export default function Home() {
   const [activeSlide, setActiveSlide] = useState(0);
-  const [carouselIndex, setCarouselIndex] = useState(0);
   const [copyrightYear, setCopyrightYear] = useState(null);
-  const carouselRef = useRef(null);
-  const carouselStep = useRef(0);
 
   useEffect(() => watchCopyrightYear(setCopyrightYear), []);
 
@@ -47,43 +42,6 @@ export default function Home() {
     }, 6000);
 
     return () => window.clearInterval(slideTimer);
-  }, []);
-
-  useEffect(() => {
-    const carousel = carouselRef.current;
-    if (!carousel || collectionSlides.length === 0) return;
-
-    let frame = null;
-    let lastIndex = 0;
-    const updateIndex = () => {
-      frame = null;
-      const index = Math.max(0, Math.min(collectionSlides.length - 1,
-        Math.round(carousel.scrollLeft / (carouselStep.current || 1))));
-      if (index !== lastIndex) {
-        lastIndex = index;
-        setCarouselIndex(index);
-      }
-    };
-
-    const handleScroll = () => {
-      if (frame === null) frame = window.requestAnimationFrame(updateIndex);
-    };
-    const measure = () => {
-      const item = carousel.firstElementChild;
-      if (!item) return;
-      carouselStep.current = item.getBoundingClientRect().width +
-        (parseFloat(window.getComputedStyle(carousel).columnGap) || 0);
-      handleScroll();
-    };
-    const resizeObserver = new ResizeObserver(measure);
-    resizeObserver.observe(carousel);
-    measure();
-    carousel.addEventListener('scroll', handleScroll, { passive: true });
-    return () => {
-      carousel.removeEventListener('scroll', handleScroll);
-      resizeObserver.disconnect();
-      if (frame !== null) window.cancelAnimationFrame(frame);
-    };
   }, []);
 
   return (
@@ -149,64 +107,7 @@ export default function Home() {
               Thoughtful silhouettes, premium fabrics, and an unmistakable point of view. Our limited-edition collections are built for people who want unmistakable style without the compromise of fast fashion.
             </p>
 
-            <div className={styles.carouselContainer}>
-              {collectionSlides.length > 1 && <button
-                className={`${styles.carouselBtn} ${styles.carouselPrev}`} 
-                onClick={() => {
-                  if (carouselRef.current) {
-                    carouselRef.current.scrollBy({ left: -carouselStep.current, behavior: 'auto' });
-                  }
-                }}
-                aria-label="Previous items"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              </button>}
-              
-              <div className={styles.collectionGrid} ref={carouselRef} aria-hidden={collectionSlides.length === 0 ? true : undefined}>
-                {collectionSlides.map((item) => (
-                  <div key={item.name} className={styles.carouselItem}>
-                    <article className={styles.collectionCard}>
-                      <div className={styles.collectionImage}>
-                        <Image src={item.src} alt={item.alt} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
-                      </div>
-                      <div className={styles.collectionMeta}>
-                        <p>Collection</p>
-                        <h3>{item.name}</h3>
-                      </div>
-                      <Link className={`${styles.btn} ${styles.btnSmall} ${styles.btnOutline}`} href="/ready-to-wear">Shop collection</Link>
-                    </article>
-                  </div>
-                ))}
-              </div>
-
-              {collectionSlides.length > 1 && <button
-                className={`${styles.carouselBtn} ${styles.carouselNext}`}
-                onClick={() => {
-                  if (carouselRef.current) {
-                    carouselRef.current.scrollBy({ left: carouselStep.current, behavior: 'auto' });
-                  }
-                }}
-                aria-label="Next items"
-              >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>}
-
-              {collectionSlides.length > 1 && <div className={styles.carouselPagination} aria-label="Carousel navigation">
-                {collectionSlides.map((_, index) => (
-                  <button
-                    key={index}
-                    className={`${styles.carouselDot} ${index === carouselIndex ? styles.carouselDotActive : ''}`}
-                    onClick={() => {
-                      if (carouselRef.current) {
-                        carouselRef.current.scrollTo({ left: index * carouselStep.current, behavior: 'auto' });
-                      }
-                    }}
-                    aria-label={`Go to item ${index + 1}`}
-                    aria-current={index === carouselIndex ? 'true' : undefined}
-                  />
-                ))}
-              </div>}
-            </div>
+            <HomeRunwayLookbook />
           </div>
         </section>
 

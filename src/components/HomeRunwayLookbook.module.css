@@ -1,0 +1,46 @@
+.stage {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  margin-top: 2.5rem;
+  height: clamp(420px, 58vw, 720px);
+  background: linear-gradient(135deg, #eee8de, #faf8f3 65%, #eee8dd);
+  touch-action: pan-y;
+  user-select: none;
+}
+.haze {
+  position: absolute;
+  inset: -20%;
+  background: radial-gradient(ellipse at 20% 55%, rgba(201,169,98,.15), transparent 45%), radial-gradient(ellipse at 78% 50%, rgba(255,255,255,.7), transparent 45%);
+  animation: drift 12s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+@keyframes drift { to { transform: translateX(4%); } }
+.look {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  overflow: hidden;
+  opacity: 0;
+  background: #eee9e1;
+  transform-origin: top left;
+}
+.look img { object-fit: contain; }
+.look:focus-visible { outline: 3px solid #7d5e2e; outline-offset: 4px; }
+.number {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  z-index: 110;
+  color: var(--ink);
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  font-size: .85rem;
+  pointer-events: none;
+}
+.controls { position: absolute; right: 1.5rem; bottom: 1.2rem; z-index: 110; display: flex; gap: .5rem; }
+.controls button { width: 44px; height: 44px; border: 1px solid var(--ink); border-radius: 50%; background: var(--white); color: var(--ink); cursor: pointer; font-size: 1.3rem; }
+.controls button:focus-visible { outline: 3px solid var(--gold-deep); outline-offset: 3px; }
+@media (max-width: 700px) { .stage { height: 460px; margin-top: 2rem; } .number { left: 1rem; bottom: 1rem; } .controls { right: 1rem; bottom: 1rem; } }
+@media (prefers-reduced-motion: reduce) { .haze { animation: none; } }
