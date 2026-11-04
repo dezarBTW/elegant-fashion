@@ -3,7 +3,7 @@
 .breadcrumb a { text-decoration:underline; }
 .details { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:clamp(24px,5vw,64px); align-items:start; }
 .image { position:relative; display:grid; place-items:center; aspect-ratio:3/4; background:var(--paper); border-radius:8px; overflow:hidden; }
-.image img { object-fit:cover; }
+.image img { object-fit:contain; }
 .info { min-width:0; }
 .info h1 { font-size:clamp(1.8rem,3vw,2.6rem); line-height:1.15; overflow-wrap:anywhere; margin-bottom:18px; }
 .category { font-size:.75rem; text-transform:uppercase; letter-spacing:.12em; color:var(--gold-deep); margin-bottom:12px; }
