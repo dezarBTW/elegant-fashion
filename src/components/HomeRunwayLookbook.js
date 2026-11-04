@@ -9,6 +9,7 @@ import { productHref } from "@/lib/products.mjs";
 import styles from "./HomeRunwayLookbook.module.css";
 
 const STORAGE_KEY = "elegant-home-runway";
+const stageRatio = .84;
 // This listener survives a client-side transition to a product and observes Back.
 if (typeof window !== "undefined" && !window.__elegantRunwayHistoryListener) {
   window.__elegantRunwayHistoryListener = true;
@@ -16,12 +17,17 @@ if (typeof window !== "undefined" && !window.__elegantRunwayHistoryListener) {
 }
 const stops = {
   x: [1.13, .72, .48, .32, .21, .12, .06],
-  feet: [1.12, .9, .79, .72, .66, .62, .59],
+  feet: [1.12, .82, .79, .72, .66, .62, .59],
   height: [1.12, .82, .58, .44, .34, .26, .19],
   blur: [0, 0, 1.5, 4, 8, 12, 17],
-  opacity: [1, 1, 1, 1, .86, .5, 0],
 };
 const wrap = (value, length) => ((value % length) + length) % length;
+const fade = value => {
+  const t = Math.max(0, Math.min(1, value));
+  return t * t * (3 - 2 * t);
+};
+// Both ends of the depth loop are invisible before the image changes sides.
+const exitDepth = .85;
 const mix = (values, depth) => {
   const step = Math.max(0, Math.min(6, depth + 1));
   const lower = Math.floor(step);
@@ -59,6 +65,7 @@ export default function HomeRunwayLookbook() {
   }, []);
 
   useEffect(() => {
+    if (!products.length) return;
     const element = stage.current;
     const state = motion.current;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -81,25 +88,34 @@ export default function HomeRunwayLookbook() {
         const next = wrap(Math.round(state.position), count);
         if (state.active !== next) { state.active = next; setActive(next); }
         const width = element.clientWidth;
-        const height = element.clientHeight;
+        const stageHeight = element.clientHeight;
+        // Keep the look sizes while trimming the empty space below their feet.
+        const height = stageHeight / stageRatio;
         cards.current.forEach((card, index) => {
           if (!card) return;
-          let depth = wrap(index - state.position, count);
-          if (depth > count - 1) depth -= count;
-          if (count === 1) depth = 0;
-          const h = mix(stops.height, depth) * height;
+          const depth = count === 1 ? 0 : wrap(index - state.position + exitDepth, count) - exitDepth;
+          const h = Math.min(mix(stops.height, depth) * height, width * .5 / .54, stageHeight);
           const w = h * .54;
-          const x = mix(stops.x, depth) * width - w / 2;
-          const y = mix(stops.feet, depth) * height - h;
+          const center = count === 1 ? .5 : mix(stops.x, depth);
+          const x = center * width - w / 2;
+          const y = Math.min(mix(stops.feet, depth) * height, stageHeight) - h;
           const base = height * 1.2;
           const scale = h / base;
+          if (!scale || !Number.isFinite(scale)) return;
+          const front = fade((depth + .7) / .7);
+          const rear = fade((count - exitDepth - .08 - depth) / (count === 2 ? .18 : .9));
+          const edge = fade(Math.min(x, width - x - w) / (width * .025));
+          const opacity = count === 1 ? 1 : front * rear * edge;
+          const clickable = opacity > .18 && depth >= -.35;
           card.style.width = `${base * .54}px`;
           card.style.height = `${base}px`;
           card.style.transform = `translate3d(${x}px,${y}px,0) scale(${scale})`;
           card.style.filter = `blur(${mix(stops.blur, depth) / scale}px)`;
-          card.style.opacity = mix(stops.opacity, depth);
+          card.style.opacity = opacity;
+          card.style.visibility = opacity > 0 ? "visible" : "hidden";
           card.style.zIndex = String(100 - Math.round(depth * 10));
-          card.style.pointerEvents = depth < -.5 || depth > 3 ? "none" : "auto";
+          card.style.pointerEvents = clickable ? "auto" : "none";
+          card.tabIndex = clickable ? 0 : -1;
         });
       }
       frame = requestAnimationFrame(paint);
@@ -140,7 +156,8 @@ export default function HomeRunwayLookbook() {
     try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ returning: true, products, position, target })); } catch {}
   };
   return (
-    <div className={styles.stage} ref={stage} role="region" aria-label="Ready-to-wear runway" tabIndex={0}
+    <>
+    <div className={styles.stage} style={{ "--stage-ratio": stageRatio }} ref={stage} role="region" aria-label="Ready-to-wear runway" tabIndex={products.length > 1 ? 0 : undefined}
       onKeyDown={event => {
         if (products.length > 1 && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
           event.preventDefault();
@@ -165,7 +182,7 @@ export default function HomeRunwayLookbook() {
       }}
       onPointerUp={() => { const state = motion.current; if (state.dragging && state.moved) state.target = Math.round(state.target); state.dragging = false; }}
       onPointerCancel={() => { const state = motion.current; state.target = Math.round(state.target); state.dragging = false; }}>
-      <div className={styles.haze} aria-hidden="true" />
+      {!products.length && <div className={styles.haze} aria-hidden="true" />}
       {products.map((product, index) => (
         <Link key={product.id} ref={element => { cards.current[index] = element; }}
           href={productHref(product)} className={styles.look} aria-label={`View ${product.name}`}
@@ -173,11 +190,8 @@ export default function HomeRunwayLookbook() {
           <Image src={imagePath(product.image)} alt={product.name} fill sizes="(max-width: 700px) 60vw, 35vw" draggable={false} />
         </Link>
       ))}
-      {products.length > 0 && <div className={styles.number} aria-live="polite">Look {String(active + 1).padStart(2, "0")}</div>}
-      {products.length > 1 && <div className={styles.controls}>
-        <button type="button" aria-label="Previous look" onClick={() => step(-1)}>←</button>
-        <button type="button" aria-label="Next look" onClick={() => step(1)}>→</button>
-      </div>}
     </div>
+    {products[active] && <p className={styles.caption} data-multiple={products.length > 1 || undefined} aria-live="polite">{products[active].name}</p>}
+    </>
   );
 }

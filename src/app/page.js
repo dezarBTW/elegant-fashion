@@ -97,7 +97,7 @@ export default function Home() {
       </section>
 
       <main id="main-content">
-        <section id="ready-to-wear" className={styles.section}>
+        <section id="ready-to-wear" className={`${styles.section} ${styles.runwaySection}`}>
           <div className={styles.innerWrap}>
             <div className={styles.sectionHeader}>
               <p className={styles.eyebrow}>Ready-to-wear</p>

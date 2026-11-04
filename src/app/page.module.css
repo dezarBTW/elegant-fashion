@@ -364,8 +364,13 @@
 
 /* ====================== SECTIONS ====================== */
 .section {
-  padding: clamp(3rem, 6vw, 5rem) 2rem;
+  padding: clamp(2rem, 4vw, 3.25rem) 2rem;
   margin-top: 0;
+}
+
+.section.runwaySection {
+  background-color: var(--paper);
+  padding-bottom: 0.5rem;
 }
 
 .sectionDark {
@@ -986,7 +991,7 @@
   }
 
   .section {
-    padding: 3rem 1.25rem;
+    padding: 2rem 1.25rem;
   }
 
   .sectionTitle {

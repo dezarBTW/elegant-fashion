@@ -1,17 +1,17 @@
 .stage {
+  --runway-height: clamp(420px, 58vw, 720px);
   position: relative;
   overflow: hidden;
   isolation: isolate;
-  margin-top: 2.5rem;
-  height: clamp(420px, 58vw, 720px);
-  background: linear-gradient(135deg, #eee8de, #faf8f3 65%, #eee8dd);
+  height: calc(var(--runway-height) * var(--stage-ratio));
   touch-action: pan-y;
   user-select: none;
 }
 .haze {
   position: absolute;
-  inset: -20%;
-  background: radial-gradient(ellipse at 20% 55%, rgba(201,169,98,.15), transparent 45%), radial-gradient(ellipse at 78% 50%, rgba(255,255,255,.7), transparent 45%);
+  inset: 5% 8%;
+  background: radial-gradient(ellipse at 36% 53%, rgba(201,169,98,.14), transparent 66%), radial-gradient(ellipse at 64% 46%, rgba(255,255,255,.32), transparent 62%);
+  mask-image: radial-gradient(ellipse at center, black 32%, transparent 73%);
   animation: drift 12s ease-in-out infinite alternate;
   pointer-events: none;
 }
@@ -23,24 +23,22 @@
   display: block;
   overflow: hidden;
   opacity: 0;
-  background: #eee9e1;
+  visibility: hidden;
   transform-origin: top left;
 }
 .look img { object-fit: contain; }
 .look:focus-visible { outline: 3px solid #7d5e2e; outline-offset: 4px; }
-.number {
-  position: absolute;
-  bottom: 1.5rem;
-  left: 1.5rem;
-  z-index: 110;
+.caption {
+  margin: 0.25rem 0 0;
   color: var(--ink);
+  text-align: center;
   text-transform: uppercase;
   letter-spacing: .14em;
   font-size: .85rem;
-  pointer-events: none;
+  overflow-wrap: anywhere;
 }
-.controls { position: absolute; right: 1.5rem; bottom: 1.2rem; z-index: 110; display: flex; gap: .5rem; }
-.controls button { width: 44px; height: 44px; border: 1px solid var(--ink); border-radius: 50%; background: var(--white); color: var(--ink); cursor: pointer; font-size: 1.3rem; }
-.controls button:focus-visible { outline: 3px solid var(--gold-deep); outline-offset: 3px; }
-@media (max-width: 700px) { .stage { height: 460px; margin-top: 2rem; } .number { left: 1rem; bottom: 1rem; } .controls { right: 1rem; bottom: 1rem; } }
+.caption[data-multiple] { margin-inline-start: 44%; }
+@media (max-width: 700px) {
+  .stage { --runway-height: clamp(300px, 95vw, 420px); }
+}
 @media (prefers-reduced-motion: reduce) { .haze { animation: none; } }
