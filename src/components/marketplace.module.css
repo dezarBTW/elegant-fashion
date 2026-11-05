@@ -1,0 +1,9 @@
+.panel { color: #211c17; color-scheme: light; }
+.panel article { margin: 1rem 0; padding: 1.25rem; background: #fffdf9; border: 1px solid #ded6c8; border-radius: 12px; }
+.panel label { display: block; margin: .8rem 0; }
+.panel input, .panel textarea, .panel select { display: block; width: 100%; box-sizing: border-box; padding: .75rem; margin-top: .35rem; border: 1px solid #a89b50; border-radius: 6px; background: #fff; color: #211c17; font: inherit; }
+.panel button { cursor: pointer; padding: .65rem 1rem; margin: .3rem .4rem .3rem 0; border: 1px solid #a58a50; border-radius: 6px; background: #f4ead6; color: #211c17; font: inherit; }
+.panel button:disabled { cursor: default; opacity: .55; }
+.panel fieldset { margin: 1rem 0; border: 1px solid #ded6c8; border-radius: 8px; }
+.agreement { max-width: 720px; width: calc(100% - 2rem); max-height: 85dvh; box-sizing: border-box; overflow-y: auto; border: 1px solid #a58a50; border-radius: 12px; padding: 1.5rem; color: #211c17; background: #fffdf9; }
+.agreement::backdrop { background: rgb(0 0 0 / 55%); }

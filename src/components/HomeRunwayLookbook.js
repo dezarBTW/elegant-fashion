@@ -6,6 +6,7 @@ import Image from "next/image";
 import { supabase } from "@/lib/supabaseClient";
 import { imagePath } from "@/lib/imagePath.mjs";
 import { productHref } from "@/lib/products.mjs";
+import { selectRunway } from '@/lib/runwaySelection.mjs';
 import styles from "./HomeRunwayLookbook.module.css";
 
 const STORAGE_KEY = "elegant-home-runway";
@@ -56,9 +57,17 @@ export default function HomeRunwayLookbook() {
       motion.current.position = restored.position || 0;
       motion.current.target = restored.target || 0;
       Promise.resolve().then(() => { if (!cancelled) setProducts(restored.products); });
-    } else {
-      supabase.rpc("get_home_runway_products").then(({ data, error }) => {
-        if (!cancelled && !error && Array.isArray(data)) setProducts(data);
+    }
+    {
+      const request = supabase.rpc("get_home_runway_catalog");
+      request.then(({ data, error }) => {
+        if (!cancelled && !error && Array.isArray(data)) {
+          let previous=null;
+          try { previous=JSON.parse(localStorage.getItem('elegant-runway-selection')||'null'); } catch {}
+          const selection=selectRunway(data,previous);
+          setProducts(selection);
+          try { localStorage.setItem('elegant-runway-selection',JSON.stringify({ids:selection.map(product=>product.id),lastSeenAt:data[0]?.created_at||previous?.lastSeenAt||new Date().toISOString()})); } catch {}
+        }
       });
     }
     return () => { cancelled = true; };

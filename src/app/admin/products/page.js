@@ -63,7 +63,9 @@ export default function ProductsAdmin() {
       try {
         const data = await loadAdminProductPage(supabase, { page, search, category: categoryFilter }, controller.signal);
         if (controller.signal.aborted) return;
-        setProducts(data.products);
+        const ownership = await authenticatedFetch(`/api/admin/product-owners?ids=${data.products.map(product => product.id).join(',')}`, { signal: controller.signal });
+        if (controller.signal.aborted) return;
+        setProducts(data.products.map(product => ({ ...product, owner: ownership.owners.find(owner => owner.product_id === product.id) })));
         setStocks(Object.fromEntries(data.products.map(product => [product.id, product.stock])));
         setTotal(data.total);
         setCategoryOptions(['All', ...new Set([...BASE_CATEGORIES, ...(data.categories || [])])]);
@@ -415,6 +417,7 @@ export default function ProductsAdmin() {
                   <div className={shopStyles.productInfo}>
                     <span className={shopStyles.productCategory}>{product.category || "Uncategorised"}</span>
                     <h3 className={shopStyles.productName}>{product.name}</h3>
+                    <p>Owner: {product.owner?.seller_kind === 'vendor' ? product.owner.email : 'Elegant Style (admin)'}</p>
                     <p className={shopStyles.productCategory}>{PRODUCT_GENDERS.find(option => option.value === product.gender)?.label || 'Gender not set — edit to choose'}</p>
                     <p className={shopStyles.productCategory}>Stock: {PRODUCT_SIZES.map(({value})=>`${value}: ${stocks[product.id]?.quantities[value]||0}`).join(' · ')}</p>
                     <div className={shopStyles.productMeta}>

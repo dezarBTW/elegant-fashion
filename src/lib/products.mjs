@@ -14,7 +14,7 @@ export const PRODUCT_GENDERS = [
   { value: 'unisex', label: 'Unisex (both)' },
 ];
 export const matchesGender = (product, gender) => gender === 'all' || product.gender === gender || product.gender === 'unisex';
-export const productHref = (product) => `/ready-to-wear/product/${encodeURIComponent(product.slug || product.id)}`;
+export const productHref = (product) => `/ready-to-wear/product/${encodeURIComponent(product.slug && /^[a-f0-9-]{36}$/i.test(product.id) ? `${product.slug}-${product.id}` : product.slug || product.id)}`;
 export const productPrice = (product) => Number(product.sale_price ?? product.price);
 export const availableSizes = (product) => SIZE_VALUES.filter(size => product.available_sizes?.includes(size));
 

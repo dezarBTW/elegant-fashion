@@ -17,6 +17,15 @@ export default function AccountShell({ children }) {
   const needsOrderLink = pathname === '/account/orders' || pathname === '/account/requests';
   const [link, setLink] = useState({ identity: '', error: '' });
   const [retry, setRetry] = useState(0);
+  const [vendorIdentity, setVendorIdentity] = useState('');
+  useEffect(() => {
+    if (!identity) return;
+    const controller = new AbortController();
+    authenticatedFetch('/api/account/vendor', { signal: controller.signal }).then(result => {
+      if (!controller.signal.aborted && ['active', 'pending'].includes(result.vendor.status)) setVendorIdentity(identity);
+    }).catch(() => {});
+    return () => controller.abort();
+  }, [identity]);
   useEffect(() => {
     if (loading || !identity || !needsOrderLink) return;
     const controller = new AbortController();
@@ -31,6 +40,9 @@ export default function AccountShell({ children }) {
     <nav className={styles.sidebar} aria-label="Account sections">
       <span className={styles.sideTitle}>My account</span>
       {sections.map((section) => <Link key={section.href} href={section.href} className={`${styles.sideLink} ${pathname === section.href ? styles.sideLinkActive : ""}`} aria-current={pathname === section.href ? "page" : undefined}>{section.label}</Link>)}
+      {vendorIdentity === identity && <Link className={styles.sideLink} href="/account/products">Product management</Link>}
+      {vendorIdentity === identity && <Link className={styles.sideLink} href="/account/vendor-orders">Vendor orders</Link>}
+      <Link className={styles.sideLink} href="/account/deliveries">Confirm product receipt</Link>
       {isAdmin && <><div className={styles.sideDivider} /><Link className={styles.sideLink} href="/admin">Admin dashboard</Link></>}
       <div className={styles.sideDivider} /><Link className={styles.sideLink} href="/ready-to-wear">Continue shopping</Link>
     </nav>

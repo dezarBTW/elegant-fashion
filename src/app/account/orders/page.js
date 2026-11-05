@@ -6,6 +6,7 @@ import { authenticatedFetch } from "@/lib/clientApi";
 import { writeCart, readCart } from "@/lib/checkout.mjs";
 import { availableSizes, productHref } from "@/lib/products.mjs";
 import { repurchaseCart } from "@/lib/accountContracts.mjs";
+import { returnRequestAllowed } from '@/lib/vendorSettlement.mjs';
 import { supabase } from "@/lib/supabaseClient";
 import styles from "../../admin/adminShell.module.css";
 import account from "../account.module.css";
@@ -71,7 +72,7 @@ export default function AccountOrders() {
         <p className={account.reference}>Order {order.id}</p><p>Payment: {order.payment_status} · Order progress: {order.fulfillment_status}</p>
         {order.customer_received_at && <p className={account.success}>You confirmed receipt on {new Date(order.customer_received_at).toLocaleString("en-GB")}.</p>}
         {order.items.map((item) => <div className={account.item} key={`${item.productId}:${item.size || ''}`}><h3>{item.name}{item.size && ` · Size ${item.size}`}</h3><p>{item.quantity} × {money(item.unitAmountMinor)} · {money(item.lineAmountMinor)}</p>
-          <div className={account.actions}><button className={styles.btn} type="button" disabled={busy} onClick={() => repurchase(item)}>Buy again</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("refund", order, item)}>Request refund</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("complaint", order, item)}>Make a complaint</button></div>
+          <p>Progress: {item.fulfilment}. {item.confirmedAt && `Return/refund requests close ${new Date(Date.parse(item.confirmedAt) + 259200000).toLocaleString()}.`}</p><div className={account.actions}><button className={styles.btn} type="button" disabled={busy} onClick={() => repurchase(item)}>Buy again</button><button className={styles.btn} type="button" disabled={busy || !returnRequestAllowed({ confirmedAt: item.confirmedAt })} onClick={() => openRequest("refund", order, item)}>Request refund</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("complaint", order, item)}>Make a complaint</button></div>
         </div>)}
       </article>)}
     </div>}
@@ -80,7 +81,7 @@ export default function AccountOrders() {
         <label>{selected.kind === "refund" ? "Reason for the refund request" : "Describe your complaint"}<textarea value={description} onChange={(event) => setDescription(event.target.value)} minLength={10} maxLength={2000} required disabled={busy} /></label>
         {selected.kind === "complaint" && <label className={account.check}><input type="checkbox" checked={received} onChange={(event) => setReceived(event.target.checked)} required disabled={busy} />I confirm I received this product.</label>}
         {selected.kind === "refund" && <p className={account.hint}>The shop reviews each request. Approval does not itself issue a payment refund; the shop arranges any refund through Bachs.</p>}
-        <div className={account.actions}><button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={busy}>{busy ? "Submitting…" : "Submit request"}</button><button type="button" className={styles.btn} disabled={busy} onClick={() => setSelected(null)}>Cancel</button></div>
+        <p>Progress: {item.fulfilment}. {item.confirmedAt && `Return/refund requests close ${new Date(Date.parse(item.confirmedAt) + 259200000).toLocaleString()}.`}</p><div className={account.actions}><button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={busy}>{busy ? "Submitting…" : "Submit request"}</button><button type="button" className={styles.btn} disabled={busy} onClick={() => setSelected(null)}>Cancel</button></div>
       </form>
     </section>}
     {total > 20 && <nav className={account.pagination} aria-label="Order pages"><button className={styles.btn} disabled={page === 1 || loading} onClick={() => { setPage(page - 1); setLoading(true); }}>Previous</button><span>{page} / {Math.ceil(total / 20)}</span><button className={styles.btn} disabled={page * 20 >= total || loading} onClick={() => { setPage(page + 1); setLoading(true); }}>Next</button></nav>}

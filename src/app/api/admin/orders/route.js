@@ -54,6 +54,9 @@ export async function PATCH(request) {
     catch { return json({ error: "Invalid update payload." }, 400); }
     if (!parsed.success) return json({ error: "Only an order reference and fulfilment status can be updated." }, 400);
     const { id, expected_status, fulfillment_status } = parsed.data;
+    const sellerItems = await db.from('seller_order_items').select('id').eq('order_id', id).limit(1);
+    if (sellerItems.error) throw sellerItems.error;
+    if (sellerItems.data.length) return json({ error: 'Manage this order in Seller fulfilment & payments so each item is tracked separately.' }, 409);
     const { data: order, error } = await db.from("shop_orders")
       .select("id,payment_status,fulfillment_status,delivery").eq("id", id).maybeSingle();
     if (error) throw error;

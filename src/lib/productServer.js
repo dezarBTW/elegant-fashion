@@ -6,9 +6,10 @@ function catalogDatabase() {
 }
 
 export const getPublicProduct = cache(async slug => {
-  if (!/^[a-z0-9-]{1,200}$/.test(slug)) return null;
-  const column = /^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/.test(slug) ? 'id' : 'slug';
-  const { data, error } = await catalogDatabase().from('products').select('*').eq(column, slug).eq('is_active', true).maybeSingle();
+  if (!/^[a-z0-9-]{1,260}$/.test(slug)) return null;
+  const id = slug.match(/(?:^|-)([a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12})$/)?.[1];
+  const column = id ? 'id' : 'slug';
+  const { data, error } = await catalogDatabase().from('products').select('*').eq(column, id || slug).eq('is_active', true).maybeSingle();
   if (error) throw new Error('Unable to load this product. Please try again.');
   return data;
 });

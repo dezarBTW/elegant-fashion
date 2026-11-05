@@ -9,7 +9,7 @@ export default function TermsOfService() {
         <header className={styles.header}>
           <span className={styles.eyebrow}>Legal</span>
           <h1>Terms of Service</h1>
-          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-10-17">17 October 2026</time></p>
+          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-11-05">5 November 2026</time></p>
         </header>
 
         <div className={styles.content}>
@@ -103,15 +103,16 @@ export default function TermsOfService() {
             </p>
             <h3>Pickup, Delivery, and Order Progress</h3>
             <p>
-              Pickup from our Yenagoa address and delivery within Yenagoa are free. Delivery elsewhere in Nigeria costs &#8358;2,000, included in the total before payment. Provide an accurate delivery address, city, state, and contact number. We will contact you to arrange pickup or delivery; the website does not promise a delivery date merely because payment has succeeded.
+              Shop pickup is free. Home delivery within Yenagoa costs ₦1,000 per distinct product; delivery outside Yenagoa costs ₦2,000 per distinct product. Multiple units or sizes of the same product incur one product delivery fee. Outside Yenagoa, the estimate is 3–5 days for one distinct product and 4–7 days for two or more. The maximum delivery deadline is seven days from confirmed payment. Provide accurate contact and delivery details so we can arrange delivery and investigate any problems.
             </p>
             <p>
               Payment status and fulfilment progress are separate. Paid orders can move through processing, ready for pickup or dispatch, shipped where applicable, and completed. Our staff update fulfilment progress; a paid status alone does not mean an order has been dispatched or is ready to collect.
             </p>
             <p>
-              Your payment email includes an &ldquo;I have received the product&rdquo; link. Only submit its confirmation after you have received every product in that order. The confirmation records your acknowledgement and its time separately from staff fulfilment updates. Opening the email or link alone does not confirm receipt, and acknowledging receipt does not remove any applicable rights concerning faulty or incorrect products.
+              When a product is shipped or ready for pickup, we email you to confirm receipt through your account. Confirm only after receiving the relevant product. If confirmation is missing after the seven-day delivery deadline, an administrator investigates with the customer and relevant fulfilment provider before manually recording delivery. Opening an email does not confirm delivery.
             </p>
             <h3>Order Changes, Cancellations, and Problems</h3>
+            <p>Return/refund requests must be submitted within three days of confirmed delivery, whether confirmed by you or manually verified by an administrator. The normal request option locks after this window. Timely requests remain available for review after the window ends. Contact Elegant Style about non-delivery or access problems. This window does not remove rights that cannot lawfully be excluded.</p>
             <p>
               Contact us with your order reference as soon as possible if you need to change or cancel an order, have paid twice, or receive an incorrect, damaged, or faulty item. Signed-in customers can view paid orders matched to their verified account email, submit a refund reason for an ordered product, or describe a complaint about a product they confirm they received. Requests and staff responses appear in the account dashboard, and we attempt to send confirmation and status emails. Contact the shop if an order used a different email or you cannot access your account.
             </p>

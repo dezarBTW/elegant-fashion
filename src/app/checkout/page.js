@@ -136,6 +136,8 @@ export default function Checkout() {
       <Link className={styles.back} href="/ready-to-wear">← Back to shop</Link>
       <h1>Checkout</h1>
       <p className={styles.lede}>Your pieces, your details, and a secure payment.</p>
+      <p>Delivery fees apply per distinct product, regardless of units. The maximum delivery deadline is seven days from confirmed payment. Return/refund requests close three days after delivery is confirmed by you or verified by an administrator.</p>
+      {delivery.method === 'outside_yenagoa' && <p>Estimated delivery: {new Set(lines.map(line=>line.productId)).size > 1 ? '4–7' : '3–5'} days from confirmed payment.</p>}
       <>
         {cancelled && <p className={styles.notice} role="status">You returned from payment. Your cart is saved. If you already paid, check your order status before starting another payment.</p>}
         {(error||availability.error) && <p className={styles.error} role="alert">{error||availability.error}</p>}

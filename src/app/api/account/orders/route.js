@@ -15,6 +15,12 @@ export async function GET(request) {
       .eq("user_id", user.id).eq("payment_status", "paid").order("created_at", { ascending: false }).order("id", { ascending: false })
       .range((page - 1) * pageSize, page * pageSize - 1);
     if (error) throw error;
+    const itemProgress = data.length ? await db.from('seller_order_items').select('order_id,product_id,size,fulfilment,confirmed_at').in('order_id', data.map(order => order.id)) : { data: [] };
+    if (itemProgress.error) throw itemProgress.error;
+    for (const order of data) order.items = order.items.map(item => {
+      const progress = itemProgress.data.find(row => row.order_id === order.id && row.product_id === item.productId && row.size === (item.size || ''));
+      return { ...item, fulfilment: progress?.fulfilment || order.fulfillment_status, confirmedAt: progress?.confirmed_at || order.customer_received_at };
+    });
     return NextResponse.json({ orders: data, total: count, page, pageSize }, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     if (!(error instanceof OrderRequestError)) console.error("Account orders failed", error?.code || error?.message);

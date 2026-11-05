@@ -45,6 +45,7 @@ export async function POST(request) {
       if (lookupError || !existing) throw new OrderRequestError("This request reference has already been used. Refresh and try again.", 409);
       return json({ request: existing, duplicate: true });
     }
+    if (error?.code === "23514") throw new OrderRequestError("Return/refund requests are available only within three days of confirmed delivery.", 409);
     if (error) throw error;
     after(() => notifySupportRequest(data, input.kind, user.email));
     return json({ request: data }, 201);
