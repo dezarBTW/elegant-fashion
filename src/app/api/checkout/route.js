@@ -31,7 +31,7 @@ const schema = z.object({
     ctx.addIssue({ code: "custom", message: "Enter your delivery address, city and state." });
   }
   if (data.delivery.method === "yenagoa" && (data.delivery.city.toLowerCase() !== "yenagoa" || !/^bayelsa(?: state)?$/i.test(data.delivery.state))) {
-    ctx.addIssue({ code: "custom", message: "Free delivery is within Yenagoa, Bayelsa only. Choose outside Yenagoa for other addresses." });
+    ctx.addIssue({ code: "custom", message: "Choose delivery within Yenagoa only for addresses in Yenagoa, Bayelsa." });
   }
 });
 
@@ -91,7 +91,7 @@ export async function POST(request) {
     if (productError) throw productError;
     let pricing;
     try { pricing = priceCart(input.items, products || []); } catch (error) { return errorResponse(error.message); }
-    const shippingMinor = deliveryFeeMinor(input.delivery.method);
+    const shippingMinor = deliveryFeeMinor(input.delivery.method, pricing.lines);
     const totalMinor = pricing.subtotalMinor + shippingMinor;
     token = randomBytes(32).toString("hex");
     const { error: insertError } = await db.from("shop_orders").insert({

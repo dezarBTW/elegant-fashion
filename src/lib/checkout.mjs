@@ -11,9 +11,11 @@ export function writeCart(items) {
 }
 export const PICKUP_ADDRESS = "Km 4 Isaac Boro Express Way, Yenagoa, Bayelsa State";
 
-export function deliveryFeeMinor(method) {
-  if (method === "pickup" || method === "yenagoa") return 0;
-  if (method === "outside_yenagoa") return 200000;
+export function deliveryFeeMinor(method, items = []) {
+  const count = new Set(items.map((item) => item.productId)).size;
+  if (method === "pickup") return 0;
+  if (method === "yenagoa") return count * 100000;
+  if (method === "outside_yenagoa") return count * 200000;
   throw new Error("Choose a delivery option.");
 }
 

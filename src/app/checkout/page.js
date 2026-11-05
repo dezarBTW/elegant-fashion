@@ -127,7 +127,7 @@ export default function Checkout() {
     } catch (err) { if (err.name !== 'AbortError') setError(err.message || "Connection lost. Try again to resume this checkout."); }
     finally { setSubmitting(false); }
   };
-  const shipping = deliveryFeeMinor(delivery.method);
+  const shipping = deliveryFeeMinor(delivery.method, lines);
 
   if (authLoading || !signedIn || loading) return <CheckoutSkeleton />;
 
@@ -152,7 +152,7 @@ export default function Checkout() {
               </fieldset>
               <fieldset disabled={submitting || uncertain}>
                 <legend>Delivery or pickup</legend>
-                {[["pickup", "Pickup — Free"], ["yenagoa", "Delivery within Yenagoa — Free"], ["outside_yenagoa", "Delivery outside Yenagoa — ₦2,000"]].map(([method, label]) =>
+                {[["pickup", "Pickup — Free"], ["yenagoa", "Delivery within Yenagoa — ₦1,000 per product"], ["outside_yenagoa", "Delivery outside Yenagoa — ₦2,000 per product"]].map(([method, label]) =>
                   <label key={method} className={styles.option}><input type="radio" name="deliveryMethod" value={method} checked={delivery.method === method} onChange={() => chooseDelivery(method)} />{label}</label>)}
                 {delivery.method === "pickup" ? <p className={styles.hint}>Pickup location: {PICKUP_ADDRESS}.</p> : <>
                   <label>Street address<textarea name="address" autoComplete="street-address" value={delivery.address} onChange={changeAddress} maxLength={300} required /></label>

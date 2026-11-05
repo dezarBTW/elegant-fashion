@@ -27,10 +27,11 @@ test("paid cart cleanup subtracts purchased quantities and preserves later addit
 
 test("delivery follows the shop's exact rates and is added to the total", () => {
   assert.equal(deliveryFeeMinor("pickup"), 0);
-  assert.equal(deliveryFeeMinor("yenagoa"), 0);
-  assert.equal(deliveryFeeMinor("outside_yenagoa"), 200000);
+  const items = [{ productId: "dress", quantity: 2 }, { productId: "dress", size: "M" }, { productId: "top" }];
+  assert.equal(deliveryFeeMinor("yenagoa", items), 200000);
+  assert.equal(deliveryFeeMinor("outside_yenagoa", items), 400000);
   assert.throws(() => deliveryFeeMinor("unknown"));
-  assert.equal(decimalAmount(moneyToMinor("50000.00") + deliveryFeeMinor("outside_yenagoa")), "52000.00");
+  assert.equal(decimalAmount(moneyToMinor("50000.00") + deliveryFeeMinor("outside_yenagoa", items.slice(0, 1))), "52000.00");
 });
 
 test("server prices override supplied prices, count quantities and use discounts", () => {
