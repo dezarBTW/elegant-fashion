@@ -13,7 +13,7 @@ import styles from './product.module.css';
 
 export default function ProductDetails({ product, recommendations }) {
   const { addItem, items } = useCart();
-  const availability = usePurchaseLimits(product.id);
+  const availability = usePurchaseLimits(product.localFixture ? '' : product.id);
   const [size, setSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [request, setRequest] = useState({ name: '', email: '', phone: '', size: '', colour: '', details: '', website: '' });
@@ -49,15 +49,15 @@ export default function ProductDetails({ product, recommendations }) {
         <p className={styles.category}>{product.category || 'Ready to wear'}</p><h1 id="product-name">{product.name}</h1>
         <p className={styles.price}>₦{productPrice(product).toLocaleString('en-NG')}{product.sale_price != null && Number(product.sale_price) < Number(product.price) && <del>₦{Number(product.price).toLocaleString('en-NG')}</del>}</p>
         <p className={styles.description}>{product.description || `Discover ${product.name} from our ${product.category?.toLowerCase() || 'ready-to-wear'} collection. Contact us if you need more details before ordering.`}</p>
-        <form onSubmit={async event => { event.preventDefault(); const source=event.currentTarget; try { const fresh=await availability.refresh(); addItem({...product,purchase_limits:fresh[product.id]||{}}, quantity, size, source); } catch(error){setError(error.message);} }}>
+        {!product.localFixture && <form onSubmit={async event => { event.preventDefault(); const source=event.currentTarget; try { const fresh=await availability.refresh(); addItem({...product,purchase_limits:fresh[product.id]||{}}, quantity, size, source); } catch(error){setError(error.message);} }}>
           <ProductOptions name={product.name} sizes={sizes} size={size} quantity={quantity} maxQuantity={maxQuantity} onSizeChange={size => {setSize(size);setQuantity(1);}} onQuantityChange={setQuantity} />
           {availability.error && <p role="alert" className={styles.error}>{availability.error}</p>}
           <p className={styles.hint}>{sizes.length ? 'Choose your size and quantity. Unavailable sizes are disabled.' : 'No sizes are currently available. You can request this product below.'}</p>
           <button type="submit" className={styles.add} disabled={!sizes.includes(size)||!maxQuantity||quantity>maxQuantity}>Add to cart</button>
-        </form>
+        </form>}
       </div>
     </section>
-    <section className={styles.request} aria-labelledby="request-heading">
+    {!product.localFixture && <section className={styles.request} aria-labelledby="request-heading">
       <h2 id="request-heading">Request this product in a different colour or size</h2><p>Tell us what you have in mind. We will contact you to confirm availability and pricing before you pay.</p>
       <form className={styles.requestForm} onSubmit={submitRequest}>
         <fieldset disabled={busy}><legend className={shop.srOnly}>Your product request</legend>
@@ -73,7 +73,7 @@ export default function ProductDetails({ product, recommendations }) {
         {error && <p role="alert" className={styles.error}>{error}</p>}{message && <p role="status">{message}</p>}
         <button className={styles.add} type="submit" disabled={busy || Boolean(message)}>{busy ? 'Sending request…' : 'Send request'}</button>
       </form>
-    </section>
+    </section>}
     {recommendations.length > 0 && <section className={styles.recommendations} aria-labelledby="recommendations-heading"><h2 id="recommendations-heading">Recommended products</h2><p>More pieces from our {product.category?.toLowerCase()} collection.</p><div className={shop.products}>{recommendations.map((item, index) => <ShopProductCard key={item.id} product={item} index={index} />)}</div></section>}
   </main></div>;
 }

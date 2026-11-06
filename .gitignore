@@ -57,6 +57,7 @@ yarn-error.log*
 /_to_delete/
 .playwright-cli/
 /output/
+/public/images/local-runway/
 
 # typescript
 *.tsbuildinfo

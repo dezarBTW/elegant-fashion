@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { authenticatedFetch } from "@/lib/clientApi";
 import styles from "../admin/adminShell.module.css";
 import account from "./account.module.css";
+import DashboardSkeleton from '@/components/DashboardSkeleton';
 
 export default function Account() {
   const { user, userData, logout } = useAuth();
@@ -81,6 +82,7 @@ export default function Account() {
     setMessage("");
   }
 
+  if (!deactivationMethod && !error) return <DashboardSkeleton variant="profile" />;
   return <div className={account.stack}>
     <div className={styles.pageHeader}><div><h1 className={styles.pageTitle}>Profile & account</h1><p className={styles.pageSub}>Your details, password, and account access.</p></div></div>
     {error && <p className={styles.error} role="alert">{error}</p>}

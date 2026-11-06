@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import styles from "./adminShell.module.css";
+import DashboardSkeleton from '@/components/DashboardSkeleton';
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Overview", exact: true },
@@ -25,12 +26,7 @@ export default function AdminLayout({ children }) {
   const pathname = usePathname();
 
   if (loading) {
-    return (
-      <div className={styles.centerBox} role="status" aria-live="polite">
-        <div className={styles.spinner} aria-hidden="true" />
-        <p>Loading admin dashboard...</p>
-      </div>
-    );
+    return <DashboardSkeleton shell />;
   }
 
   if (!user || !isAdmin) {

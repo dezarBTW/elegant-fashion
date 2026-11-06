@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import styles from "../admin/adminShell.module.css";
+import DashboardSkeleton from '@/components/DashboardSkeleton';
 
 const sections = [{ href: "/account", label: "Profile & account" }, { href: "/account/orders", label: "My orders" }, { href: "/account/requests", label: "Refunds & complaints" }];
 
@@ -35,7 +36,8 @@ export default function AccountShell({ children }) {
     return () => controller.abort();
   }, [loading, identity, needsOrderLink, retry]);
   useEffect(() => { if (!loading && !user) router.replace("/sign-in"); }, [user, loading, router]);
-  if (loading || !user) return <div className={styles.centerBox} role="status">{loading ? "Loading your account…" : "Redirecting to sign in…"}</div>;
+  if (loading) return <DashboardSkeleton variant="profile" shell />;
+  if (!user) return <div className={styles.centerBox} role="status">Redirecting to sign in…</div>;
   return <div className={styles.shell}><div className={styles.inner}>
     <nav className={styles.sidebar} aria-label="Account sections">
       <span className={styles.sideTitle}>My account</span>

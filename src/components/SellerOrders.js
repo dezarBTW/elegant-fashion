@@ -1,7 +1,9 @@
 "use client";
 import styles from './marketplace.module.css';
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { authenticatedFetch } from "@/lib/clientApi";
+import DashboardSkeleton from './DashboardSkeleton';
+import { publishSellerOrderChange, SELLER_ORDERS_CHANGED } from '@/lib/sellerOrderEvents.mjs';
 function actions(item,mode){
  if(item.confirmed_at)return [];
  if(mode==='admin'&&item.seller_kind==='vendor')return item.fulfilment==='sent_to_shop'?['at_shop']:item.fulfilment==='at_shop'?[item.order.delivery.method==='pickup'?'ready':'shipped']:[];
@@ -13,27 +15,43 @@ export default function SellerOrders({ mode }) {
   const [items, setItems] = useState([]),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
+    [loading, setLoading] = useState(true),
+    [refreshing, setRefreshing] = useState(false),
+    [notice, setNotice] = useState(''),
     [notes, setNotes] = useState({});
-  async function load() {
-    const result = await authenticatedFetch(
-      `/api/account/seller-orders?mode=${mode}`,
-    );
-    setItems(result.items);
-  }
-  useEffect(() => {
+  const pending = useRef(null);
+  const load = useCallback((force = false) => {
+    if (pending.current && !force) return pending.current.promise;
+    pending.current?.controller.abort();
     const controller = new AbortController();
-    authenticatedFetch(`/api/account/seller-orders?mode=${mode}`, {
-      signal: controller.signal,
-    })
-      .then((result) => setItems(result.items))
-      .catch((error) => {
-        if (!controller.signal.aborted) setError(error.message);
-      });
-    return () => controller.abort();
-  }, [mode]);
+    setRefreshing(true);
+    const promise = authenticatedFetch(`/api/account/seller-orders?mode=${mode}`, {signal:controller.signal})
+      .then(result=>{if(!controller.signal.aborted){setItems(result.items);setError('');}})
+      .catch(error=>{if(!controller.signal.aborted)setError(error.message);})
+      .finally(()=>{if(pending.current?.controller===controller){pending.current=null;setRefreshing(false);setLoading(false);}});
+    pending.current={controller,promise};
+    return promise;
+  },[mode]);
+  useEffect(() => {
+    void load();
+    const refresh=()=>{if(!document.hidden)void load();};
+    const changed=event=>{if(event.key===SELLER_ORDERS_CHANGED)refresh();};
+    window.addEventListener('focus',refresh);
+    window.addEventListener('pageshow',refresh);
+    window.addEventListener('storage',changed);
+    document.addEventListener('visibilitychange',refresh);
+    return ()=>{
+      pending.current?.controller.abort();pending.current=null;
+      window.removeEventListener('focus',refresh);
+      window.removeEventListener('pageshow',refresh);
+      window.removeEventListener('storage',changed);
+      document.removeEventListener('visibilitychange',refresh);
+    };
+  }, [load]);
   async function action(item, action) {
     setBusy(true);
     setError("");
+    setNotice('');
     try {
       const result = await authenticatedFetch("/api/account/seller-orders", {
         method: "POST",
@@ -44,20 +62,25 @@ export default function SellerOrders({ mode }) {
         }),
       });
       if (result.emailSent === false)
-        setError(
+        setNotice(
           "Progress saved, but notification email failed. Contact the administrator.",
         );
-      await load();
+      else if(action==='payment_received')setNotice('Payment receipt confirmed.');
+      await load(true);
+      publishSellerOrderChange();
     } catch (error) {
       setError(error.message);
     } finally {
       setBusy(false);
     }
   }
+  if(loading)return <DashboardSkeleton variant="orders" />;
   return (
     <section className={styles.panel}>
-      <p role="status">{error}</p>
-      {!items.length && <p>No paid order items found.</p>}
+      {error && <p role="alert">{error}</p>}
+      {notice && <p role="status">{notice}</p>}
+      <button type="button" disabled={busy || refreshing} onClick={()=>load(true)}>{refreshing?'Refreshing…':'Refresh orders'}</button>
+      {!error && !items.length && <p>No paid order items found.</p>}
       {items.map((item) => (
         <article key={item.id}>
           <h2>{item.product_name}</h2>
@@ -152,7 +175,7 @@ export default function SellerOrders({ mode }) {
                 disabled={busy}
                 onClick={() => action(item, "payment_received")}
               >
-                Payment received
+                Confirm payment received
               </button>
             )}
         </article>

@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import { createClient } from '@supabase/supabase-js';
+import { localRunwayEnabled, localRunwayProducts } from './localRunwayProducts.mjs';
 
 function catalogDatabase() {
   return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -7,6 +8,7 @@ function catalogDatabase() {
 
 export const getPublicProduct = cache(async slug => {
   if (!/^[a-z0-9-]{1,260}$/.test(slug)) return null;
+  if (localRunwayEnabled) return localRunwayProducts.find(product => product.slug === slug) || null;
   const id = slug.match(/(?:^|-)([a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12})$/)?.[1];
   const column = id ? 'id' : 'slug';
   const { data, error } = await catalogDatabase().from('products').select('*').eq(column, id || slug).eq('is_active', true).maybeSingle();
@@ -15,6 +17,7 @@ export const getPublicProduct = cache(async slug => {
 });
 
 export async function getRecommendations(product) {
+  if (product.localFixture) return localRunwayProducts.filter(item => item.id !== product.id);
   if (!product.category) return [];
   const { data, error } = await catalogDatabase().rpc('get_similar_products', { p_product_id: product.id });
   if (error) { console.error('Product recommendations unavailable', error.code); return []; }

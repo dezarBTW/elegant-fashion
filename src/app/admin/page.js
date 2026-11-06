@@ -4,6 +4,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 import styles from "./adminShell.module.css";
+import DashboardSkeleton from '@/components/DashboardSkeleton';
 
 // Landing page of the admin area: a quick count of what needs attention.
 export default function AdminOverview() {
@@ -36,6 +37,7 @@ export default function AdminOverview() {
   }, [isAdmin]);
 
   if (!isAdmin) return null;
+  if (!stats && !error) return <DashboardSkeleton />;
 
   const value = (key) => (stats ? stats[key] : "–");
 
