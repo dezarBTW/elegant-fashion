@@ -4,9 +4,11 @@ import { loadAdminProductPage } from "@/lib/catalogPages.mjs";
 import { supabase } from "@/lib/supabaseClient";
 import Image from "next/image";
 import { authenticatedFetch } from '@/lib/clientApi';
+import ProductForm from "@/components/ProductForm";
 import MediaCleanupNotice from '@/components/MediaCleanupNotice';
 import { useAuth } from "@/contexts/AuthContext";
-import { consumeRateLimit, formatRetryMessage, sanitizeText, validateImageFile } from "@/lib/sanitizeInput";
+import { consumeRateLimit, formatRetryMessage, sanitizeText } from "@/lib/sanitizeInput";
+import { validateProductImage } from '@/lib/productImage.mjs';
 import { invalidateCachedValue } from "@/lib/browserCache";
 import shellStyles from "../adminShell.module.css";
 // The product cards use the same styles as the Ready-to-wear shop page.
@@ -187,7 +189,7 @@ export default function ProductsAdmin() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const validation = validateImageFile(file);
+    const validation = validateProductImage(file);
     if (!validation.valid) {
       alert(validation.message);
       e.target.value = "";
@@ -195,6 +197,7 @@ export default function ProductsAdmin() {
     }
 
     try {
+      setSaving(true);
       const fileName = `${Date.now()}.${validation.extension}`;
       const filePath = `products/${fileName}`;
 
@@ -222,6 +225,8 @@ export default function ProductsAdmin() {
     } catch (error) {
       console.error("Error handling image upload:", error);
       alert("Error uploading image. Please try again.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -245,108 +250,10 @@ export default function ProductsAdmin() {
       <div className="admin-products-container">
 
         {/* Form Section */}
-        <div className="form-section">
-          <h2>{editMode ? "Edit Product" : "Add New Product"}</h2>
-          <form onSubmit={handleSubmit} className="product-form">
-            <div className="form-group">
-              <label htmlFor="product-name-input">Product Name *</label>
-              <input
-                id="product-name-input"
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                placeholder="Enter product name"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="product-price-input">Price (₦) *</label>
-              <input
-                id="product-price-input"
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                required
-                placeholder="Enter price"
-                min="0"
-                step="100"
-              />
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="product-category-input">Category *</label>
-              <select
-                id="product-category-input"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select category</option>
-                <option value="Dresses">Dresses</option>
-                <option value="Skirts">Skirts</option>
-                <option value="Trousers">Trousers</option>
-                <option value="Tops">Tops</option>
-                <option value="Jackets">Jackets</option>
-                <option value="Accessories">Accessories</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="product-image-input">Product Image</label>
-              <input
-                id="product-image-input"
-                type="file"
-                name="image"
-                accept="image/*"
-                onChange={handleImageUpload}
-              />
-              {formData.image && (
-                <div className="image-preview">
-                  <Image
-                    src={formData.image}
-                    alt="Preview"
-                    width={100}
-                    height={100}
-                    className="preview-image"
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="form-group">
-              <label htmlFor="product-gender">Gender *</label>
-              <select id="product-gender" name="gender" value={formData.gender} onChange={handleChange} required>
-                <option value="">Select gender</option>
-                {PRODUCT_GENDERS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
-              </select>
-              <p>Unisex products appear in both Male fashion and Female fashion.</p>
-            </div>
-            <div className="form-group">
-              <label htmlFor="product-description">Brief product description</label>
-              <textarea id="product-description" name="description" rows={4} maxLength={2000} value={formData.description} onChange={handleChange} placeholder="Describe the fabric, fit and key details." required />
-            </div>
-            <fieldset className="available-sizes" disabled={saving}>
-              <legend>Stock quantity for each size</legend>
-              <p>Enter units currently in stock for each size. Use 0 for unavailable sizes. Stock includes units reserved for pending payments.</p>
-              <div>{PRODUCT_SIZES.map(option=><label key={option.value}>{option.label}<input type="number" aria-label={`Stock for ${option.label}`} min="0" max="999999" step="1" required value={formData.quantities[option.value]} onChange={event=>setFormData(current=>({...current,quantities:{...current.quantities,[option.value]:event.target.value}}))} /></label>)}</div>
-            </fieldset>
-
-            <div className="form-actions">
-              <button type="submit" className="submit-btn" disabled={saving}>
-                {editMode ? "Update Product" : "Add Product"}
-              </button>
-              {editMode && (
-                <button type="button" onClick={resetForm} className="cancel-btn">
-                  Cancel
-                </button>
-              )}
-            </div>
-          </form>
-        </div>
+        <ProductForm formData={formData} editMode={editMode} saving={saving}
+          handleSubmit={handleSubmit} handleChange={handleChange} handleImageUpload={handleImageUpload}
+          onQuantityChange={(size,value)=>setFormData(current=>({...current,quantities:{...current.quantities,[size]:value}}))}
+          resetForm={resetForm} />
 
         {/* Products List */}
         <div className="products-list-section">

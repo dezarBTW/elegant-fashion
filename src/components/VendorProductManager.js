@@ -1,8 +1,10 @@
 "use client";
+import ProductForm from "./ProductForm";
 import styles from './marketplace.module.css';
 import { useEffect, useState } from "react";
 import { authenticatedFetch } from "@/lib/clientApi";
 import { supabase } from "@/lib/supabaseClient";
+import { validateProductImage } from '@/lib/productImage.mjs';
 const sizes = ["S", "M", "L", "XL", "XXL"];
 const blank = () => ({
   id: crypto.randomUUID(),
@@ -11,8 +13,8 @@ const blank = () => ({
   product: {
     name: "",
     price: "",
-    category: "Dresses",
-    gender: "female",
+    category: "",
+    gender: "",
     description: "",
     image: "",
   },
@@ -41,6 +43,10 @@ export default function VendorProductManager() {
   }, []);
   async function save(event) {
     event.preventDefault();
+    if (!products.some(product=>product.id===form.id) && !Object.values(form.quantities).some(value=>Number(value)>0)) {
+      setMessage("Enter stock for at least one size for this new product.");
+      return;
+    }
     setBusy(true);
     setMessage("");
     try {
@@ -72,6 +78,8 @@ export default function VendorProductManager() {
   }
   async function upload(file) {
     if (!file) return;
+    const validation = validateProductImage(file);
+    if (!validation.valid) { setMessage(validation.message); return; }
     setBusy(true);
     setMessage("");
     try {
@@ -93,86 +101,23 @@ export default function VendorProductManager() {
     }
   }
   return (
-    <section className={styles.panel}>
+    <section>
+      <div className={styles.panel}>
       <h2>Your products</h2>
       <p role="status">{message}</p>
       <button onClick={() => setForm(blank())} disabled={busy}>
         Add product
       </button>
+      </div>
       {form && (
-        <form onSubmit={save}>
-          <fieldset disabled={busy}>
-            <legend>Product details</legend>
-            <label>Upload product photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={event => upload(event.target.files[0])}/></label>
-            {["name", "category", "description", "image"].map((key) => (
-              <label key={key}>
-                {key}
-                <input
-                  required={key !== "image"}
-                  type={key === "image" ? "url" : "text"}
-                  maxLength={
-                    key === "name" ? 200 : key === "category" ? 100 : 2000
-                  }
-                  value={form.product[key] || ""}
-                  onChange={(event) => field(key, event.target.value)}
-                />
-              </label>
-            ))}
-            <label>
-              Price (₦)
-              <input
-                required
-                type="number"
-                min="0.01"
-                max="999999999"
-                step="0.01"
-                value={form.product.price}
-                onChange={(event) => field("price", event.target.value)}
-              />
-            </label>
-            <label>
-              Gender
-              <select
-                value={form.product.gender}
-                onChange={(event) => field("gender", event.target.value)}
-              >
-                {["female", "male", "unisex"].map((value) => (
-                  <option key={value}>{value}</option>
-                ))}
-              </select>
-            </label>
-            {sizes.map((size) => (
-              <label key={size}>
-                Size {size} quantity
-                <input
-                  type="number"
-                  min="0"
-                  max="999999"
-                  required
-                  value={form.quantities[size]}
-                  onChange={(event) =>
-                    setForm((previous) => ({
-                      ...previous,
-                      quantities: {
-                        ...previous.quantities,
-                        [size]: Number(event.target.value),
-                      },
-                    }))
-                  }
-                />
-              </label>
-            ))}
-            <p>
-              Check your price carefully: you are responsible for the price a
-              customer successfully pays.
-            </p>
-            <button>Save product</button>
-            <button type="button" onClick={() => setForm(null)}>
-              Cancel
-            </button>
-          </fieldset>
-        </form>
+        <ProductForm formData={{...form.product,quantities:form.quantities}}
+          editMode={products.some(product=>product.id===form.id)} saving={busy} vendor
+          handleSubmit={save} handleChange={event=>field(event.target.name,event.target.value)}
+          handleImageUpload={event=>upload(event.target.files[0])}
+          onQuantityChange={(size,value)=>setForm(previous=>({...previous,quantities:{...previous.quantities,[size]:Number(value)}}))}
+          onCancel={()=>setForm(null)} />
       )}
+      <div className={styles.panel}>
       {products.map((product) => (
         <article key={product.id}>
           <h3>{product.name}</h3>
@@ -216,6 +161,7 @@ export default function VendorProductManager() {
           }}>Remove product</button>
         </article>
       ))}
+      </div>
     </section>
   );
 }
