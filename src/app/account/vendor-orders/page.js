@@ -1,2 +1,2 @@
-import SellerOrders from '@/components/SellerOrders';
-export default function Page(){return <><h1>Vendor orders</h1><SellerOrders mode="vendor"/></>;}
+import VendorSales from '@/components/VendorSales';
+export default function Page(){return <><h1>Sales history</h1><p>Payments and delivery arrangements are handled directly with Elegant Style.</p><VendorSales/></>;}

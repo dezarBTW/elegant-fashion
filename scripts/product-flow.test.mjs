@@ -6,7 +6,7 @@ import * as crypto from 'node:crypto';
 import { PRODUCT_SIZES, PRODUCT_GENDERS, availableSizes, matchesGender, recommendProducts } from '../src/lib/products.mjs';
 import { addCartItem, normalizeCart, previewCheckoutCart, updateCheckoutItem, priceCart, setCartQuantity, subtractPurchasedItems } from '../src/lib/checkout.mjs';
 import { productRequestEmail, productRequestSchema } from '../src/lib/productRequests.mjs';
-import { buildOrderEmails, buildFulfillmentEmail, sendServiceEmail } from '../src/lib/orderEmails.mjs';
+import { buildOrderEmails, sendServiceEmail } from '../src/lib/orderEmails.mjs';
 import { readAccountBody } from '../src/lib/accountServer.js';
 import { OrderRequestError } from '../src/lib/orderManagement.mjs';
 
@@ -96,9 +96,9 @@ test('custom request emails escape input and use the only approved recipient and
   assert.ok(email.html.includes('&lt;script&gt;'));
   assert.ok(email.text.includes('XXL'));
 });
-test('order emails include the selected size in both receipt and shipping messages', () => {
+test('order emails include the selected size in both customer and shop purchase messages', () => {
   const order = { id, customer_name: 'Customer', customer_email: input.email, customer_phone: input.phone, items: [{ name: 'Skirt', size: 'XL', quantity: 5, unitAmountMinor: 1500000, lineAmountMinor: 7500000 }], subtotal_minor: 7500000, shipping_minor: 0, total_minor: 7500000, delivery: { method: 'pickup' } };
-  const messages = [...buildOrderEmails(order, 'elegantyoufashion18@gmail.com'), buildFulfillmentEmail(order, 'a'.repeat(64))];
+  const messages = buildOrderEmails(order, 'elegantyoufashion18@gmail.com');
   assert.ok(messages.every(message => message.html.includes('Size XL') && message.text.includes('Size XL')));
 });
 test('temporary email errors retry the identical message; permanent errors do not retry', async () => {

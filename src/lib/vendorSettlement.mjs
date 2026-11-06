@@ -16,11 +16,6 @@ export function deliveryDeadline(paidAt) {
   return deadline(paidAt, DELIVERY_DEADLINE_MS);
 }
 
-export function vendorPaymentEligible({ confirmedAt, hasOpenRequest, now = Date.now() }) {
-  const end = returnDeadline(confirmedAt);
-  return Boolean(end && hasOpenRequest === false && Number.isFinite(now) && now >= Date.parse(end));
-}
-
 export function returnRequestAllowed({ confirmedAt, now = Date.now() }) {
   const start = Date.parse(confirmedAt);
   const end = returnDeadline(confirmedAt);

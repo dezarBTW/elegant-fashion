@@ -49,46 +49,6 @@ export async function sendServiceEmail(message, { env = process.env, fetchImpl =
   }
 }
 
-function receiptConfirmationUrl(order, receiptToken) {
-  return /^[a-f0-9]{64}$/.test(receiptToken || "")
-    ? `${SITE_URL}/order-received/${encodeURIComponent(order.id)}#token=${receiptToken}` : null;
-}
-
-// True when this status change should email the customer their receipt link:
-// delivery orders when shipped, pickup orders when ready for pickup.
-export function sendsReceiptLink(status, deliveryMethod) {
-  return status === "shipped" || (status === "ready" && deliveryMethod === "pickup");
-}
-
-export function buildFulfillmentEmail(order, receiptToken) {
-  const safe = escapeEmailHtml;
-  const isPickup = order.delivery?.method === "pickup";
-  const reference = String(order.id).replace(/[\r\n]/g, " ");
-  const url = receiptConfirmationUrl(order, receiptToken);
-  if (!url) return null;
-  const heading = isPickup ? "Your order is ready for pickup" : "Your order has been shipped";
-  const lead = isPickup
-    ? `Your order is ready. Please collect it at: ${PICKUP_ADDRESS}.`
-    : "Your order is on its way to you.";
-  const items = (Array.isArray(order.items) ? order.items : []).map((item) => `${safe(item.name)}${item.size ? ` · Size ${safe(item.size)}` : ""} × ${safe(item.quantity)}`).join("<br>");
-  const itemText = (Array.isArray(order.items) ? order.items : []).map((item) => `${item.name}${item.size ? ` · Size ${item.size}` : ""} × ${item.quantity}`).join("\n");
-  return {
-    kind: isPickup ? "ready" : "shipped",
-    to: order.customer_email,
-    subject: `${isPickup ? "Your Elegant Style order is ready" : "Your Elegant Style order has shipped"} — ${reference}`,
-    html: wrapBrandEmail(heading, `<p>Hello ${safe(order.customer_name)},</p><p>${safe(lead)}</p><p>Order reference: <strong>${safe(order.id)}</strong></p><p>${items}</p><h2 style="font-size:18px">After you receive your order</h2><p>Once you have received every product in this order, let us know using the button below.</p><p><a href="${safe(url)}" style="display:inline-block;background:#24211e;color:#ffffff;padding:14px 20px;text-decoration:none;border-radius:6px">I have received the product</a></p><p>This opens a confirmation page. Only confirm after your order has arrived. Keep this personal link private. For help, call 08166361710 and quote your order reference.</p>`),
-    text: `Hello ${order.customer_name},\n${lead}\nOrder reference: ${order.id}\n${itemText}\n\nAfter you receive every product in this order, confirm receipt here:\n${url}\nOnly confirm after your order has arrived. Keep this personal link private. For help, call 08166361710.`,
-    idempotencyKey: `fulfillment-notice/${order.id}/${isPickup ? "ready" : "shipped"}`,
-  };
-}
-
-export async function sendFulfillmentEmail(order, receiptToken, options = {}) {
-  const message = buildFulfillmentEmail(order, receiptToken);
-  if (!message) return false;
-  const { kind, ...email } = message;
-  return sendServiceEmail(email, options);
-}
-
 export function buildOrderEmails(order, shopRecipient) {
   const safe = escapeEmailHtml;
   const delivery = order.delivery || {};
@@ -118,8 +78,8 @@ export function buildOrderEmails(order, shopRecipient) {
     {
       kind: "customer", to: order.customer_email,
       subject: `Your Elegant Style receipt — ${reference}`,
-      html: wrap("Payment received", `<p>Hello ${safe(order.customer_name)},</p><p>Thank you. We have received payment for your order.</p><p>Delivery is due within seven days of confirmed payment. Return/refund requests close three days after you confirm receipt or an administrator verifies delivery.</p>${details}<p>We will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710 and quote your order reference.</p><p>We will email you again when your order ${delivery.method === "pickup" ? "is ready for pickup" : "has shipped"}. If you have any questions, just reply to this email.</p>`),
-      text: `Hello ${order.customer_name},\nThank you. Your order is paid. Return/refund requests close three days after confirmed delivery. The maximum delivery deadline is seven days from confirmed payment.\n${commonText}\nWe will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710. We will email you again when your order ${delivery.method === "pickup" ? "is ready for pickup" : "has shipped"}. If you have any questions, just reply to this email.`,
+      html: wrap("Payment received", `<p>Hello ${safe(order.customer_name)},</p><p>Thank you. We have received payment for your order.</p><p>Delivery is due within seven days of confirmed payment. Return/refund requests close three days after an administrator verifies delivery.</p>${details}<p>We will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710 and quote your order reference.</p><p>Delivery and pickup are coordinated directly with the shop. We will notify you when delivery is verified and your three-day return/refund window starts. If you have any questions, just reply to this email.</p>`),
+      text: `Hello ${order.customer_name},\nThank you. Your order is paid. Return/refund requests close three days after confirmed delivery. The maximum delivery deadline is seven days from confirmed payment.\n${commonText}\nWe will contact you to arrange ${delivery.method === "pickup" ? "pickup" : "delivery"}. For help, call 08166361710. Delivery and pickup are coordinated directly with the shop. We will notify you when delivery is verified and your three-day return/refund window starts. If you have any questions, just reply to this email.`,
     },
     {
       kind: "shop", to: shopRecipient,
@@ -158,4 +118,18 @@ export async function sendOrderEmails(order, { env = process.env, fetchImpl = fe
   } catch (error) {
     logger.error(`Order ${order.id}: email preparation failed`, error.message);
   }
+}
+
+
+export function buildDeliveryCompletedEmail(order) {
+  const confirmed=Date.parse(order.delivery_confirmed_at);
+  if(!Number.isFinite(confirmed))return null;
+  const deadline=new Date(confirmed+3*24*60*60*1000).toISOString();
+  return {to:order.customer_email,subject:'Your Elegant Style delivery has been confirmed',idempotencyKey:`order-delivered/${order.id}`,
+    html:wrapBrandEmail('Delivery confirmed',`<p>The shop has verified delivery of order ${escapeEmailHtml(order.id)}.</p><p>Return/refund requests must be submitted within three days of confirmed delivery, by ${escapeEmailHtml(deadline)} (UTC). Timely requests remain open for review.</p><p>If you have not received your products, contact the shop immediately on 08166361710.</p><p><a href="${SITE_URL}/account/orders">View your order and request help</a></p>`),
+    text:`Delivery of order ${order.id} has been verified. Return/refund requests close ${deadline} (UTC). If you have not received your products, call 08166361710 immediately. ${SITE_URL}/account/orders`};
+}
+export async function sendDeliveryCompletedEmail(order) {
+  const message=buildDeliveryCompletedEmail(order);
+  return message?sendServiceEmail(message):false;
 }

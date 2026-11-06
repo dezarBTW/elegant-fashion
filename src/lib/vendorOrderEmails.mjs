@@ -30,14 +30,14 @@ export async function notifyPaidVendors(db, orderId, {sendEmail=sendServiceEmail
         ? `This is a multiple-vendor order. Send your items to the administrator at ${PICKUP_ADDRESS} for combined delivery. Do not ship directly to the customer.`
         : shop
           ? `The customer selected shop pickup. Deliver your items to ${PICKUP_ADDRESS}.`
-          : "Arrange customer delivery using the order instructions in your account.";
+          : "Contact Elegant Style directly to coordinate delivery offline.";
     return sendEmail({
         to: user.email,
         subject: "Your product purchase was successfully paid",
         idempotencyKey: `vendor-paid/${orderId}/${user.id}`,
         html: wrapBrandEmail(
           "Paid product purchase",
-          `<p>Order ${escapeEmailHtml(orderId)}</p><ul>${items.map((item) => `<li>${escapeEmailHtml(item.product_name)} × ${item.quantity}</li>`).join("")}</ul><p>${escapeEmailHtml(instructions)}</p><p>The maximum delivery deadline is seven days from confirmed payment. Payment eligibility begins after the three-day return/refund window following confirmed delivery, subject to unresolved requests.</p><p><a href="${SITE_URL}/account/vendor-orders">Manage your items</a></p>`,
+          `<p>Order ${escapeEmailHtml(orderId)}</p><ul>${items.map((item) => `<li>${escapeEmailHtml(item.product_name)} × ${item.quantity}</li>`).join("")}</ul><p>${escapeEmailHtml(instructions)}</p><p>The maximum delivery deadline is seven days from confirmed payment. Vendor payments and delivery coordination are handled directly with the administrator offline.</p><p><a href="${SITE_URL}/account/vendor-orders">View sales history</a></p>`,
         ),
       });
   });

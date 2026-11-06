@@ -62,17 +62,17 @@ export default function AccountOrders() {
   }
 
   return <>
-    <div className={styles.pageHeader}><div><h1 className={styles.pageTitle}>My orders</h1><p className={styles.pageSub}>Your paid ready-to-wear purchases and order progress.</p></div></div>
+    <div className={styles.pageHeader}><div><h1 className={styles.pageTitle}>My orders</h1><p className={styles.pageSub}>Your paid purchases. Contact the shop to arrange shipping or resolve delivery issues.</p></div></div>
     <p className={account.hint}>Your purchases are linked to your verified account email. <Link href="/account/requests">View refunds & complaints</Link>.</p>
     {error && <p className={styles.error} role="alert">{error}</p>}
     {message && <p className={account.success} role="status">{message} <Link href="/checkout">Go to checkout</Link></p>}
     {loading ? <p role="status">Loading your orders…</p> : !orders.length ? <p className={styles.empty}>No paid orders match this account email yet. <Link href="/ready-to-wear">Visit the shop</Link>.</p> : <div className={account.stack}>
       {orders.map((order) => <article className={styles.card} key={order.id}>
         <h2 className={styles.cardTitle}>{new Date(order.created_at).toLocaleDateString("en-GB")}: {money(order.total_minor)}</h2>
-        <p className={account.reference}>Order {order.id}</p><p>Payment: {order.payment_status} · Order progress: {order.fulfillment_status}</p>
-        {order.customer_received_at && <p className={account.success}>You confirmed receipt on {new Date(order.customer_received_at).toLocaleString("en-GB")}.</p>}
+        <p className={account.reference}>Order {order.id}</p><p>Payment: {order.payment_status} · Delivery: {order.fulfillment_status==='completed'?'Completed':'Arranged offline'}</p>
+        {(order.delivery_confirmed_at||order.customer_received_at) && <p className={account.success}>Delivery confirmed on {new Date(order.delivery_confirmed_at||order.customer_received_at).toLocaleString("en-GB")}.</p>}
         {order.items.map((item) => <div className={account.item} key={`${item.productId}:${item.size || ''}`}><h3>{item.name}{item.size && ` · Size ${item.size}`}</h3><p>{item.quantity} × {money(item.unitAmountMinor)} · {money(item.lineAmountMinor)}</p>
-          <p>Progress: {item.fulfilment}. {item.confirmedAt && `Return/refund requests close ${new Date(Date.parse(item.confirmedAt) + 259200000).toLocaleString()}.`}</p><div className={account.actions}><button className={styles.btn} type="button" disabled={busy} onClick={() => repurchase(item)}>Buy again</button><button className={styles.btn} type="button" disabled={busy || !returnRequestAllowed({ confirmedAt: item.confirmedAt })} onClick={() => openRequest("refund", order, item)}>Request refund</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("complaint", order, item)}>Make a complaint</button></div>
+          <p>Delivery: {item.confirmedAt?'Confirmed':'Not yet confirmed'}. {item.confirmedAt && `Return/refund requests close ${new Date(Date.parse(item.confirmedAt) + 259200000).toLocaleString()}.`}</p><div className={account.actions}><button className={styles.btn} type="button" disabled={busy} onClick={() => repurchase(item)}>Buy again</button><button className={styles.btn} type="button" disabled={busy || !returnRequestAllowed({ confirmedAt: item.confirmedAt })} onClick={() => openRequest("refund", order, item)}>Request refund</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("complaint", order, item)}>Make a complaint</button></div>
         </div>)}
       </article>)}
     </div>}
@@ -81,7 +81,7 @@ export default function AccountOrders() {
         <label>{selected.kind === "refund" ? "Reason for the refund request" : "Describe your complaint"}<textarea value={description} onChange={(event) => setDescription(event.target.value)} minLength={10} maxLength={2000} required disabled={busy} /></label>
         {selected.kind === "complaint" && <label className={account.check}><input type="checkbox" checked={received} onChange={(event) => setReceived(event.target.checked)} required disabled={busy} />I confirm I received this product.</label>}
         {selected.kind === "refund" && <p className={account.hint}>The shop reviews each request. Approval does not itself issue a payment refund; the shop arranges any refund through Bachs.</p>}
-        <p>Progress: {item.fulfilment}. {item.confirmedAt && `Return/refund requests close ${new Date(Date.parse(item.confirmedAt) + 259200000).toLocaleString()}.`}</p><div className={account.actions}><button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={busy}>{busy ? "Submitting…" : "Submit request"}</button><button type="button" className={styles.btn} disabled={busy} onClick={() => setSelected(null)}>Cancel</button></div>
+<div className={account.actions}><button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={busy}>{busy ? "Submitting…" : "Submit request"}</button><button type="button" className={styles.btn} disabled={busy} onClick={() => setSelected(null)}>Cancel</button></div>
       </form>
     </section>}
     {total > 20 && <nav className={account.pagination} aria-label="Order pages"><button className={styles.btn} disabled={page === 1 || loading} onClick={() => { setPage(page - 1); setLoading(true); }}>Previous</button><span>{page} / {Math.ceil(total / 20)}</span><button className={styles.btn} disabled={page * 20 >= total || loading} onClick={() => { setPage(page + 1); setLoading(true); }}>Next</button></nav>}

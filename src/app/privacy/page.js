@@ -14,7 +14,7 @@ export default function PrivacyPolicy() {
         </header>
 
         <div className={styles.content}>
-          <section className={styles.section}><h2>Order fulfilment and delivery verification</h2><p>We retain checkout contact and delivery details with each order, product ownership, shipping updates, delivery confirmations and administrator verification evidence to fulfil orders, investigate delivery problems and manage returns and payments. Relevant fulfilment providers receive only the customer information needed for their items. We record who confirmed delivery and when. The normal return/refund request window is three days from confirmed delivery. Vendor identity and account permission records are restricted to the relevant account and authorised administrators. Vendor approval and agreements are handled offline.</p></section>
+          <section className={styles.section}><h2>Order fulfilment and delivery verification</h2><p>We retain checkout contact and delivery details with each order, product ownership, historical shipping updates, administrator delivery confirmations and verification evidence to fulfil orders, investigate delivery problems and manage returns and payments. Relevant fulfilment providers receive only the customer information needed for their items. We record who confirmed delivery and when. The normal return/refund request window is three days from confirmed delivery. Vendor identity and account permission records are restricted to the relevant account and authorised administrators. Vendor approval, agreements, vendor payments and shipping coordination are handled offline.</p></section>
           <section className={styles.section}>
             <h2>1. Information We Collect</h2>
             <p>
@@ -68,7 +68,7 @@ export default function PrivacyPolicy() {
               When you open My orders, we link unassigned orders to your account using your verified account email and the email supplied at checkout. We record refund reasons and descriptions of complaints about received products, together with your account, order and product references, receipt confirmation, request status, staff response, review identifier, and timestamps. You can view your own requests; authorised staff can review and update them. Please avoid including unnecessary sensitive information in a request.
             </p>
             <p>
-              Paid-order emails include a personal link for confirming that you received the order. We store a hash of the confirmation token and the time you confirm receipt. Opening the email or link alone does not confirm delivery; you must submit the confirmation on the page. Keep the link private, as anyone with it can confirm receipt for that order. Authorised staff can see the recorded confirmation.
+              Delivery and shipping issues are coordinated directly with the shop. Administrators record when delivery is verified and the supporting note, which starts the three-day return/refund window. We retain historical customer receipt confirmations and token hashes for existing orders, but new confirmations are recorded by administrators. Authorised staff can see these records.
             </p>
 
             <h3>Bespoke Requests</h3>

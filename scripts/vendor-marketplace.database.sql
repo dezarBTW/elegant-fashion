@@ -23,26 +23,19 @@ BEGIN
  UPDATE public.shop_orders SET payment_status='paid',paid_at=now()-interval '8 days',payment_id=gen_random_uuid()::text,paid_event_id=gen_random_uuid()::text WHERE id=test_order_id;
  SELECT id INTO item_id FROM public.seller_order_items WHERE seller_order_items.order_id=test_order_id;
  IF item_id IS NULL THEN RAISE EXCEPTION 'Seller snapshot missing'; END IF;
- PERFORM public.seller_item_action(vendor_id,item_id,'processing');
- PERFORM public.seller_item_action(vendor_id,item_id,'sent_to_shop');
- PERFORM public.seller_item_action(admin_id,item_id,'at_shop');
- PERFORM public.seller_item_action(admin_id,item_id,'ready');
- PERFORM public.seller_item_action(other_id,item_id,'confirm');
+ PERFORM public.admin_confirm_order_delivery(admin_id,test_order_id,'new','Verified receipt directly with customer');
  BEGIN
   PERFORM public.seller_item_action(admin_id,item_id,'payment_fulfilled');
-  RAISE EXCEPTION 'Early payment succeeded';
- EXCEPTION WHEN insufficient_privilege THEN NULL;END;
+  RAISE EXCEPTION 'Retired payment action succeeded';
+ EXCEPTION WHEN insufficient_privilege THEN NULL; END;
  INSERT INTO public.refund_requests(id,user_id,order_id,product_id,product_name,description)
  VALUES(gen_random_uuid(),other_id,test_order_id,product_id,'Rollback-only vendor test','Rollback-only return request');
  UPDATE public.seller_order_items SET confirmed_at=now()-interval '4 days' WHERE id=item_id;
  BEGIN
-  PERFORM public.seller_item_action(admin_id,item_id,'payment_fulfilled');
-  RAISE EXCEPTION 'Open return did not hold payment';
- EXCEPTION WHEN insufficient_privilege THEN NULL;END;
- UPDATE public.refund_requests SET status='rejected' WHERE refund_requests.order_id=test_order_id;
- PERFORM public.seller_item_action(admin_id,item_id,'payment_fulfilled');
- PERFORM public.seller_item_action(vendor_id,item_id,'payment_received');
- IF NOT EXISTS(SELECT 1 FROM public.seller_order_items WHERE id=item_id AND payment_received_at IS NOT NULL)THEN RAISE EXCEPTION 'Receipt confirmation failed';END IF;
+  INSERT INTO public.refund_requests(id,user_id,order_id,product_id,product_name,description)
+  VALUES(gen_random_uuid(),other_id,test_order_id,product_id,'Rollback-only vendor test','Late return request');
+  RAISE EXCEPTION 'Late refund succeeded';
+ EXCEPTION WHEN check_violation THEN NULL; END;
 END $$;
 DO $$
 DECLARE a uuid;v1 uuid;v2 uuid;p1 uuid;p2 uuid:=gen_random_uuid();o uuid:=gen_random_uuid();i1 uuid;i2 uuid;
@@ -56,10 +49,7 @@ BEGIN
  UPDATE public.shop_orders SET payment_status='paid',paid_at=now(),payment_id=gen_random_uuid()::text,paid_event_id=gen_random_uuid()::text WHERE id=o;
  SELECT id INTO i1 FROM public.seller_order_items WHERE order_id=o AND product_id=p1;
  SELECT id INTO i2 FROM public.seller_order_items WHERE order_id=o AND product_id=p2;
- PERFORM public.seller_item_action(v1,i1,'processing');PERFORM public.seller_item_action(v1,i1,'sent_to_shop');PERFORM public.seller_item_action(a,i1,'at_shop');
- BEGIN PERFORM public.seller_item_action(a,i1,'ready');RAISE EXCEPTION 'Partial combined dispatch succeeded';EXCEPTION WHEN insufficient_privilege THEN NULL;END;
- PERFORM public.seller_item_action(v2,i2,'processing');PERFORM public.seller_item_action(v2,i2,'sent_to_shop');PERFORM public.seller_item_action(a,i2,'at_shop');
- PERFORM public.seller_item_action(a,i1,'ready');
- IF (SELECT count(*) FROM public.seller_order_items WHERE order_id=o AND fulfilment='ready')<>2 THEN RAISE EXCEPTION 'Combined dispatch failed';END IF;
+ PERFORM public.admin_confirm_order_delivery(a,o,'new','Confirmed both vendor products arrived with customer');
+ IF (SELECT count(*) FROM public.seller_order_items WHERE order_id=o AND fulfilment='completed' AND confirmed_at IS NOT NULL)<>2 THEN RAISE EXCEPTION 'Combined confirmation failed';END IF;
 END $$;
 ROLLBACK;

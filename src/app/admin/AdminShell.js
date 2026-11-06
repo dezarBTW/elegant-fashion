@@ -10,7 +10,6 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Overview", exact: true },
   { href: "/admin/products", label: "Products" },
   { href: "/admin/vendors", label: "Vendors" },
-  { href: "/admin/vendor-orders", label: "Seller fulfilment & payments" },
   { href: "/admin/product-requests", label: "Size & colour requests" },
   { href: "/admin/orders", label: "Shop orders" },
   { href: "/admin/customer-requests", label: "Refunds & complaints" },

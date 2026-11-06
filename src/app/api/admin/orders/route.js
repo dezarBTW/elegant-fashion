@@ -1,21 +1,22 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { checkoutDatabase, createReceiptConfirmation } from "@/lib/checkoutServer";
-import { sendFulfillmentEmail, sendsReceiptLink } from "@/lib/orderEmails.mjs";
-import { FULFILLMENT_STATUSES, PAYMENT_STATUSES, ORDER_COLUMNS, OrderRequestError, requireOrderAdmin, nextFulfillmentStatuses } from "@/lib/orderManagement.mjs";
+import { checkoutDatabase } from "@/lib/checkoutServer";
+import { sendDeliveryCompletedEmail } from "@/lib/orderEmails.mjs";
+import { FULFILLMENT_STATUSES, PAYMENT_STATUSES, ORDER_COLUMNS, OrderRequestError, requireOrderAdmin } from "@/lib/orderManagement.mjs";
 import { checkRequestOrigin } from "@/lib/accountServer";
 
 export const runtime = "nodejs";
 const pageSize = 25;
 const querySchema = z.object({
   payment: z.enum(["all", ...PAYMENT_STATUSES]).default("all"),
-  fulfillment: z.enum(["all", ...FULFILLMENT_STATUSES]).default("all"),
+  fulfillment: z.enum(["all", "incomplete", ...FULFILLMENT_STATUSES]).default("all"),
   page: z.coerce.number().int().min(1).max(100000).default(1),
 }).strict();
 const updateSchema = z.object({
   id: z.uuid(),
   expected_status: z.enum(FULFILLMENT_STATUSES),
-  fulfillment_status: z.enum(FULFILLMENT_STATUSES),
+  action: z.literal("delivery_completed"),
+  note: z.string().trim().min(10).max(2000),
 }).strict();
 const json = (body, status = 200) => NextResponse.json(body, { status, headers: { "Cache-Control": "private, no-store" } });
 
@@ -34,52 +35,45 @@ export async function GET(request) {
     const { payment, fulfillment, page } = parsed.data;
     let query = db.from("shop_orders").select(ORDER_COLUMNS, { count: "exact" });
     if (payment !== "all") query = query.eq("payment_status", payment);
-    if (fulfillment !== "all") query = query.eq("fulfillment_status", fulfillment);
+    if (fulfillment === "incomplete") query = query.neq("fulfillment_status", "completed");
+    else if (fulfillment !== "all") query = query.eq("fulfillment_status", fulfillment);
     const { data, count, error } = await query.order("created_at", { ascending: false })
       .order("id", { ascending: false }).range((page - 1) * pageSize, page * pageSize - 1);
     if (error) throw error;
-    return json({ orders: data || [], total: count || 0, page, pageSize });
+    const ids=(data||[]).map(order=>order.id);
+    const ownership=ids.length?await db.from('seller_order_items').select('order_id,product_id,size,seller_id,seller_kind').in('order_id',ids):{data:[]};
+    if(ownership.error)throw ownership.error;
+    const sellers=[...new Set(ownership.data.map(item=>item.seller_id))];
+    const users=sellers.length?await db.from('users').select('id,email').in('id',sellers):{data:[]};
+    if(users.error)throw users.error;
+    const orders=(data||[]).map(order=>({...order,items:order.items.map(item=>{
+      const owner=ownership.data.find(row=>row.order_id===order.id&&row.product_id===item.productId&&row.size===(item.size||''));
+      return {...item,owner:owner?{userId:owner.seller_id,kind:owner.seller_kind,email:users.data.find(user=>user.id===owner.seller_id)?.email}:null};
+    })}));
+    return json({ orders, total: count || 0, page, pageSize });
   } catch (error) { return failure(error); }
 }
 
 export async function PATCH(request) {
   try {
     const db = checkoutDatabase();
-    await requireOrderAdmin(request, db);
+    const admin = await requireOrderAdmin(request, db);
     checkRequestOrigin(request);
     const raw = await request.text();
-    if (raw.length > 2000) return json({ error: "Request is too large." }, 413);
+    if (raw.length > 12000) return json({ error: "Request is too large." }, 413);
     let parsed;
     try { parsed = updateSchema.safeParse(JSON.parse(raw)); }
     catch { return json({ error: "Invalid update payload." }, 400); }
-    if (!parsed.success) return json({ error: "Only an order reference and fulfilment status can be updated." }, 400);
-    const { id, expected_status, fulfillment_status } = parsed.data;
-    const sellerItems = await db.from('seller_order_items').select('id').eq('order_id', id).limit(1);
-    if (sellerItems.error) throw sellerItems.error;
-    if (sellerItems.data.length) return json({ error: 'Manage this order in Seller fulfilment & payments so each item is tracked separately.' }, 409);
-    const { data: order, error } = await db.from("shop_orders")
-      .select("id,payment_status,fulfillment_status,delivery").eq("id", id).maybeSingle();
-    if (error) throw error;
-    if (!order) return json({ error: "Order not found." }, 404);
-    if (order.payment_status !== "paid") return json({ error: "Only paid orders can be fulfilled. Review the payment in Bachs first." }, 409);
-    if (order.fulfillment_status !== expected_status) return json({ error: "This order changed. Refresh before updating it." }, 409);
-    if (!nextFulfillmentStatuses(order.fulfillment_status, order.delivery?.method).includes(fulfillment_status)) return json({ error: "Invalid fulfilment transition for this delivery method." }, 409);
-    // Delivery orders get their receipt link when shipped; pickup orders when ready.
-    // A fresh token is created here because only its hash is ever stored.
-    const notify = sendsReceiptLink(fulfillment_status, order.delivery?.method);
-    const confirmation = notify ? createReceiptConfirmation() : null;
-    const { data: updated, error: updateError } = await db.from("shop_orders")
-      .update({ fulfillment_status, ...(confirmation ? { receipt_confirmation_hash: confirmation.hash } : {}) })
-      .eq("id", id).eq("payment_status", "paid")
-      .eq("fulfillment_status", expected_status).select(ORDER_COLUMNS).maybeSingle();
-    if (updateError) throw updateError;
-    if (!updated) return json({ error: "This order changed. Refresh before updating it." }, 409);
-    let emailSent = null;
-    if (confirmation) {
-      // The status change is already saved; an email problem must never undo it.
-      try { emailSent = await sendFulfillmentEmail(updated, confirmation.token); }
-      catch (error) { console.error(`Order ${id}: fulfilment email failed`, error?.message); emailSent = false; }
-    }
-    return json({ order: updated, ...(emailSent === null ? {} : { customerEmailSent: emailSent }) });
+    if (!parsed.success) return json({ error: "Provide the order, expected status and delivery verification note." }, 400);
+    const { id, expected_status } = parsed.data;
+    const result=await db.rpc('admin_confirm_order_delivery',{p_actor:admin.id,p_order:id,p_expected_status:expected_status,p_note:parsed.data.note});
+    if(result.error?.code==='40001')throw new OrderRequestError('This order changed. Refresh before confirming delivery.',409);
+    if(result.error?.code==='42501')throw new OrderRequestError('Only paid orders can be confirmed by an active administrator.',403);
+    if(result.error?.code==='P0002')throw new OrderRequestError('Order not found.',404);
+    if(result.error)throw result.error;
+    const order=Object.fromEntries(ORDER_COLUMNS.split(',').map(key=>[key,result.data.order[key]]));
+    let customerEmailSent=null;
+    if(result.data.changed)customerEmailSent=await sendDeliveryCompletedEmail(order);
+    return json({order,changed:result.data.changed,customerEmailSent});
   } catch (error) { return failure(error); }
 }

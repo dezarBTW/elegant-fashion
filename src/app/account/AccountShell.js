@@ -43,8 +43,7 @@ export default function AccountShell({ children }) {
       <span className={styles.sideTitle}>My account</span>
       {sections.map((section) => <Link key={section.href} href={section.href} className={`${styles.sideLink} ${pathname === section.href ? styles.sideLinkActive : ""}`} aria-current={pathname === section.href ? "page" : undefined}>{section.label}</Link>)}
       {vendorIdentity === identity && <Link className={styles.sideLink} href="/account/products">Product management</Link>}
-      {vendorIdentity === identity && <Link className={styles.sideLink} href="/account/vendor-orders">Vendor orders</Link>}
-      <Link className={styles.sideLink} href="/account/deliveries">Confirm product receipt</Link>
+      {vendorIdentity === identity && <Link className={styles.sideLink} href="/account/vendor-orders">Sales history</Link>}
       {isAdmin && <><div className={styles.sideDivider} /><Link className={styles.sideLink} href="/admin">Admin dashboard</Link></>}
       <div className={styles.sideDivider} /><Link className={styles.sideLink} href="/ready-to-wear">Continue shopping</Link>
     </nav>

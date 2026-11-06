@@ -9,7 +9,7 @@ import * as bachs from "../src/lib/bachs.mjs";
 import * as management from "../src/lib/orderManagement.mjs";
 import { checkRequestOrigin, readAccountBody } from '../src/lib/accountServer.js';
 import { bespokeReviewSchema } from '../src/lib/bespokeWorkflow.mjs';
-import { buildOrderEmails, buildFulfillmentEmail, sendOrderEmails, sendsReceiptLink } from "../src/lib/orderEmails.mjs";
+import { buildOrderEmails, sendOrderEmails } from "../src/lib/orderEmails.mjs";
 import { createReceiptConfirmation, receiptHash } from "../src/lib/checkoutServer.js";
 
 const id = "11111111-1111-4111-8111-111111111111";
@@ -30,7 +30,16 @@ function database(orders = [fixture()], profile = { id: adminId, is_admin: true,
   const reads = [];
   return {
     orders, updates, reads,
-    rpc: async () => ({data:true,error:null}),
+    rpc: async (name,input) => {
+      if(name!=='admin_confirm_order_delivery')return {data:true,error:null};
+      const order=orders.find(order=>order.id===input.p_order);
+      if(!order)return {error:{code:'P0002'}};
+      if(order.payment_status!=='paid')return {error:{code:'42501'}};
+      if(order.delivery_confirmed_at)return {data:{order,changed:false}};
+      if(order.fulfillment_status!==input.p_expected_status)return {error:{code:'40001'}};
+      Object.assign(order,{fulfillment_status:'completed',delivery_confirmed_at:new Date().toISOString(),delivery_verification_note:input.p_note});
+      return {data:{order,changed:true}};
+    },
     auth: { getUser: async (token) => token === validToken ? { data: { user: { id: adminId, user_metadata: { is_admin: true } } }, error: null } : { data: { user: null }, error: { message: "Invalid token" } } },
     from(table) {
       reads.push(table);
@@ -66,6 +75,7 @@ function database(orders = [fixture()], profile = { id: adminId, is_admin: true,
         maybeSingle() { return execute(true); },
         range(start, end) { return execute(false, [start, end]); },
         limit() { return execute(false); },
+        then(resolve,reject) { return execute(false).then(resolve,reject); },
       };
       return query;
     },
@@ -82,9 +92,10 @@ async function route(file, db, mailer = async () => {}, fulfillmentMailer = asyn
     "zod": { z },
     "@/lib/checkoutServer": { checkoutDatabase: () => db, createReceiptConfirmation, receiptHash },
     "@/lib/bachs.mjs": bachs,
-    "@/lib/orderEmails.mjs": { sendOrderEmails: mailer, sendFulfillmentEmail: fulfillmentMailer, sendsReceiptLink },
+    "@/lib/orderEmails.mjs": { sendOrderEmails: mailer, sendDeliveryCompletedEmail: fulfillmentMailer },
     "@/lib/orderManagement.mjs": management,
     "@/lib/accountServer": {checkRequestOrigin,readAccountBody},
+    "@/lib/vendorServer": {requireVendor:async()=>({db,user:{id:adminId}})},
     "@/lib/bespokeWorkflow.mjs": {bespokeReviewSchema},
     "@/lib/paidOrderNotifications.mjs": {sendPaidOrderNotifications:async (_db,order)=>{
       if(!order.email_tracking_started_at || db.mailStatus==='sent' || db.mailStatus==='sending')return {failed:0};
@@ -249,149 +260,6 @@ test("receipt tokens are distinct random secrets and only their hashes are store
   assert.equal(first.hash, receiptHash(first.token));
 });
 
-test("payment emails never contain the receipt link; only the shipped email does, in its fragment", () => {
-  const { token } = createReceiptConfirmation();
-  const [payment, admin] = buildOrderEmails(fixture(), "shop@example.invalid", token);
-  assert.ok(!payment.html.includes("I have received the product") && !payment.html.includes("order-received"));
-  assert.ok(!payment.text.includes("order-received") && !admin.html.includes("order-received"));
-  const shipped = buildFulfillmentEmail(fixture(), token);
-  assert.equal(shipped.kind, "shipped");
-  assert.ok(shipped.subject.includes("has shipped"));
-  assert.ok(shipped.html.includes("I have received the product"));
-  const link = new URL(shipped.html.match(/href="([^"]+)"/)[1]);
-  assert.equal(link.origin, "https://elegantstyle.com.ng");
-  assert.equal(link.pathname, `/order-received/${id}`);
-  assert.equal(link.search, "");
-  assert.equal(link.hash, `#token=${token}`);
-  assert.ok(shipped.text.includes(link.href));
-  assert.equal(shipped.idempotencyKey, `fulfillment-notice/${id}/shipped`);
-  assert.equal(buildFulfillmentEmail(fixture(), '" onclick="bad'), null);
-  const pickup = fixture();
-  pickup.delivery = { method: "pickup" };
-  assert.equal(buildFulfillmentEmail(pickup, token).kind, "ready");
-  assert.ok(buildFulfillmentEmail(pickup, token).subject.includes("is ready"));
-});
-
-test("the receipt link is sent when delivery orders ship and pickup orders are ready", () => {
-  assert.equal(sendsReceiptLink("shipped", "yenagoa"), true);
-  assert.equal(sendsReceiptLink("ready", "pickup"), true);
-  assert.equal(sendsReceiptLink("ready", "outside_yenagoa"), false);
-  assert.equal(sendsReceiptLink("processing", "pickup"), false);
-  assert.equal(sendsReceiptLink("completed", "pickup"), false);
-});
-
-test("shipping a paid order stores a fresh receipt hash and emails the customer once", async () => {
-  const db = database([{ ...fixture(), payment_status: "paid", fulfillment_status: "processing" }]);
-  const sent = [];
-  const { PATCH } = await route("src/app/api/admin/orders/route.js", db, async () => {}, async (order, token) => { sent.push({ order, token }); return true; });
-  const update = { id, expected_status: "processing", fulfillment_status: "shipped" };
-  const response = await PATCH(adminRequest("PATCH", update));
-  assert.equal(response.status, 200);
-  const body = await response.json();
-  assert.equal(body.customerEmailSent, true);
-  assert.equal(sent.length, 1);
-  assert.match(sent[0].token, /^[a-f0-9]{64}$/);
-  assert.equal(db.orders[0].receipt_confirmation_hash, receiptHash(sent[0].token));
-  assert.ok(!JSON.stringify(body).includes(sent[0].token));
-  assert.equal((await PATCH(adminRequest("PATCH", update))).status, 409);
-  assert.equal(sent.length, 1);
-});
-
-test("a failed shipping email never undoes the status change", async () => {
-  const db = database([{ ...fixture(), payment_status: "paid", fulfillment_status: "processing" }]);
-  const { PATCH } = await route("src/app/api/admin/orders/route.js", db, async () => {}, async () => { throw new Error("Resend unavailable"); });
-  const response = await PATCH(adminRequest("PATCH", { id, expected_status: "processing", fulfillment_status: "shipped" }));
-  assert.equal(response.status, 200);
-  assert.equal((await response.json()).customerEmailSent, false);
-  assert.equal(db.orders[0].fulfillment_status, "shipped");
-});
-
-test("receipt confirmation is refused until the order has shipped", async () => {
-  const { token, hash } = createReceiptConfirmation();
-  const db = database([{ ...fixture(), payment_status: "paid", receipt_confirmation_hash: hash, fulfillment_status: "processing" }]);
-  const { POST } = await route("src/app/api/checkout/orders/[id]/received/route.js", db);
-  assert.equal((await POST(receiptRequest(token), receiptContext)).status, 400);
-  assert.equal(db.orders[0].customer_received_at, null);
-  db.orders[0].fulfillment_status = "shipped";
-  assert.equal((await POST(receiptRequest(token), receiptContext)).status, 200);
-});
-
-test("receipt confirmation requires a valid paid-order link, explicit agreement, and same origin", async () => {
-  const { token, hash } = createReceiptConfirmation();
-  const db = database([{ ...fixture(), payment_status: "paid", receipt_confirmation_hash: hash }]);
-  const endpoint = await route("src/app/api/checkout/orders/[id]/received/route.js", db);
-  assert.equal(endpoint.GET, undefined);
-  const { POST } = endpoint;
-  for (const payload of [{ token: "bad" }, { token: "b".repeat(64) }, { confirmed: false }, { customer_received_at: "2020-01-01" }]) {
-    assert.equal((await POST(receiptRequest(token, payload), receiptContext)).status, 400);
-    assert.equal(db.orders[0].customer_received_at, null);
-  }
-  for (const origin of ["https://elsewhere.example", ""]) assert.equal((await POST(receiptRequest(token, {}, origin), receiptContext)).status, 403);
-  assert.equal((await POST(receiptRequest(token), { params: Promise.resolve({ id: "invalid" }) })).status, 400);
-  db.orders[0].payment_status = "pending";
-  assert.equal((await POST(receiptRequest(token), receiptContext)).status, 400);
-  assert.equal(db.orders[0].customer_received_at, null);
-});
-
-test("guest receipt confirmation is atomic, repeatable, and changes no payment or staff fulfilment fields", async () => {
-  const { token, hash } = createReceiptConfirmation();
-  const db = database([{ ...fixture(), payment_status: "paid", receipt_confirmation_hash: hash, fulfillment_status: "shipped" }]);
-  const { POST } = await route("src/app/api/checkout/orders/[id]/received/route.js", db);
-  const responses = await Promise.all([POST(receiptRequest(token), receiptContext), POST(receiptRequest(token), receiptContext)]);
-  assert.ok(responses.every((response) => response.status === 200));
-  const payloads = await Promise.all(responses.map((response) => response.json()));
-  assert.equal(payloads.filter((payload) => payload.alreadyConfirmed).length, 1);
-  assert.equal(payloads[0].receivedAt, payloads[1].receivedAt);
-  assert.equal(db.updates.filter((update) => update.affected > 0).length, 1);
-  assert.deepEqual(Object.keys(db.updates[0].patch), ["customer_received_at"]);
-  assert.equal(db.orders[0].payment_status, "paid");
-  assert.equal(db.orders[0].fulfillment_status, "shipped");
-  assert.ok(!JSON.stringify(payloads).includes(token) && !JSON.stringify(payloads).includes(hash));
-});
-
-test("receipt confirmation rejects an email link used with another order", async () => {
-  const { token } = createReceiptConfirmation();
-  const { hash } = createReceiptConfirmation();
-  const db = database([{ ...fixture(), payment_status: "paid", receipt_confirmation_hash: hash }]);
-  const { POST } = await route("src/app/api/checkout/orders/[id]/received/route.js", db);
-  assert.equal((await POST(receiptRequest(token), receiptContext)).status, 400);
-  assert.equal(db.orders[0].customer_received_at, null);
-});
-
-test("fulfilment updates reject payment/amount writes, unpaid orders and stale status", async () => {
-  const db = database([{ ...fixture(), payment_status: "paid" }]);
-  const { PATCH } = await route("src/app/api/admin/orders/route.js", db);
-  const update = { id, expected_status: "new", fulfillment_status: "processing" };
-  for (const extra of [{ payment_status: "paid" }, { total_minor: 1 }, { shipping_minor: 0 }, { is_admin: true }]) {
-    assert.equal((await PATCH(adminRequest("PATCH", { ...update, ...extra }))).status, 400);
-  }
-  assert.equal((await PATCH(adminRequest("PATCH", update))).status, 200);
-  assert.deepEqual(Object.keys(db.updates[0].patch), ["fulfillment_status"]);
-  assert.equal(db.orders[0].total_minor, 5200000);
-  assert.equal((await PATCH(adminRequest("PATCH", update))).status, 409);
-  db.orders[0].payment_status = "review";
-  assert.equal((await PATCH(adminRequest("PATCH", { ...update, expected_status: "processing", fulfillment_status: "shipped" }))).status, 409);
-});
-
-test("delivery and pickup use forward-only fulfilment transitions", () => {
-  assert.deepEqual(management.nextFulfillmentStatuses("new", "pickup"), ["processing"]);
-  assert.deepEqual(management.nextFulfillmentStatuses("processing", "pickup"), ["ready"]);
-  assert.deepEqual(management.nextFulfillmentStatuses("ready", "pickup"), ["completed"]);
-  assert.deepEqual(management.nextFulfillmentStatuses("ready", "outside_yenagoa"), ["shipped"]);
-  assert.deepEqual(management.nextFulfillmentStatuses("shipped", "outside_yenagoa"), ["completed"]);
-  assert.deepEqual(management.nextFulfillmentStatuses("completed", "pickup"), []);
-});
-
-test("concurrent admin updates cannot both consume the same status", async () => {
-  const db = database([{ ...fixture(), payment_status: "paid" }]);
-  const { PATCH } = await route("src/app/api/admin/orders/route.js", db);
-  const payload = { id, expected_status: "new", fulfillment_status: "processing" };
-  const responses = await Promise.all([PATCH(adminRequest("PATCH", payload)), PATCH(adminRequest("PATCH", payload))]);
-  assert.deepEqual(responses.map((response) => response.status).sort(), [200, 409]);
-  assert.equal(db.orders[0].fulfillment_status, "processing");
-});
-
-
 test("bespoke review API checks admin access, allowed transitions, expected status and strict input", async () => {
   const db = database([{id,status:'new'}]);
   const {PATCH} = await route('src/app/api/admin/bespoke/route.js',db);
@@ -418,4 +286,34 @@ test("payment email retry API rejects unpaid, historical and unauthenticated req
   assert.equal((await POST(adminRequest('POST',{orderId:id}))).status,200);
   assert.equal((await POST(adminRequest('POST',{orderId:id}))).status,200);
   assert.equal(sends,1);
+});
+
+
+test('admin can confirm offline delivery once without resetting its return window', async()=>{
+ const db=database([{...fixture(),payment_status:'paid'}]);let emails=0;
+ const {PATCH}=await route('src/app/api/admin/orders/route.js',db,async()=>{},async()=>{emails++;return true;});
+ const input={id,expected_status:'new',action:'delivery_completed',note:'Customer confirmed receipt by phone.'};
+ assert.equal((await PATCH(adminRequest('PATCH',input))).status,200);
+ const timestamp=db.orders[0].delivery_confirmed_at;
+ assert.ok(timestamp);assert.equal(db.orders[0].fulfillment_status,'completed');
+ assert.equal((await PATCH(adminRequest('PATCH',input))).status,200);
+ assert.equal(db.orders[0].delivery_confirmed_at,timestamp);assert.equal(emails,1);
+});
+test('delivery confirmation rejects stale, unpaid, short evidence and retired shipping writes',async()=>{
+ const db=database();const {PATCH}=await route('src/app/api/admin/orders/route.js',db);
+ const input={id,expected_status:'new',action:'delivery_completed',note:'Verified with customer by phone.'};
+ assert.equal((await PATCH(adminRequest('PATCH',input))).status,403);
+ db.orders[0].payment_status='paid';db.orders[0].fulfillment_status='processing';
+ assert.equal((await PATCH(adminRequest('PATCH',input))).status,409);
+ assert.equal((await PATCH(adminRequest('PATCH',{...input,note:'yes'}))).status,400);
+ assert.equal((await PATCH(adminRequest('PATCH',{id,expected_status:'processing',fulfillment_status:'shipped'}))).status,400);
+ assert.equal(db.orders[0].delivery_confirmed_at,undefined);
+});
+test('retired seller payment/shipping and customer receipt endpoints reject writes',async()=>{
+ const db=database();
+ const seller=await route('src/app/api/account/seller-orders/route.js',db);
+ assert.equal((await seller.POST(adminRequest('POST',{action:'payment_fulfilled',itemId:id}))).status,405);
+ const receipt=await route('src/app/api/checkout/orders/[id]/received/route.js',db);
+ assert.equal((await receipt.POST()).status,405);
+ assert.equal(db.updates.length,0);
 });

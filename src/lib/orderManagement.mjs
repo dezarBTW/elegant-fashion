@@ -1,6 +1,6 @@
 export const PAYMENT_STATUSES = ["pending", "paid", "review"];
 export const FULFILLMENT_STATUSES = ["new", "processing", "ready", "shipped", "completed"];
-export const ORDER_COLUMNS = "id,customer_name,customer_email,customer_phone,delivery,items,subtotal_minor,shipping_minor,total_minor,payment_status,fulfillment_status,paid_at,created_at,customer_received_at,payment_review_reason,email_status,email_tracking_started_at";
+export const ORDER_COLUMNS = "id,customer_name,customer_email,customer_phone,delivery,items,subtotal_minor,shipping_minor,total_minor,payment_status,fulfillment_status,paid_at,created_at,customer_received_at,payment_review_reason,email_status,email_tracking_started_at,delivery_confirmed_at,delivery_verification_note";
 
 export class OrderRequestError extends Error {
   constructor(message, status) { super(message); this.status = status; }
@@ -27,12 +27,4 @@ export async function requireOrderAdmin(request, db) {
   if (profileError) throw new OrderRequestError("Unable to check administrator access.", 503);
   if (profile?.is_admin !== true || profile?.is_active !== true) throw new OrderRequestError("Administrator access is required.", 403);
   return data.user;
-}
-
-export function nextFulfillmentStatuses(status, deliveryMethod) {
-  if (status === "new") return ["processing"];
-  if (status === "processing") return deliveryMethod === "pickup" ? ["ready"] : ["ready", "shipped"];
-  if (status === "ready") return deliveryMethod === "pickup" ? ["completed"] : ["shipped"];
-  if (status === "shipped") return ["completed"];
-  return [];
 }

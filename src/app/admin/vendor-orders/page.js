@@ -1,2 +1,2 @@
-import SellerOrders from '@/components/SellerOrders';
-export default function Page(){return <><h1>Seller fulfilment and payments</h1><SellerOrders mode="admin"/></>;}
+import { redirect } from 'next/navigation';
+export default function Page(){redirect('/admin/orders');}

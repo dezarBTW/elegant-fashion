@@ -28,32 +28,13 @@ async (page) => {
   releaseProfile();
   await page.getByRole('heading',{name:'Your profile',exact:true}).waitFor();
   const item={id:'22222222-2222-4222-8222-222222222222',product_name:'Test occasion gown',seller_kind:'vendor',seller_id:user.id,order_id:'33333333-3333-4333-8333-333333333333',size:'M',quantity:1,fulfilment:'completed',confirmed_at:'2026-11-01T10:00:00Z',payment_marked_at:null,payment_received_at:null,line_amount_minor:1000000,order:{id:'33333333-3333-4333-8333-333333333333',delivery:{method:'yenagoa'},customer_name:'Test customer',customer_email:'customer@example.invalid',customer_phone:'08000000000'}};
-  let gets=0,confirmed=false;
-  await page.route('**/api/account/seller-orders*',async route=>{
-    if(route.request().method()==='POST'){
-      const body=route.request().postDataJSON();
-      if(body.action!=='payment_received'||body.itemId!==item.id)throw new Error('Wrong receipt action');
-      item.payment_received_at=new Date().toISOString();confirmed=true;
-      return route.fulfill({json:{success:true,emailSent:true}});
-    }
-    gets++;
-    return route.fulfill({json:{items:[item]}});
+  await page.route('**/api/account/seller-orders*',route=>{
+    if(route.request().method()!=='GET')throw new Error('Sales history must not write');
+    return route.fulfill({json:{items:[{...item,paid_at:new Date().toISOString()}]}});
   });
   await page.goto('http://localhost:3000/account/vendor-orders');
   await page.getByRole('heading',{name:item.product_name,exact:true}).waitFor();
-  if(await page.getByRole('button',{name:'Confirm payment received',exact:true}).count())throw new Error('Receipt offered before administrator payment');
-  item.payment_marked_at=new Date().toISOString();
-  await page.evaluate(()=>window.dispatchEvent(new Event('focus')));
-  await page.getByRole('button',{name:'Confirm payment received',exact:true}).waitFor();
-  await page.getByRole('button',{name:'Confirm payment received',exact:true}).click();
-  await page.getByRole('status').filter({hasText:'Payment receipt confirmed.'}).waitFor();
-  if(!confirmed)throw new Error('Receipt action not submitted');
-  await page.getByRole('button',{name:'Confirm payment received',exact:true}).waitFor({state:'detached'});
-  item.payment_marked_at=null;item.payment_received_at=null;
-  await page.getByRole('button',{name:'Refresh orders',exact:true}).click();
-  await page.getByText('Not paid to vendor',{exact:false}).waitFor();
-  item.payment_marked_at=new Date().toISOString();
-  await page.evaluate(()=>window.dispatchEvent(new StorageEvent('storage',{key:'elegant-seller-orders-changed',newValue:'other-tab-update'})));
-  await page.getByRole('button',{name:'Confirm payment received',exact:true}).waitFor();
-  console.log(`PASS: dashboard/profile skeletons, mobile layout, payment confirmation on focus and cross-tab update, acknowledgment, manual refresh (${gets} fetches). No real accounts or orders used.`);
+  if(await page.getByRole('button',{name:/payment received|payment fulfilled|shipped|processing/i}).count())throw new Error('Retired seller action still visible');
+  if(await page.getByText('customer@example.invalid',{exact:false}).count())throw new Error('Sales history exposed customer contact details');
+  console.log('PASS: dashboard/profile skeletons and read-only vendor sales history.');
 }
