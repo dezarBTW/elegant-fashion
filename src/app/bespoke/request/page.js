@@ -75,8 +75,6 @@ async function compressImage(file) {
       throw new Error("Image processing is not available in this browser.");
     }
 
-    context.fillStyle = "#fff";
-    context.fillRect(0, 0, canvas.width, canvas.height);
     context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
     const compressedBlob = await new Promise((resolve, reject) => {
@@ -85,7 +83,7 @@ async function compressImage(file) {
           blob
             ? resolve(blob)
             : reject(new Error("This image could not be compressed.")),
-        "image/jpeg",
+        "image/webp",
         0.84,
       );
     });
@@ -95,8 +93,10 @@ async function compressImage(file) {
     }
 
     const baseName = file.name.replace(/\.[^.]+$/, "") || "reference";
-    return new File([compressedBlob], `${baseName}.jpg`, {
-      type: "image/jpeg",
+    // Browsers without WebP canvas encoding return PNG instead.
+    const outputExtension = compressedBlob.type === 'image/webp' ? 'webp' : 'png';
+    return new File([compressedBlob], `${baseName}.${outputExtension}`, {
+      type: compressedBlob.type,
       lastModified: Date.now(),
     });
   } finally {

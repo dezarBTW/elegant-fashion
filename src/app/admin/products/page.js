@@ -198,29 +198,18 @@ export default function ProductsAdmin() {
 
     try {
       setSaving(true);
-      const fileName = `${Date.now()}.${validation.extension}`;
-      const filePath = `products/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file, {
-          contentType: file.type,
-          upsert: false,
-        });
-
-      if (uploadError) {
-        console.error("Error uploading image:", uploadError);
-        alert("Error uploading image. Please try again.");
-        return;
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
+      const body = new FormData();
+      body.set('image', file);
+      const { data } = await supabase.auth.getSession();
+      const response = await fetch('/api/admin/images', {
+        method: 'POST', headers: { Authorization: `Bearer ${data.session?.access_token}` }, body,
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'Image upload failed.');
 
       setFormData(current => ({
         ...current,
-        image: publicUrl
+        image: result.url
       }));
     } catch (error) {
       console.error("Error handling image upload:", error);

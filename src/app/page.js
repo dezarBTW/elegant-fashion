@@ -59,11 +59,11 @@ export default function Home() {
               <div
                 key={slide.src}
                 className={`${styles.heroSlide} ${index === activeSlide ? styles.heroSlideActive : ""}`}
-                style={{ backgroundImage: `url("${slide.src}")` }}
-                role="img"
-                aria-label={slide.alt}
                 aria-hidden={index !== activeSlide}
-              />
+              >
+                <Image src={slide.src} alt={slide.alt} fill sizes="(max-width: 980px) 100vw, 51vw"
+                  loading={index === 0 ? 'eager' : 'lazy'} fetchPriority={index === 0 ? 'high' : 'auto'} className={styles.heroSlideImage} />
+              </div>
             ))}
           </div>
           <div className={styles.slideProgress} aria-label={`Slide ${activeSlide + 1} of ${heroSlides.length}`}>

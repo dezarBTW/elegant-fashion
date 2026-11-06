@@ -162,6 +162,7 @@
   opacity: 1;
   transform: scale(1);
 }
+.heroSlideImage { object-fit: cover; object-position: center; }
 
 .heroOverlay {
   position: relative;
