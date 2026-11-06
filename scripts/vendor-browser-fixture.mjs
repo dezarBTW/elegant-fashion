@@ -9,7 +9,6 @@ const db=createClient(url,process.env.SUPABASE_SERVICE_ROLE_KEY,{auth:{persistSe
 const statePath=join(tmpdir(),'elegant-vendor-browser-state.json'),manifestPath=join(tmpdir(),'elegant-vendor-browser-fixture.json');
 if(process.argv[2]==='cleanup'){
  const {id}=JSON.parse(await readFile(manifestPath,'utf8'));
- await db.from('vendor_notifications').delete().eq('entity_id',id);
  const removed=await db.auth.admin.deleteUser(id);if(removed.error)throw removed.error;
  await db.from('users').delete().eq('id',id);
  await unlink(statePath);await unlink(manifestPath);console.log('Browser fixture removed.');

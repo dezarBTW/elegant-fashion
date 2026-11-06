@@ -26,7 +26,6 @@ try{
  assert.equal((await request('/api/vendor/products')).status,401);
  assert.equal((await request('/api/admin/vendors',vendor)).status,403);
  const approved=await db.from('users').update({is_vendor:true}).eq('id',vendor.id);if(approved.error)throw approved.error;
- const invitations=await db.from('vendor_notifications').select('id').eq('entity_id',vendor.id).eq('kind','invite');assert.equal(invitations.data.length,0);
  const input={id:productId,revision:null,product:{name:'Temporary API test',price:100,category:'Dresses',gender:'female',description:'Temporary API permission test',image:null},quantities:{S:2,M:0,L:0,XL:0,XXL:0}};
  assert.equal((await request('/api/vendor/products',vendor,input)).status,200);
  assert.equal((await request('/api/vendor/products',other,input)).status,403);
@@ -44,7 +43,6 @@ try{
 }finally{
  await db.from('products').delete().eq('id',productId);
  for(const id of created){
-  await db.from('vendor_notifications').delete().eq('entity_id',id);
   const result=await db.auth.admin.deleteUser(id);if(result.error)console.error('Temporary account cleanup needs review:',result.error.message); else await db.from('users').delete().eq('id',id);
  }
 }

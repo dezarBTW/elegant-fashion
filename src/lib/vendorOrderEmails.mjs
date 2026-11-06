@@ -2,11 +2,10 @@ import {
   sendServiceEmail,
   wrapBrandEmail,
   escapeEmailHtml,
-  ADMIN_NOTIFY_EMAIL,
 } from "./orderEmails.mjs";
 import { SITE_URL } from "./seo.mjs";
 import { PICKUP_ADDRESS } from "./checkout.mjs";
-export async function notifyPaidVendors(db, orderId) {
+export async function notifyPaidVendors(db, orderId, {sendEmail=sendServiceEmail}={}) {
   const result = await db
     .from("seller_order_items")
     .select("id,seller_id,seller_kind,product_name,quantity")
@@ -32,7 +31,7 @@ export async function notifyPaidVendors(db, orderId) {
         : shop
           ? `The customer selected shop pickup. Deliver your items to ${PICKUP_ADDRESS}.`
           : "Arrange customer delivery using the order instructions in your account.";
-    return sendServiceEmail({
+    return sendEmail({
         to: user.email,
         subject: "Your product purchase was successfully paid",
         idempotencyKey: `vendor-paid/${orderId}/${user.id}`,
@@ -42,14 +41,5 @@ export async function notifyPaidVendors(db, orderId) {
         ),
       });
   });
-  deliveries.push(sendServiceEmail({
-      to: ADMIN_NOTIFY_EMAIL,
-      subject: "Vendor product purchase successfully paid",
-      idempotencyKey: `admin-vendor-paid/${orderId}`,
-      html: wrapBrandEmail(
-        "Paid vendor order",
-        `<p>Order ${escapeEmailHtml(orderId)} contains vendor products. <a href="${SITE_URL}/admin/vendor-orders">Review ownership and fulfilment</a>.</p>`,
-      ),
-    }));
   return (await Promise.all(deliveries)).every(Boolean);
 }

@@ -3,6 +3,7 @@ import { webhooks } from '@bachs/sdk';
 import { paymentMatchesOrder } from "@/lib/bachs.mjs";
 import { checkoutDatabase } from "@/lib/checkoutServer";
 import { sendOrderEmails } from "@/lib/orderEmails.mjs";
+import { notifyPaidVendors } from '@/lib/vendorOrderEmails.mjs';
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -40,8 +41,10 @@ export async function POST(request) {
       .maybeSingle();
     if (saveError) throw saveError;
     if (paid && changedOrder?.emails_claimed_at) {
-      try { await sendOrderEmails(changedOrder); }
-      catch (error) { console.error(`Order ${order.id}: email attempt failed`, error?.message); }
+      const notifications = await Promise.allSettled([sendOrderEmails(changedOrder),notifyPaidVendors(db,order.id)]);
+      for (const result of notifications) {
+        if (result.status === 'rejected' || result.value === false) console.error(`Order ${order.id}: email attempt failed`);
+      }
     }
     return NextResponse.json({ received: true });
   } catch (error) {

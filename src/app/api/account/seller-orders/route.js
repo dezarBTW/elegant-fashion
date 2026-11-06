@@ -3,6 +3,8 @@ import { z } from "zod";
 import { requireActiveAccount, readAccountBody } from "@/lib/accountServer";
 import { OrderRequestError } from "@/lib/orderManagement.mjs";
 import { PICKUP_ADDRESS } from '@/lib/checkout.mjs';
+import { notifySellerItem } from '@/lib/sellerItemEmails.mjs';
+export const maxDuration = 60;
 const json = (body, status = 200) =>
   NextResponse.json(body, {
     status,
@@ -124,14 +126,14 @@ export async function POST(request) {
       );
     if (result.error) throw result.error;
     const item = result.data;
+    let emailSent = null;
+    if (['shipped','ready','payment_fulfilled','payment_received'].includes(input.action)) {
+      try { emailSent = await notifySellerItem(db,item,input.action); }
+      catch { emailSent = false; console.error('Order progress saved, but email notification failed.'); }
+    }
     return json({
       success: true,
-      emailQueued: [
-        "shipped",
-        "ready",
-        "payment_fulfilled",
-        "payment_received",
-      ].includes(input.action),
+      emailSent,
     });
   } catch (error) {
     return failure(error);
