@@ -10,11 +10,11 @@ export default function PrivacyPolicy() {
         <header className={styles.header}>
           <span className={styles.eyebrow}>Legal</span>
           <h1>Privacy Policy</h1>
-          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-11-05">5 November 2026</time></p>
+          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-11-06">6 November 2026</time></p>
         </header>
 
         <div className={styles.content}>
-          <section className={styles.section}><h2>Order fulfilment and delivery verification</h2><p>We retain checkout contact and delivery details with each order, product ownership, shipping updates, delivery confirmations and administrator verification evidence to fulfil orders, investigate delivery problems and manage returns and payments. Relevant fulfilment providers receive only the customer information needed for their items. We record who confirmed delivery and when. The normal return/refund request window is three days from confirmed delivery. Vendor identity and consent records are restricted to the relevant account and authorised administrators; vendor agreements are separate from this policy.</p></section>
+          <section className={styles.section}><h2>Order fulfilment and delivery verification</h2><p>We retain checkout contact and delivery details with each order, product ownership, shipping updates, delivery confirmations and administrator verification evidence to fulfil orders, investigate delivery problems and manage returns and payments. Relevant fulfilment providers receive only the customer information needed for their items. We record who confirmed delivery and when. The normal return/refund request window is three days from confirmed delivery. Vendor identity and account permission records are restricted to the relevant account and authorised administrators. Vendor approval and agreements are handled offline.</p></section>
           <section className={styles.section}>
             <h2>1. Information We Collect</h2>
             <p>

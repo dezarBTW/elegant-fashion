@@ -3,7 +3,6 @@ import { z } from 'zod';
 import { requireVendor } from '@/lib/vendorServer';
 import { readAccountBody } from '@/lib/accountServer';
 import { sellerProductSchema } from '@/lib/productInput.mjs';
-import { VENDOR_TERMS_VERSION } from '@/lib/vendorTerms.mjs';
 import { OrderRequestError } from '@/lib/orderManagement.mjs';
 const reply = (body, status=200) => NextResponse.json(body,{status,headers:{'Cache-Control':'private, no-store'}});
 const fail = error => { console.error('Vendor product operation failed',error.code||error.status,error.message); return reply({error: error instanceof OrderRequestError ? error.message : 'Unable to manage products.'},error.status || 503); };
@@ -24,7 +23,7 @@ export async function POST(request) {
   try {
     const {db,user}=await requireVendor(request);
     const input=await readAccountBody(request,sellerProductSchema);
-    const {data,error}=await db.rpc('seller_save_product',{p_actor:user.id,p_id:input.id,p_product:input.product,p_quantities:input.quantities,p_revision:input.revision,p_terms_version:VENDOR_TERMS_VERSION});
+    const {data,error}=await db.rpc('seller_save_product',{p_actor:user.id,p_id:input.id,p_product:input.product,p_quantities:input.quantities,p_revision:input.revision});
     if(error?.code==='42501')throw new OrderRequestError('You can only manage your own products.',403);
     if(['40001','P0002'].includes(error?.code))throw new OrderRequestError('Stock changed. Reload before saving.',409);
     if(error?.code==='P0001')throw new OrderRequestError('Stock reserved for pending payments cannot be removed.',409);

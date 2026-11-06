@@ -22,7 +22,7 @@ export default function AccountShell({ children }) {
     if (!identity) return;
     const controller = new AbortController();
     authenticatedFetch('/api/account/vendor', { signal: controller.signal }).then(result => {
-      if (!controller.signal.aborted && ['active', 'pending'].includes(result.vendor.status)) setVendorIdentity(identity);
+      if (!controller.signal.aborted && result.vendor.is_vendor === true) setVendorIdentity(identity);
     }).catch(() => {});
     return () => controller.abort();
   }, [identity]);

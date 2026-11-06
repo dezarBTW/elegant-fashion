@@ -9,7 +9,7 @@ export async function requireActiveAccount(request) {
   const { data, error } = await db.auth.getUser(token);
   if (error || !data.user || data.user.is_anonymous || !data.user.email_confirmed_at) throw new OrderRequestError("Sign in with a verified email address.", 401);
   await requireLiveSession(db, token, data.user);
-  const { data: profile, error: profileError } = await db.from("users").select("id,email,is_admin,is_active").eq("id", data.user.id).maybeSingle();
+  const { data: profile, error: profileError } = await db.from("users").select("id,email,is_admin,is_active,is_vendor").eq("id", data.user.id).maybeSingle();
   if (profileError) throw new OrderRequestError("Unable to check your account.", 503);
   if (profile?.is_active !== true) throw new OrderRequestError("This account is inactive. Contact Elegant Style for help.", 403);
   return { db, user: data.user, profile, token };

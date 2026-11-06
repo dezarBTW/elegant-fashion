@@ -3,8 +3,6 @@ import { NextResponse } from "next/server";
 import { checkoutDatabase } from "@/lib/checkoutServer";
 import { notifyPaidVendors } from "@/lib/vendorOrderEmails.mjs";
 import { notifySellerItem } from "@/lib/sellerItemEmails.mjs";
-import { sendServiceEmail, wrapBrandEmail } from "@/lib/orderEmails.mjs";
-import { SITE_URL } from "@/lib/seo.mjs";
 export const maxDuration = 60;
 export async function POST(request) {
   const expected = process.env.VENDOR_WORKER_SECRET;
@@ -49,32 +47,7 @@ export async function POST(request) {
         ok = await notifySellerItem(db, item.data, job.kind);
       } else if (job.kind === "paid")
         ok = await notifyPaidVendors(db, job.entity_id);
-      else if (job.kind === "invite") {
-        const vendor = await db
-          .from("vendor_accounts")
-          .select("status")
-          .eq("user_id", job.entity_id)
-          .single();
-        if (vendor.error) throw vendor.error;
-        if (vendor.data.status !== "pending") ok = true;
-        else {
-          const user = await db
-            .from("users")
-            .select("email")
-            .eq("id", job.entity_id)
-            .single();
-          if (user.error) throw user.error;
-          ok = await sendServiceEmail({
-            to: user.data.email,
-            subject: "Your Elegant Style vendor invitation",
-            idempotencyKey: `vendor-invite/${job.id}`,
-            html: wrapBrandEmail(
-              "Vendor invitation",
-              `<p>Review the vendor agreement and confirm your decision after signing in.</p><p><a href="${SITE_URL}/account/products?decision=accept">I accept — review terms</a></p><p><a href="${SITE_URL}/account/products?decision=decline">I do not accept — review decision</a></p>`,
-            ),
-          });
-        }
-      }
+      else if (job.kind === "invite") ok = true; // Retired onboarding jobs must never send.
       if (ok !== true) throw new Error("Email delivery attempt failed");
       const saved = await db
         .from("vendor_notifications")
