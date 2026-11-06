@@ -8,6 +8,7 @@ import { BESPOKE_STATUSES, formatDateTime, toWhatsAppUrl } from "../adminUtils";
 import styles from "../adminShell.module.css";
 import { authenticatedFetch } from '@/lib/clientApi';
 import MediaCleanupNotice from '@/components/MediaCleanupNotice';
+import { BESPOKE_TRANSITIONS } from '@/lib/bespokeWorkflow.mjs';
 
 const BUCKET = "bespoke-requests";
 const SIGNED_URL_SECONDS = 60 * 60;
@@ -62,20 +63,13 @@ export default function BespokeRequests() {
     setBusyId(request.id);
     setError("");
 
-    const { error: updateError } = await supabase
-      .from("bespoke_requests")
-      .update({ status: nextStatus })
-      .eq("id", request.id);
-
-    setBusyId(null);
-
-    if (updateError) {
-      console.error("Could not update request:", updateError);
-      setError("Could not update this request. Please try again.");
-      return;
-    }
-
-    setVersion(current => current + 1);
+    try {
+      await authenticatedFetch('/api/admin/bespoke',{method:'PATCH',body:JSON.stringify({id:request.id,expectedStatus:request.status,status:nextStatus})});
+      setVersion(current => current + 1);
+    } catch (error) {
+      setError(error.message);
+      setVersion(current => current + 1);
+    } finally { setBusyId(null); }
   };
 
   const deleteRequest = async (request) => {
@@ -217,7 +211,7 @@ export default function BespokeRequests() {
                       key={status.key}
                       type="button"
                       className={`${styles.pill} ${request.status === status.key ? styles.pillActive : ""}`}
-                      disabled={busy}
+                      disabled={busy || !BESPOKE_TRANSITIONS[request.status]?.includes(status.key)}
                       aria-pressed={request.status === status.key}
                       onClick={() => updateStatus(request, status.key)}
                     >

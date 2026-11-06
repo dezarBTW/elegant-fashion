@@ -22,6 +22,7 @@ export default function Orders() {
   const { isAdmin, loading: authLoading } = useAuth();
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState("");
   const [refresh, setRefresh] = useState(0);
@@ -77,6 +78,16 @@ export default function Orders() {
     finally { setSaving(""); }
   };
   const changeFilter = (setFilter, value) => { setFilter(value); setPage(1); setLoading(true); };
+  const retryEmails = async order => {
+    setSaving(order.id);setError('');setNotice('');
+    try {
+      const response = await fetch('/api/admin/order-emails',{method:'POST',headers:await adminHeaders(),body:JSON.stringify({orderId:order.id})});
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error);
+      setNotice(result.message);setRefresh(value=>value+1);
+    } catch(error) { setError(error.message); }
+    finally { setSaving(''); }
+  };
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
@@ -98,6 +109,7 @@ export default function Orders() {
         </label>
       </div>
       {error && <p className={styles.error} role="alert">{error}</p>}
+      {notice && <p role="status">{notice}</p>}
       {loading ? <p className={styles.empty} role="status">Loading orders…</p> : <>
         <p className={styles.resultCount}>{total} matching {total === 1 ? "order" : "orders"} · newest first</p>
         {!orders.length ? <p className={styles.empty}>No orders match these filters.</p> : <div className={styles.list}>
@@ -117,7 +129,11 @@ export default function Orders() {
                     {order.customer_received_at && <span className={`${styles.badge} ${styles.badgeConfirmed}`}>Customer confirmed receipt</span>}
                   </div>
                 </div>
-                {review && <p className={orderStyles.reviewMessage}>Payment needs a manual check: the amount or currency did not match. Do not fulfil this order yet.</p>}
+                {review && <p className={orderStyles.reviewMessage}>{order.payment_review_reason==='reservation_expired'?'Payment arrived after the stock reservation expired. Verify the payment and arrange a refund or a new stock allocation manually.':'Payment needs a manual check: the amount or currency did not match.'} Do not fulfil this order yet.</p>}
+                {order.payment_status==='paid' && order.email_tracking_started_at && <p>
+                  Payment notifications: {order.email_status}.
+                  {order.email_status!=='sent' && <button type="button" className={styles.btn} disabled={Boolean(saving)} onClick={()=>retryEmails(order)}>Retry payment emails</button>}
+                </p>}
                 <details className={orderStyles.details}>
                   <summary>View order details</summary>
                   <dl className={styles.detailGrid}>

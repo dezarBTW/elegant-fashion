@@ -9,6 +9,7 @@ import { deliveryFeeMinor, decimalAmount, priceCart } from "@/lib/checkout.mjs";
 import { bachsBaseUrl, validCheckoutUrl } from "@/lib/bachs.mjs";
 import { SITE_URL } from "@/lib/seo.mjs";
 import { SIZE_VALUES } from "@/lib/products.mjs";
+import { reservationExpired, checkoutLifetimeMinutes } from '@/lib/reservationExpiry.mjs';
 
 export const runtime = "nodejs";
 
@@ -82,10 +83,17 @@ export async function POST(request) {
       if (!hasOrderAccess(request, existing)) return errorResponse("This checkout cannot be reused.", 403);
       if (existing.request_fingerprint !== fingerprint) return errorResponse("Your checkout details changed. Please start a new checkout.", 409);
       if (existing.payment_status === "paid") return respond({ orderId: id, paid: true });
+      if (reservationExpired(existing)) {
+        const released = await db.rpc('release_expired_stock_reservations', {p_order_id:id});
+        if (released.error) throw released.error;
+        return respond({error:'This checkout expired. Return to your cart and start a new checkout.',orderId:id,expired:true},409);
+      }
       if (existing.checkout_state === "open" && validCheckoutUrl(existing.checkout_url, apiKey)) return respond({ orderId: id, checkoutUrl: existing.checkout_url });
       return respond({ error: "This payment setup needs to be checked. Please contact the shop with your order reference before trying again.", orderId: id, uncertain: true }, 409);
     }
 
+    const released = await db.rpc('release_expired_stock_reservations');
+    if (released.error) throw released.error;
     const ids = [...new Set(input.items.map((item) => item.productId))];
     const { data: products, error: productError } = await db.from("products").select("id,name,price,sale_price,is_active,available_sizes").in("id", ids).eq("is_active", true);
     if (productError) throw productError;
@@ -94,11 +102,11 @@ export async function POST(request) {
     const shippingMinor = deliveryFeeMinor(input.delivery.method, pricing.lines);
     const totalMinor = pricing.subtotalMinor + shippingMinor;
     token = randomBytes(32).toString("hex");
-    const { error: insertError } = await db.from("shop_orders").insert({
+    const { data: inserted, error: insertError } = await db.from("shop_orders").insert({
       id, user_id: user.id, customer_name: input.customer.name, customer_email: input.customer.email, customer_phone: input.customer.phone,
       delivery: input.delivery, items: pricing.lines, subtotal_minor: pricing.subtotalMinor,
       shipping_minor: shippingMinor, total_minor: totalMinor, receipt_hash: receiptHash(token), request_fingerprint: fingerprint,
-    });
+    }).select('reservation_expires_at').single();
     if (insertError) {
       token = undefined;
       if (insertError.code === 'P0001' || insertError.code === '23503') return errorResponse('The selected size or quantity is no longer available. Please update your cart.',409);
@@ -112,13 +120,15 @@ export async function POST(request) {
       session=await bachsClient(apiKey).checkoutSessions.create({
         pricing:{currency:'NGN',amount:decimalAmount(totalMinor)},billing_currency:'NGN',
         customer:{email:input.customer.email,name:input.customer.name,phone_number:input.customer.phone.replace(/^0/,'+234')},
-        reference:id,metadata:{order_id:id},success_url:`${SITE_URL}/checkout/success?order_id=${id}`,cancel_url:`${SITE_URL}/checkout?cancelled=1`
+        reference:id,metadata:{order_id:id},success_url:`${SITE_URL}/checkout/success?order_id=${id}`,cancel_url:`${SITE_URL}/checkout?cancelled=1`,
+        expires_in_minutes:checkoutLifetimeMinutes(inserted.reservation_expires_at)
       },{idempotencyKey:id});
     }catch(error){
       await db.from('shop_orders').update({checkout_state:'unknown'}).eq('id',id);
       return respond({error:"We couldn't confirm payment setup. Please contact the shop with your order reference before trying again.",orderId:id,uncertain:true},error?.status?502:503);
     }
     if (!session.checkout_id || !validCheckoutUrl(session.checkout_url, apiKey)) throw new Error("Invalid Bachs checkout response.");
+    if (reservationExpired(inserted)) return respond({error:'This checkout expired. Start a new checkout.',orderId:id,expired:true},409);
     const { error: saveError } = await db.from("shop_orders").update({ checkout_state: "open", checkout_id: session.checkout_id, checkout_url: session.checkout_url }).eq("id", id);
     if (saveError) throw saveError;
     return respond({ orderId: id, checkoutUrl: session.checkout_url });

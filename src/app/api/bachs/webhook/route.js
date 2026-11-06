@@ -2,8 +2,7 @@ import { NextResponse } from "next/server";
 import { webhooks } from '@bachs/sdk';
 import { paymentMatchesOrder } from "@/lib/bachs.mjs";
 import { checkoutDatabase } from "@/lib/checkoutServer";
-import { sendOrderEmails } from "@/lib/orderEmails.mjs";
-import { notifyPaidVendors } from '@/lib/vendorOrderEmails.mjs';
+import { sendPaidOrderNotifications } from '@/lib/paidOrderNotifications.mjs';
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -23,29 +22,28 @@ export async function POST(request) {
   try {
     const db = checkoutDatabase();
     const reference = data.reference || data.metadata?.order_id;
-    let query = db.from("shop_orders").select("id,total_minor,payment_status,checkout_id");
+    let query = db.from("shop_orders").select("*");
     if (typeof reference === "string" && /^[0-9a-f-]{36}$/i.test(reference)) query = query.eq("id", reference);
     else query = query.eq("checkout_id", data.checkout_id);
     const { data: order, error } = await query.maybeSingle();
     if (error) throw error;
     if (!order) return NextResponse.json({ received: true });
     if (order.checkout_id && order.checkout_id !== data.checkout_id) return NextResponse.json({ error: "Checkout reference mismatch." }, { status: 409 });
-    if (order.payment_status === "paid") return NextResponse.json({ received: true });
+    if (order.payment_status === "paid") {
+      await sendPaidOrderNotifications(db,order);
+      return NextResponse.json({ received: true });
+    }
     const paid = paymentMatchesOrder(data, order.total_minor);
     const paidAt = new Date().toISOString();
     const { data: changedOrder, error: saveError } = await db.from("shop_orders").update({
       payment_status: paid ? "paid" : "review",
-      ...(paid ? { paid_at: paidAt, emails_claimed_at: paidAt, paid_event_id: event.id, payment_id: data.charge_id, checkout_id: data.checkout_id } : {}),
+      ...(paid ? { payment_review_reason:null, paid_at: paidAt, emails_claimed_at: paidAt, email_tracking_started_at:paidAt, paid_event_id: event.id, payment_id: data.charge_id, checkout_id: data.checkout_id } : {payment_review_reason:'amount_or_currency_mismatch'}),
     }).eq("id", order.id).neq("payment_status", "paid")
-      .select("id,customer_name,customer_email,customer_phone,delivery,items,subtotal_minor,shipping_minor,total_minor,emails_claimed_at")
+      .select("*")
       .maybeSingle();
     if (saveError) throw saveError;
-    if (paid && changedOrder?.emails_claimed_at) {
-      const notifications = await Promise.allSettled([sendOrderEmails(changedOrder),notifyPaidVendors(db,order.id)]);
-      for (const result of notifications) {
-        if (result.status === 'rejected' || result.value === false) console.error(`Order ${order.id}: email attempt failed`);
-      }
-    }
+    if (changedOrder?.payment_status === 'paid') await sendPaidOrderNotifications(db,changedOrder);
+    if (changedOrder?.payment_review_reason === 'reservation_expired') console.error('Late payment requires manual review; stock was not committed',order.id);
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Payment webhook failed", error?.code || error?.message);

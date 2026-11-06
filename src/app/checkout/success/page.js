@@ -39,7 +39,7 @@ export default function OrderStatus() {
         setOrder(data);
         setError("");
         if (data.paymentStatus === "paid") removePurchasedItems(data);
-        else if (data.paymentStatus === "pending" && ++attempts < 20) timer = setTimeout(check, 3000);
+        else if (data.paymentStatus === "pending" && !data.expired && ++attempts < 20) timer = setTimeout(check, 3000);
       } catch (err) { if (mounted) setError(err.message || "Unable to check your payment."); }
       finally { if (mounted) setChecking(false); }
     };
@@ -53,11 +53,11 @@ export default function OrderStatus() {
   return (
     <main className={`${styles.page} ${styles.receipt}`}>
       <Link className={styles.back} href="/ready-to-wear">← Back to the shop</Link>
-      <h1>{paid ? "Payment confirmed" : order?.paymentStatus === "review" ? "Payment needs a review" : "Checking your payment"}</h1>
+      <h1>{paid ? "Payment confirmed" : order?.paymentStatus === "review" ? "Payment needs a review" : order?.expired ? "Checkout expired" : "Checking your payment"}</h1>
       {error && <p role="alert" className={styles.error}>{error}</p>}
       {checking && <p role="status">Checking your order…</p>}
       {order && <>
-        <p className={styles.lede} role="status">{paid ? "Thank you. Your order is paid and has been received by Elegant Style." : order.paymentStatus === "review" ? "The payment details need to be checked by the shop. Please contact us before making another payment." : "We are waiting for payment confirmation from Bachs. If you have paid, please do not pay again."}</p>
+        <p className={styles.lede} role="status">{paid ? "Thank you. Your order is paid and has been received by Elegant Style." : order.paymentStatus === "review" ? "The payment details need to be checked by the shop. Please contact us before making another payment." : order.expired ? "This checkout reservation expired. Return to your cart to start again. If money was debited, contact the shop before paying again." : "We are waiting for payment confirmation from Bachs. If you have paid, please do not pay again."}</p>
         <p className={styles.reference}>Order reference: <strong>{order.id}</strong></p>
         <section className={styles.summary} aria-label="Order details">
           <h2>Your order</h2>

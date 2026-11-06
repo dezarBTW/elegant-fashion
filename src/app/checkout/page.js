@@ -32,16 +32,11 @@ export default function Checkout() {
   const [reference, setReference] = useState("");
   const [uncertain, setUncertain] = useState(false);
   const [cancelled, setCancelled] = useState(false);
-  const [customer, setCustomer] = useState({ name: "", email: "", phone: "" });
+  const [customer, setCustomer] = useState({ name: "", email: null, phone: "" });
+  const checkoutCustomer = {...customer,email:customer.email ?? (signedIn ? user.email || '' : '')};
   const [delivery, setDelivery] = useState({ method: "pickup", address: "", city: "", state: "" });
 
   useEffect(() => () => { pendingCheckout.current?.abort(); }, [signedIn, user?.id]);
-
-  // Pre-fill the email with the account's email; the customer can still change it.
-  useEffect(() => {
-    if (!signedIn || !user?.email) return;
-    setCustomer((current) => (current.email ? current : { ...current, email: user.email }));
-  }, [signedIn, user?.email]);
 
   useEffect(() => {
     if (!authLoading && !signedIn) router.replace(CHECKOUT_SIGN_IN);
@@ -106,9 +101,10 @@ export default function Checkout() {
       const response = await fetch("/api/checkout", {
         signal: controller.signal,
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.session.access_token}` },
-        body: JSON.stringify({ attemptId: attemptId.current, items: priced.lines.map(({ productId, quantity, size }) => ({ productId, quantity, size })), customer, delivery }),
+        body: JSON.stringify({ attemptId: attemptId.current, items: priced.lines.map(({ productId, quantity, size }) => ({ productId, quantity, size })), customer:checkoutCustomer, delivery }),
       });
       const result = await response.json();
+      if (result.expired) { attemptId.current=null; attemptedCart.current=null; }
       if (response.status===409 && !result.uncertain) availability.refresh().catch(()=>{});
       if (controller.signal.aborted) return;
       if (response.status === 401) {
@@ -149,7 +145,7 @@ export default function Checkout() {
               <fieldset disabled={submitting || uncertain}>
                 <legend>Your details</legend>
                 <label>Full name<input name="name" autoComplete="name" value={customer.name} onChange={changeCustomer} maxLength={100} required /></label>
-                <label>Email<input name="email" type="email" autoComplete="email" value={customer.email} onChange={changeCustomer} maxLength={254} required /></label>
+                <label>Email<input name="email" type="email" autoComplete="email" value={checkoutCustomer.email} onChange={changeCustomer} maxLength={254} required /></label>
                 <label>Phone number<input name="phone" type="tel" autoComplete="tel" value={customer.phone} onChange={changeCustomer} placeholder="08012345678" required /></label>
               </fieldset>
               <fieldset disabled={submitting || uncertain}>

@@ -7,6 +7,8 @@ import vm from "node:vm";
 import { z } from "zod";
 import * as bachs from "../src/lib/bachs.mjs";
 import * as management from "../src/lib/orderManagement.mjs";
+import { checkRequestOrigin, readAccountBody } from '../src/lib/accountServer.js';
+import { bespokeReviewSchema } from '../src/lib/bespokeWorkflow.mjs';
 import { buildOrderEmails, buildFulfillmentEmail, sendOrderEmails, sendsReceiptLink } from "../src/lib/orderEmails.mjs";
 import { createReceiptConfirmation, receiptHash } from "../src/lib/checkoutServer.js";
 
@@ -32,7 +34,7 @@ function database(orders = [fixture()], profile = { id: adminId, is_admin: true,
     auth: { getUser: async (token) => token === validToken ? { data: { user: { id: adminId, user_metadata: { is_admin: true } } }, error: null } : { data: { user: null }, error: { message: "Invalid token" } } },
     from(table) {
       reads.push(table);
-      const rows = table === "users" ? (profile ? [profile] : []) : orders;
+      const rows = table === "users" ? (profile ? [profile] : []) : table === 'seller_order_items' ? [] : orders;
       let patch;
       let columns = "*";
       let count = false;
@@ -63,6 +65,7 @@ function database(orders = [fixture()], profile = { id: adminId, is_admin: true,
         order(key, options) { sorts.push([key, options]); return query; },
         maybeSingle() { return execute(true); },
         range(start, end) { return execute(false, [start, end]); },
+        limit() { return execute(false); },
       };
       return query;
     },
@@ -81,6 +84,14 @@ async function route(file, db, mailer = async () => {}, fulfillmentMailer = asyn
     "@/lib/bachs.mjs": bachs,
     "@/lib/orderEmails.mjs": { sendOrderEmails: mailer, sendFulfillmentEmail: fulfillmentMailer, sendsReceiptLink },
     "@/lib/orderManagement.mjs": management,
+    "@/lib/accountServer": {checkRequestOrigin,readAccountBody},
+    "@/lib/bespokeWorkflow.mjs": {bespokeReviewSchema},
+    "@/lib/paidOrderNotifications.mjs": {sendPaidOrderNotifications:async (_db,order)=>{
+      if(!order.email_tracking_started_at || db.mailStatus==='sent' || db.mailStatus==='sending')return {failed:0};
+      db.mailStatus='sending';
+      try {await mailer(order);db.mailStatus='sent';return {failed:0};}
+      catch {db.mailStatus='failed';return {failed:1};}
+    }},
   };
   await routeModule.link((name) => {
     const values = dependencies[name];
@@ -100,7 +111,7 @@ function webhook(data = {}) {
   return new Request("https://elegantstyle.com.ng/api/bachs/webhook", { method: "POST", body, headers: { "x-bachs-signature-v2": `t=${timestamp},v1=${signature}` } });
 }
 const adminRequest = (method = "GET", payload, token = "valid", query = "") => new Request(`https://elegantstyle.com.ng/api/admin/orders${query}`, {
-  method, headers: { ...(token ? { authorization: `Bearer ${token === "valid" ? validToken : token}` } : {}), "content-type": "application/json" },
+  method, headers: { origin:'https://elegantstyle.com.ng', ...(token ? { authorization: `Bearer ${token === "valid" ? validToken : token}` } : {}), "content-type": "application/json" },
   ...(payload ? { body: JSON.stringify(payload) } : {}),
 });
 
@@ -116,14 +127,14 @@ test("concurrent and repeated paid webhooks claim one email attempt", async () =
   // The payment email carries no receipt link, so no token exists until the order ships.
   assert.equal(db.orders[0].receipt_confirmation_hash, null);
   assert.equal(sent[0].options, undefined);
-  assert.equal(sent[0].order.receipt_confirmation_hash, undefined);
+  assert.equal(sent[0].order.receipt_confirmation_hash, null);
   const originalConfirmation = db.orders[0].receipt_confirmation_hash;
   assert.equal((await POST(webhook())).status, 200);
   assert.equal(sent.length, 1);
   assert.equal(db.orders[0].receipt_confirmation_hash, originalConfirmation);
 });
 
-test("email failure preserves payment and returns 200 without retrying mail", async () => {
+test("email failure preserves payment and a repeated verified event may retry mail", async () => {
   const db = database();
   let attempts = 0;
   const { POST } = await route("src/app/api/bachs/webhook/route.js", db, async () => { attempts++; throw new Error("Resend unavailable"); });
@@ -131,7 +142,7 @@ test("email failure preserves payment and returns 200 without retrying mail", as
   assert.equal(db.orders[0].payment_status, "paid");
   assert.ok(db.orders[0].emails_claimed_at);
   assert.equal((await POST(webhook())).status, 200);
-  assert.equal(attempts, 1);
+  assert.equal(attempts, 2);
 });
 
 test("amount mismatch stays review and never claims or sends emails", async () => {
@@ -378,4 +389,33 @@ test("concurrent admin updates cannot both consume the same status", async () =>
   const responses = await Promise.all([PATCH(adminRequest("PATCH", payload)), PATCH(adminRequest("PATCH", payload))]);
   assert.deepEqual(responses.map((response) => response.status).sort(), [200, 409]);
   assert.equal(db.orders[0].fulfillment_status, "processing");
+});
+
+
+test("bespoke review API checks admin access, allowed transitions, expected status and strict input", async () => {
+  const db = database([{id,status:'new'}]);
+  const {PATCH} = await route('src/app/api/admin/bespoke/route.js',db);
+  const request = {id,expectedStatus:'new',status:'contacted'};
+  assert.equal((await PATCH(adminRequest('PATCH',request,''))).status,401);
+  assert.equal((await PATCH(adminRequest('PATCH',{...request,status:'completed'}))).status,400);
+  assert.equal((await PATCH(adminRequest('PATCH',{...request,is_admin:true}))).status,400);
+  assert.equal((await PATCH(adminRequest('PATCH',request))).status,200);
+  assert.equal(db.orders[0].status,'contacted');
+  assert.equal((await PATCH(adminRequest('PATCH',{id,expectedStatus:'new',status:'cancelled'}))).status,409);
+  assert.equal(db.orders[0].status,'contacted');
+});
+
+test("payment email retry API rejects unpaid, historical and unauthenticated requests", async () => {
+  const db = database();
+  let sends=0;
+  const {POST} = await route('src/app/api/admin/order-emails/route.js',db,async()=>{sends++;});
+  assert.equal((await POST(adminRequest('POST',{orderId:id},''))).status,401);
+  assert.equal((await POST(adminRequest('POST',{orderId:id}))).status,409);
+  db.orders[0].payment_status='paid';
+  assert.equal((await POST(adminRequest('POST',{orderId:id}))).status,409);
+  assert.equal(sends,0);
+  db.orders[0].email_tracking_started_at=new Date().toISOString();
+  assert.equal((await POST(adminRequest('POST',{orderId:id}))).status,200);
+  assert.equal((await POST(adminRequest('POST',{orderId:id}))).status,200);
+  assert.equal(sends,1);
 });

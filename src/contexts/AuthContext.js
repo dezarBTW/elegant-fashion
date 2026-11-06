@@ -1,5 +1,6 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
+import { createAuthRequestGate } from "@/lib/authRequestGate.mjs";
 import { supabase } from "@/lib/supabaseClient";
 
 const AuthContext = createContext(null);
@@ -10,107 +11,102 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  const [gate] = useState(createAuthRequestGate);
+
   useEffect(() => {
     let mounted = true;
-    let authCheckTimeout;
-
-    const checkAuth = async () => {
+    const clearIdentity = () => {
+      setUser(null);
+      setUserData(null);
+      setIsAdmin(false);
+      setLoading(false);
+    };
+    const loadUserData = async (ticket) => {
+      if (!mounted || !gate.isCurrent(ticket)) return;
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
-        if (sessionError) {
-          // Ignore "Auth session missing" error - it's normal when not logged in
-          if (sessionError.message !== 'Auth session missing!') {
-            console.error("Session error:", sessionError);
-          }
-          if (mounted) {
-            setLoading(false);
-          }
+        const { data: profile, error } = await supabase
+          .from("users")
+          .select("*")
+          .eq("id", ticket.userId)
+          .single();
+        if (!mounted || !gate.isCurrent(ticket)) return;
+        if (error) throw error;
+        const latest = await supabase.auth.getSession();
+        if (!mounted || !gate.isCurrent(ticket)) return;
+        if (latest.error || latest.data.session?.user?.id !== ticket.userId) {
+          gate.invalidate();
+          clearIdentity();
           return;
         }
-
-        if (session?.user && mounted) {
-          setUser(session.user);
-          
-          // Fetch user data from users table
-          const { data: userData, error: userError } = await supabase
-            .from("users")
-            .select("*")
-            .eq("id", session.user.id)
-            .single();
-
-          if (!userError && userData && mounted) {
-            if (userData.is_active === false) {
-              await supabase.auth.signOut({ scope: "local" });
-              setUser(null);
-              setUserData(null);
-              setIsAdmin(false);
-              return;
-            }
-            setUserData(userData);
-            setIsAdmin(!!userData.is_admin);
-          }
-        }
-      } catch (error) {
-        // Ignore "Auth session missing" error - it's normal when not logged in
-        if (error.message !== 'Auth session missing!') {
-          console.error("Auth check error:", error);
-        }
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    const loadUserData = async (userId) => {
-      const { data: profile, error: userError } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (mounted && !userError && profile) {
+        if (profile?.id !== ticket.userId) return;
         if (profile.is_active === false) {
           await supabase.auth.signOut({ scope: "local" });
-          setUser(null);
-          setUserData(null);
-          setIsAdmin(false);
-          setLoading(false);
+          if (mounted && gate.isCurrent(ticket)) {
+            gate.invalidate();
+            clearIdentity();
+          }
           return;
         }
         setUserData(profile);
-        setIsAdmin(!!profile.is_admin);
+        setIsAdmin(profile.is_admin === true);
+      } catch (error) {
+        if (mounted && gate.isCurrent(ticket)) {
+          setUserData(null);
+          setIsAdmin(false);
+          console.error(
+            "Unable to load account profile",
+            error?.code || "profile_error",
+          );
+        }
+      } finally {
+        if (mounted && gate.isCurrent(ticket)) setLoading(false);
       }
     };
-
-    // Debounce auth check to prevent race conditions
-    authCheckTimeout = setTimeout(checkAuth, 100);
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const adoptSession = (session) => {
       if (!mounted) return;
-
-      if (event === 'SIGNED_IN' && session?.user) {
-        setUser(session.user);
-        setLoading(false);
-        window.setTimeout(() => loadUserData(session.user.id), 0);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setUserData(null);
-        setIsAdmin(false);
-        setLoading(false);
-      }
+      const nextUser = session?.user || null;
+      const ticket = gate.begin(nextUser?.id || null);
+      setUser(nextUser);
+      setUserData(null);
+      setIsAdmin(false);
+      setLoading(Boolean(nextUser));
+      // Supabase auth callbacks must not await another auth operation.
+      if (nextUser) window.setTimeout(() => void loadUserData(ticket), 0);
+    };
+    const initial = gate.begin(null);
+    supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (mounted && gate.isCurrent(initial))
+          adoptSession(error ? null : data.session);
+      })
+      .catch(() => {
+        if (mounted && gate.isCurrent(initial)) adoptSession(null);
+      });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!mounted) return;
+      if (
+        [
+          "INITIAL_SESSION",
+          "SIGNED_IN",
+          "SIGNED_OUT",
+          "USER_UPDATED",
+          "TOKEN_REFRESHED",
+        ].includes(event)
+      )
+        adoptSession(session);
     });
-
     return () => {
       mounted = false;
-      clearTimeout(authCheckTimeout);
+      gate.invalidate();
       subscription.unsubscribe();
     };
-  }, []);
+  }, [gate]);
 
   const logout = () => {
+    gate.invalidate();
     // Clear local state immediately (synchronous, no network required)
     setUser(null);
     setUserData(null);
