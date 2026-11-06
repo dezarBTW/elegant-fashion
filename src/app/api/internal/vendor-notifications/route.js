@@ -23,11 +23,16 @@ export async function POST(request) {
     .is("sent_at", null)
     .lte('next_attempt_at',new Date().toISOString())
     .order("created_at")
-    .limit(1);
+    .limit(5);
   if (result.error)
     return NextResponse.json({ error: "Queue unavailable" }, { status: 503 });
   let sent = 0;
+  let processed = 0;
+  const stopStartingJobsAt = Date.now() + 15000;
   for (const job of result.data) {
+    // Leave room for the current email's bounded retries before Vercel's limit.
+    if (Date.now() > stopStartingJobsAt) break;
+    processed++;
     try {
       let ok;
       if (
@@ -92,5 +97,5 @@ export async function POST(request) {
         .eq("id", job.id);
     }
   }
-  return NextResponse.json({ processed: result.data.length, sent });
+  return NextResponse.json({ processed, sent });
 }
