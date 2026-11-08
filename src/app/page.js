@@ -218,8 +218,8 @@ export default function Home() {
             <div className={styles.footerSection}>
               <h4>Quick links</h4>
               <Link href="/ready-to-wear">Ready-to-wear</Link>
+              <Link href="/course">Fashion Academy</Link>
               <Link href="/bespoke/request">Bespoke</Link>
-              <Link href="/course">Fashion school</Link>
               <Link href="/about">About us</Link>
             </div>
             <div className={styles.footerSection}>

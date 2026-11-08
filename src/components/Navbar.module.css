@@ -86,7 +86,7 @@
 .navMenu {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 /* Thin separator between the nav links and the auth controls,

@@ -19,7 +19,7 @@ const pillars = [
   },
   {
     tag: "N\u00b0 03",
-    title: "Fashion school",
+    title: "Fashion Academy",
     text: "A practical, mentor-led path into the industry \u2014 pattern-making, construction, and portfolio work.",
     href: "/course",
     cta: "See the programme",
@@ -77,11 +77,11 @@ export default function About() {
     <ScrollRevealRoot className={styles.page}>
       <header className={styles.hero} data-reveal>
         <span className={styles.eyebrow}>Our story</span>
-        <h1 className={styles.heroTitle}>Where creativity is mastered</h1>
+        <h1 className={styles.heroTitle}>About Elegant Style</h1>
         <p className={styles.heroText}>
           Elegant Style is a Bayelsa-based house that was founded in 2018 by our CEO Mrs Esther Patrick working across three
           disciplines that share one workroom: ready-to-wear, bespoke
-          tailoring, and a fashion school that trains the next generation of
+          tailoring, and a fashion academy that trains the next generation of
           designers on the same techniques we use in our own organization.
         </p>
       </header>

@@ -9,7 +9,7 @@ export const publicPages = {
     description: "Elegant Style in Yenagoa, Bayelsa: shop ready-to-wear fashion, book bespoke tailoring, or join our fashion academy at Km 4 Isaac Boro Express Way.",
   },
   "/ready-to-wear": {
-    title: "Ready-to-Wear Fashion",
+    title: "Ready-to-Wear",
     description: "Shop the Elegant Style ready-to-wear collection: thoughtfully made clothing and occasionwear from our fashion house in Yenagoa, Bayelsa.",
   },
   "/course": {
@@ -25,7 +25,7 @@ export const publicPages = {
     description: "Request a bespoke outfit or book a fitting with Elegant Style in Yenagoa, Bayelsa. Clothing made around your measurements and personal style.",
   },
   "/about": {
-    title: "About Our Fashion House",
+    title: "About Us",
     description: "Meet Elegant Style, the Bayelsa fashion house founded by Esther Patrick, offering ready-to-wear, bespoke tailoring and fashion design training.",
   },
   "/contact": {

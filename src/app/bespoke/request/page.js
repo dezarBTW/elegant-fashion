@@ -376,8 +376,8 @@ export default function BespokeRequestPage() {
         </div>
       )}
       <header className={styles.header}>
-        <p className={styles.eyebrow}>Bespoke tailoring</p>
-        <h1>Tell us what you have in mind</h1>
+        <p className={styles.eyebrow}>Made to measure</p>
+        <h1>Bespoke tailoring</h1>
         <p>
           Share fabric and style references and we&apos;ll get back to you.
         </p>

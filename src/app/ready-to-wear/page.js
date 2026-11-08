@@ -55,7 +55,7 @@ export default function ReadyToWear() {
         <section className={styles.collection} id="collection" aria-label="Shop the collection">
           <div className={styles.collectionHeading}>
             <div>
-              <h2>Find your next favourite</h2>
+              <h1>Ready-to-wear</h1>
             </div>
             <div className={styles.searchPanel}>
               <label className={styles.searchField}>

@@ -30,7 +30,7 @@ export default function PrivacyPolicy() {
             </ul>
 
             <h3>Student Registration Data</h3>
-            <p>When you apply for our fashion school programmes, we collect:</p>
+            <p>When you apply for our Fashion Academy programmes, we collect:</p>
             <ul>
               <li>Full name (surname, first name, middle name)</li>
               <li>Gender</li>

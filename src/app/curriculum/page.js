@@ -171,7 +171,7 @@ export default function Curriculum() {
     <ScrollRevealRoot className={styles.page}>
       <div className={styles.pageHeader} data-reveal>
         <span className={styles.eyebrow}>The programme</span>
-        <h1 className={styles.pageTitle}>Fashion School Curriculum</h1>
+        <h1 className={styles.pageTitle}>Fashion Academy Curriculum</h1>
         <p className={styles.pageSubtitle}>
           What you&apos;ll learn on the path to becoming a professional fashion designer
         </p>
@@ -307,7 +307,7 @@ export default function Curriculum() {
           <h3>Ready to start your fashion journey?</h3>
           <p>Register now for our upcoming cohort at Elegant Style Academy.</p>
           <Link href="/course" className={styles.ctaButton}>
-            Enroll in Fashion School
+            Enroll in the Fashion Academy
           </Link>
         </div>
       </div>

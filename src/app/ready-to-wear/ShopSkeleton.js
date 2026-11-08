@@ -11,17 +11,17 @@ export function ShopSkeleton({ count = SHOP_PAGE_SIZE }) {
     <div className={page.container} aria-busy="true">
       <span className={s.srOnly} role="status">Loading ready-to-wear collection</span>
       <main className={page.shop}>
-        <section className={`${page.collection} ${s.visual}`} aria-hidden="true">
+        <section className={`${page.collection} ${s.visual}`}>
           <div className={page.collectionHeading}>
-            <div className={bone(s.headingTitle)}>
-              <h2 className={s.reserved}>Find your next favourite</h2>
+            <div>
+              <h1>Ready-to-wear</h1>
             </div>
-            <div className={page.searchPanel}>
+            <div className={page.searchPanel} aria-hidden="true">
               <div className={bone(s.searchBone)} />
             </div>
           </div>
 
-          <div className={page.categoryRail}>
+          <div className={page.categoryRail} aria-hidden="true">
             {["All", "Dresses", "Skirts", "Trousers", "Tops", "Jackets", "Accessories"].map((category) => (
               <div key={category} className={`${page.categoryButton} ${s.railItem}`}>
                 <span className={s.bone}><span className={s.reserved}>{category}</span></span>
@@ -29,14 +29,14 @@ export function ShopSkeleton({ count = SHOP_PAGE_SIZE }) {
             ))}
           </div>
 
-          <div className={page.resultsBar}>
+          <div className={page.resultsBar} aria-hidden="true">
             <div className={page.resultControls}>
               <label><span className={bone(s.selectBone)} /></label>
               <label><span className={bone(s.selectBone)} /></label>
             </div>
           </div>
 
-          <div className={page.products}>
+          <div className={page.products} aria-hidden="true">
             {Array.from({ length: count }).map((_, i) => (
               <div key={i} className={`${page.productCard} ${s.card}`}>
                 <div className={`${page.productImage} ${s.bone}`} />

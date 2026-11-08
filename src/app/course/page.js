@@ -1,7 +1,7 @@
 "use client";
 import { passportUploadError } from '@/lib/passportUpload.mjs';
 import PassportPhoto from "@/components/PassportPhoto";
-import styles from "./fashionschool.css";
+import "./fashionschool.css";
 import { useState, useEffect } from "react";
 import { authenticatedFetch } from "@/lib/clientApi";
 import { REGISTRATION_COMPLETE_MESSAGE, SPONSORSHIP_OPTIONS, registrationSchema } from "@/lib/registration.mjs";
@@ -320,21 +320,17 @@ export default function Course() {
   const isFormValid = completedFields === fieldsToValidate.length;
   const progress = Math.round((completedFields / fieldsToValidate.length) * 100);
 
-  if (loading || checkingRegistration) {
-    return (
-      <div className="loading-container">
-        <div className="spinner" aria-hidden="true" />
-        <p>Loading fashion school...</p>
-      </div>
-    );
-  }
-
   if (!user) {
     return (
-      <div className="auth-modal-overlay">
-        <div className="auth-modal">
-          <h2>Sign In Required</h2>
-          <p>You need to sign in to access the student registration form.</p>
+      <main className="body">
+        <h1 className="header">Fashion Academy</h1>
+        <Link href="/curriculum" className="curriculum-card">
+          <h2>Explore the Fashion Academy curriculum</h2>
+          <p>Train in sewing, pattern making and garment construction at Elegant Style in Yenagoa, Bayelsa. Choose a three-month, six-month or one-year programme.</p>
+        </Link>
+        <section className="academy-application">
+          <h2>Apply to the Fashion Academy</h2>
+          <p>Sign in or create an account to complete the student registration form.</p>
           <div className="auth-buttons">
             <Link href="/sign-in" className="auth-btn primary">
               Sign In
@@ -343,10 +339,16 @@ export default function Course() {
               Sign Up
             </Link>
           </div>
-          <button className="close-btn" onClick={() => router.push("/")}>
-            Cancel
-          </button>
-        </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (loading || checkingRegistration) {
+    return (
+      <div className="loading-container">
+        <div className="spinner" aria-hidden="true" />
+        <p>Loading Fashion Academy registration…</p>
       </div>
     );
   }

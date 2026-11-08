@@ -323,26 +323,16 @@
 }
 
 /* Auth modal */
-.auth-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(20, 18, 13, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.auth-modal {
+.academy-application {
   background: var(--white);
-  padding: 2.5rem;
+  padding: clamp(1.25rem, 5vw, 2.5rem);
   border: 1px solid var(--line);
-  max-width: 400px;
-  width: 90%;
+  max-width: 700px;
+  margin: 0 auto;
   text-align: center;
 }
 
-.auth-modal h2 {
+.academy-application h2 {
   margin: 0 0 1rem 0;
   font-family: var(--font-display);
   font-weight: 600;
@@ -350,7 +340,7 @@
   font-size: 1.5rem;
 }
 
-.auth-modal p {
+.academy-application p {
   margin: 0 0 1.5rem 0;
   color: var(--stone);
   font-size: 1rem;
@@ -361,7 +351,6 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 1.5rem;
 }
 
 .auth-btn {
@@ -394,22 +383,6 @@
   color: var(--white);
 }
 
-.close-btn {
-  padding: 0.75rem 1.5rem;
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  font-size: 0.9rem;
-  color: var(--stone);
-  cursor: pointer;
-  transition: all 0.25s ease;
-}
-
-.close-btn:hover {
-  background: var(--ink);
-  color: var(--white);
-  border-color: var(--ink);
-}
 
 /* Passport preview */
 .passport-upload-success {

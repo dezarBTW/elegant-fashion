@@ -22,7 +22,7 @@ export default function TermsOfService() {
               You may use our website if you are at least 13 years of age. If you are under 18, you must involve a parent or legal guardian before submitting personal information, applying for training, or making a purchase. A parent or guardian must authorise any purchase or service agreement on your behalf.
             </p>
             <p>
-              We may restrict access or suspend accounts where necessary to address misuse, fraud, security risks, or breaches of these terms, subject to applicable law. Browsing the shop, sending a bespoke enquiry, and using guest checkout do not require an account. Submitting a fashion school application requires sign-in.
+              We may restrict access or suspend accounts where necessary to address misuse, fraud, security risks, or breaches of these terms, subject to applicable law. Browsing the shop, sending a bespoke enquiry, and using guest checkout do not require an account. Submitting a Fashion Academy application requires sign-in.
             </p>
           </section>
 

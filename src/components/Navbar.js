@@ -241,6 +241,9 @@ function NavbarContent({ user, logout, isAdmin }) {
               <SchoolIcon />
               FASHION ACADEMY
             </Link>
+            <Link href="/bespoke/request" onClick={closeMenu}>
+              BESPOKE
+            </Link>
             <Link href="/about" onClick={closeMenu}>
               <AboutIcon />
               ABOUT US
