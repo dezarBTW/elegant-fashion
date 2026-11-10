@@ -16,12 +16,13 @@ export async function notifyPaidVendors(db, orderId, {sendEmail=sendServiceEmail
   if (!ids.length) return true;
   const order = await db
     .from("shop_orders")
-    .select("delivery")
+    .select("delivery,customer_phone,customer_name")
     .eq("id", orderId)
     .single();
   if (order.error) throw order.error;
   const users = await db.from("users").select("id,email").in("id", ids);
   if (users.error) throw users.error;
+  const customerAddress = order.data.delivery.method === "pickup" ? "Shop pickup" : [order.data.delivery.address,order.data.delivery.city,order.data.delivery.state].filter(Boolean).join(", ");
   const deliveries = users.data.map(user => {
     const items = vendors.filter((item) => item.seller_id === user.id);
     const shop = ids.length >= 2 || order.data.delivery.method === "pickup";
@@ -37,7 +38,7 @@ export async function notifyPaidVendors(db, orderId, {sendEmail=sendServiceEmail
         idempotencyKey: `vendor-paid/${orderId}/${user.id}`,
         html: wrapBrandEmail(
           "Paid product purchase",
-          `<p>Order ${escapeEmailHtml(orderId)}</p><ul>${items.map((item) => `<li>${escapeEmailHtml(item.product_name)} × ${item.quantity}</li>`).join("")}</ul><p>${escapeEmailHtml(instructions)}</p><p>The maximum delivery deadline is seven days from confirmed payment. Vendor payments and delivery coordination are handled directly with the administrator offline.</p><p><a href="${SITE_URL}/account/vendor-orders">View sales history</a></p>`,
+          `<p>Order ${escapeEmailHtml(orderId)}</p><ul>${items.map((item) => `<li>${escapeEmailHtml(item.product_name)} × ${item.quantity}</li>`).join("")}</ul><p>${escapeEmailHtml(instructions)}</p><p>Customer: ${escapeEmailHtml(order.data.customer_name)}<br/>Shipping address: ${escapeEmailHtml(customerAddress)}<br/>Phone: ${escapeEmailHtml(order.data.customer_phone)}</p><p>The maximum delivery deadline is seven days from confirmed payment. Vendor payments and delivery coordination are handled directly with the administrator offline.</p><p><a href="${SITE_URL}/account/vendor-orders">View sales history</a></p>`,
         ),
       });
   });

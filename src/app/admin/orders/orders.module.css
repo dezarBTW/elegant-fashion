@@ -12,4 +12,5 @@
 .table th, .table td { padding: 10px; border-bottom: 1px solid var(--line); }
 .table th { background: var(--paper); }
 .table td:not(:first-child) { white-space: nowrap; }
+.itemName { display: flex; align-items: center; gap: 12px; min-width: 180px; }
 .pagination { margin-top: 20px; }

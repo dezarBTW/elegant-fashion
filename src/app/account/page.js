@@ -10,13 +10,15 @@ import styles from "../admin/adminShell.module.css";
 import account from "./account.module.css";
 import DashboardSkeleton from '@/components/DashboardSkeleton';
 
+const confirmationMethods = new Map();
+
 export default function Account() {
   const { user, userData, logout } = useAuth();
   const router = useRouter();
   const [passwords, setPasswords] = useState({ current: "", next: "", confirm: "" });
   const [deactivating, setDeactivating] = useState(false);
   const [deactivatePassword, setDeactivatePassword] = useState("");
-  const [methodResult, setMethodResult] = useState(null);
+  const [methodResult, setMethodResult] = useState(() => user?.id && confirmationMethods.has(user.id) ? {userId:user.id,method:confirmationMethods.get(user.id)} : null);
   const deactivationMethod = methodResult?.userId === user?.id ? methodResult.method : null;
   const [deactivationCode, setDeactivationCode] = useState("");
   const [codeSent, setCodeSent] = useState(false);
@@ -29,9 +31,9 @@ export default function Account() {
     if (!user?.id) return;
     let active = true;
     authenticatedFetch("/api/account/deactivation").then(result => {
-      if (active) setMethodResult({ userId: user.id, method: result.method });
+      if (active) { confirmationMethods.set(user.id,result.method);setMethodResult({ userId: user.id, method: result.method }); }
     }).catch(() => {
-      if (active) setError("Unable to load account confirmation options. Please refresh the page.");
+      if (active && !confirmationMethods.has(user.id)) setError("Unable to load account confirmation options. Please refresh the page.");
     });
     return () => { active = false; };
   }, [user?.id]);

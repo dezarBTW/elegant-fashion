@@ -37,7 +37,7 @@ export default function TermsOfService() {
             <ul>
               <li>Supabase provides account authentication, database storage, and photo storage; passwords are stored as hashes</li>
               <li>School applications and saved browser drafts contain the information entered in the application form</li>
-              <li>Bachs processes ready-to-wear payments, and Resend delivers bespoke, registration, paid-order, refund, and complaint service emails</li>
+              <li>Bank transfer is used for ready-to-wear payments, and Resend delivers bespoke, registration, paid-order, refund, and complaint service emails</li>
               <li>We do not sell, trade, or rent your personal information to third parties</li>
               <li>Account deactivation and deletion of personal data are separate requests</li>
             </ul>
@@ -93,10 +93,10 @@ export default function TermsOfService() {
             </p>
             <h3>Payments and Receipts</h3>
             <p>
-              Ready-to-wear payments are made on Bachs&apos;s hosted checkout. Provide a valid email address and Nigerian phone number, and review the total before paying. We do not ask you to enter your card number, PIN, or card security code on this website. Returning from the payment page, closing it, or receiving an order reference does not by itself confirm payment. The order status page shows confirmation after the payment is verified.
+              Ready-to-wear payments are made by bank transfer to the account shown at checkout. Upload your transfer receipt and wait for administrator verification. Provide a valid email address and Nigerian phone number, and review the total before paying. We do not ask you to enter your card number, PIN, or card security code on this website. Returning from the payment page, closing it, or receiving an order reference does not by itself confirm payment. The order status page shows confirmation after the payment is verified.
             </p>
             <p>
-              After verified payment, the site attempts to email a receipt to the address you supplied and an order notification to the shop. Email delivery can fail or be delayed; a missing email does not mean payment failed. Check the order status or contact us with your reference before paying again. If a payment is pending, needs review, or its setup could not be confirmed, contact us before starting another payment. Use the resume-payment link when the status page offers one for an unpaid order.
+              After administrator verification, the site attempts to email a receipt to the address you supplied and an order notification to the shop. Email delivery can fail or be delayed; a missing email does not mean payment failed. Check the order status or contact us with your reference before paying again. If a payment is pending, needs review, or its setup could not be confirmed, contact us before starting another payment. Use the resume-payment link when the status page offers one for an unpaid order.
             </p>
             <p>
               Online order status is tied to the browser used to place the order through an order-access cookie valid for seven days. Clearing site data, using another browser or device, or waiting until the cookie expires may prevent online access. Keep your order reference and contact us if you need help recovering order information. An order reference alone does not give access to the online status page.
@@ -109,7 +109,7 @@ export default function TermsOfService() {
               Customer checkout payment and delivery are separate. Shipping, pickup arrangements, vendor payments and delivery issues are handled directly with Elegant Style offline. A paid order does not mean it has been delivered. An administrator records delivery as completed only after verifying that the customer received the products.
             </p>
             <p>
-              Contact the shop with your order reference to arrange shipping or resolve a delivery issue. When an administrator verifies delivery, we attempt to email you the confirmation and the three-day return/refund deadline. Contact us immediately if delivery was recorded incorrectly; opening an email does not confirm delivery.
+              Contact the shop with your order reference to arrange shipping or resolve a delivery issue. When an item ships or is ready for pickup, we attempt to email you a link to confirm receipt in My orders. The three-day return/refund period begins when you confirm you received that item. Contact us if the shipment or receipt status is incorrect.
             </p>
             <h3>Order Changes, Cancellations, and Problems</h3>
             <p>Return/refund requests must be submitted within three days of confirmed delivery, as verified and recorded by an administrator. The normal request option locks after this window. Timely requests remain available for review after the window ends. Contact Elegant Style about non-delivery or access problems. This window does not remove rights that cannot lawfully be excluded.</p>
@@ -117,7 +117,7 @@ export default function TermsOfService() {
               Contact us with your order reference as soon as possible if you need to change or cancel an order, have paid twice, or receive an incorrect, damaged, or faulty item. Signed-in customers can view paid orders matched to their verified account email, submit a refund reason for an ordered product, or describe a complaint about a product they confirm they received. Requests and staff responses appear in the account dashboard, and we attempt to send confirmation and status emails. Contact the shop if an order used a different email or you cannot access your account.
             </p>
             <p>
-              Submitting a refund request does not guarantee approval. Approval records the shop&apos;s decision; it does not automatically return funds. The shop arranges any payment refund separately through Bachs and discusses any return or collection arrangements with you. There is one refund request and one complaint per product per order; contact the shop with the existing reference for further information. These terms do not remove any cancellation, refund, quality, or other consumer rights that cannot lawfully be excluded.
+              Submitting a refund request does not guarantee approval. Approval records the shop&apos;s decision; it does not automatically return funds. The shop arranges any payment refund separately by bank transfer and discusses any return or collection arrangements with you. There is one refund request and one complaint per product per order; contact the shop with the existing reference for further information. These terms do not remove any cancellation, refund, quality, or other consumer rights that cannot lawfully be excluded.
             </p>
             <p>
               Buy again adds one unit of an available product to your cart. Current availability, price, and delivery charges apply when you start the new checkout; an earlier purchase does not reserve stock or guarantee its previous price.

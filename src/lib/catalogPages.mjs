@@ -1,5 +1,3 @@
-import { localRunwayEnabled, localShopPage } from './localRunwayProducts.mjs';
-
 async function loadPage(db, name, parameters, signal) {
   const { data, error } = await db.rpc(name, parameters).abortSignal(signal);
   if (error) throw error;
@@ -10,7 +8,6 @@ async function loadPage(db, name, parameters, signal) {
 }
 
 export function loadShopPage(db, { page, search, category, price, gender }, signal) {
-  if (localRunwayEnabled) return Promise.resolve(localShopPage({ page, search, category, price, gender }));
   return loadPage(db, 'get_shop_product_page', {
     p_page: page, p_search: search.trim(), p_category: category,
     p_price: price, p_gender: gender || 'all',

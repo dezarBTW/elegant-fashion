@@ -68,7 +68,7 @@ test('registration rejects a spoofed passport before saving the application',asy
  assert.equal((await submit()).status,400);assert.equal(saved,1);
 });
 test('order-history reads execute no claim RPC or database write',async()=>{
- const query={select(){return this;},eq(){return this;},order(){return this;},range:async()=>({data:[],count:0})};
+ const query={select(){return this;},eq(){return this;},in(){return this;},or(){return this;},order(){return this;},range:async()=>({data:[],count:0})};
  const db={from:()=>query,rpc:()=>{throw Error('Unexpected claim');}};
  const m=await moduleAt('src/app/api/account/orders/route.js',{'next/server':{NextResponse:Response},'@/lib/accountServer':{requireActiveAccount:async()=>({db,user:{id:'fixture'}})},'@/lib/orderManagement.mjs':{OrderRequestError}});
  const r=await m.GET(new Request(origin+'/api/account/orders?page=2'));assert.equal(r.status,200);assert.equal((await r.json()).page,2);

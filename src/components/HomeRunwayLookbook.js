@@ -7,7 +7,6 @@ import { supabase } from "@/lib/supabaseClient";
 import { imagePath } from "@/lib/imagePath.mjs";
 import { productHref } from "@/lib/products.mjs";
 import { selectRunway } from '@/lib/runwaySelection.mjs';
-import { localRunwayEnabled, shuffleLocalRunway } from "@/lib/localRunwayProducts.mjs";
 import styles from "./HomeRunwayLookbook.module.css";
 
 const STORAGE_KEY = "elegant-home-runway";
@@ -61,14 +60,12 @@ export default function HomeRunwayLookbook() {
       Promise.resolve().then(() => { if (!cancelled) setProducts(restored.products); });
     }
     {
-      const request = localRunwayEnabled
-        ? Promise.resolve({ data: shuffleLocalRunway() })
-        : supabase.rpc("get_home_runway_catalog");
+      const request = supabase.rpc("get_home_runway_catalog");
       request.then(({ data, error }) => {
         if (!cancelled && !error && Array.isArray(data)) {
           let previous=null;
           try { previous=JSON.parse(localStorage.getItem('elegant-runway-selection')||'null'); } catch {}
-          const selection=localRunwayEnabled?data:selectRunway(data,previous);
+          const selection=selectRunway(data,previous);
           setProducts(selection);
           try { localStorage.setItem('elegant-runway-selection',JSON.stringify({ids:selection.map(product=>product.id),lastSeenAt:data[0]?.created_at||previous?.lastSeenAt||new Date().toISOString()})); } catch {}
         }

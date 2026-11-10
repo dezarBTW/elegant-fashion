@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useRef } from "react";
 import { createAuthRequestGate } from "@/lib/authRequestGate.mjs";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -12,10 +12,12 @@ export function AuthProvider({ children }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   const [gate] = useState(createAuthRequestGate);
+  const currentUserId = useRef(null);
 
   useEffect(() => {
     let mounted = true;
     const clearIdentity = () => {
+      currentUserId.current = null;
       setUser(null);
       setUserData(null);
       setIsAdmin(false);
@@ -65,6 +67,13 @@ export function AuthProvider({ children }) {
     const adoptSession = (session) => {
       if (!mounted) return;
       const nextUser = session?.user || null;
+      if (nextUser?.id && nextUser.id === currentUserId.current) {
+        const ticket = gate.begin(nextUser.id);
+        setUser(nextUser);
+        window.setTimeout(() => void loadUserData(ticket), 0);
+        return;
+      }
+      currentUserId.current = nextUser?.id || null;
       const ticket = gate.begin(nextUser?.id || null);
       setUser(nextUser);
       setUserData(null);
@@ -107,6 +116,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     gate.invalidate();
+    currentUserId.current = null;
     // Clear local state immediately (synchronous, no network required)
     setUser(null);
     setUserData(null);

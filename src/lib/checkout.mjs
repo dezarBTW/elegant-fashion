@@ -46,7 +46,7 @@ export function priceCart(items, products) {
     if (!product || quantity > 10) throw new Error("An item is unavailable or its quantity is too high. Please update your cart.");
     if (Array.isArray(product.available_sizes) && (!size || !product.available_sizes.includes(size))) throw new Error(`Choose an available size for ${product.name}. Please update your cart.`);
     const unitAmountMinor = moneyToMinor(product.sale_price ?? product.price);
-    return { productId, name: product.name, ...(size ? { size } : {}), quantity, unitAmountMinor, lineAmountMinor: unitAmountMinor * quantity };
+    return { productId, name: product.name, ...(product.image ? { image: product.image } : {}), ...(size ? { size } : {}), quantity, unitAmountMinor, lineAmountMinor: unitAmountMinor * quantity };
   });
   const subtotalMinor = lines.reduce((sum, line) => sum + line.lineAmountMinor, 0);
   if (subtotalMinor < 100 || subtotalMinor > 1000000000) throw new Error("The order total is outside the supported range.");

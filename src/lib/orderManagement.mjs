@@ -1,6 +1,6 @@
 export const PAYMENT_STATUSES = ["pending", "paid", "review"];
 export const FULFILLMENT_STATUSES = ["new", "processing", "ready", "shipped", "completed"];
-export const ORDER_COLUMNS = "id,customer_name,customer_email,customer_phone,delivery,items,subtotal_minor,shipping_minor,total_minor,payment_status,fulfillment_status,paid_at,created_at,customer_received_at,payment_review_reason,email_status,email_tracking_started_at,delivery_confirmed_at,delivery_verification_note";
+export const ORDER_COLUMNS = "id,customer_name,customer_email,customer_phone,delivery,items,subtotal_minor,shipping_minor,total_minor,payment_status,fulfillment_status,paid_at,created_at,customer_received_at,payment_review_reason,email_status,email_tracking_started_at,delivery_confirmed_at,delivery_verification_note,transfer_submitted_at,transfer_receipt_path,payment_method";
 
 export class OrderRequestError extends Error {
   constructor(message, status) { super(message); this.status = status; }

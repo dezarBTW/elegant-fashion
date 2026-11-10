@@ -53,11 +53,11 @@ export default function OrderStatus() {
   return (
     <main className={`${styles.page} ${styles.receipt}`}>
       <Link className={styles.back} href="/ready-to-wear">← Back to the shop</Link>
-      <h1>{paid ? "Payment confirmed" : order?.paymentStatus === "review" ? "Payment needs a review" : order?.expired ? "Checkout expired" : "Checking your payment"}</h1>
+      <h1>{paid ? "Payment confirmed" : order?.paymentStatus === "review" ? "Payment needs a review" : order?.expired ? "Checkout expired" : "Waiting for payment verification"}</h1>
       {error && <p role="alert" className={styles.error}>{error}</p>}
       {checking && <p role="status">Checking your order…</p>}
       {order && <>
-        <p className={styles.lede} role="status">{paid ? "Thank you. Your order is paid and has been received by Elegant Style." : order.paymentStatus === "review" ? "The payment details need to be checked by the shop. Please contact us before making another payment." : order.expired ? "This checkout reservation expired. Return to your cart to start again. If money was debited, contact the shop before paying again." : "We are waiting for payment confirmation from Bachs. If you have paid, please do not pay again."}</p>
+        <p className={styles.lede} role="status">{paid ? "Thank you. Your order is paid and has been received by Elegant Style." : order.paymentStatus === "review" ? "The payment details need to be checked by the shop. Please contact us before making another payment." : order.expired ? "This checkout reservation expired. Return to your cart to start again. If money was debited, contact the shop before paying again." : order.transferSubmitted ? "Your receipt was submitted. We will verify the bank transfer and email you when payment is confirmed." : "Please complete your bank transfer and upload the receipt."}</p>
         <p className={styles.reference}>Order reference: <strong>{order.id}</strong></p>
         <section className={styles.summary} aria-label="Order details">
           <h2>Your order</h2>
@@ -67,6 +67,7 @@ export default function OrderStatus() {
         </section>
         {paid && <p className={styles.lede}>{order.method === "pickup" ? `Pickup location: ${PICKUP_ADDRESS}. The shop will contact you when your order is ready.` : "The shop will contact you to arrange delivery."}</p>}
       </>}
+      {!paid && !order?.transferSubmitted && order && <p><Link href={`/checkout/transfer?order_id=${order.id}`}>Upload transfer receipt</Link></p>}
       {!paid && <button className={styles.button} type="button" disabled={checking} onClick={() => { setChecking(true); setReload((value) => value + 1); }}>Check payment status</button>}
       {order?.checkoutUrl && <p className={styles.reference}>Haven&apos;t paid yet? <a href={order.checkoutUrl}>Resume this payment</a>. If you have paid, wait for confirmation.</p>}
       <p className={styles.lede}>Need help? Call <a href="tel:+2348166361710">08166361710</a> and quote your order reference.</p>

@@ -7,12 +7,14 @@
 .form .check { display: flex; align-items: start; gap: 10px; font-weight: 400; }
 .check input { width: 18px; min-height: 18px; height: 18px; flex-shrink: 0; margin-top: 4px; }
 .success { padding: 14px; background: var(--success-bg); color: var(--success); border-radius: 8px; }
+.pending { padding: 14px; background: #fff8e8; color: #684a14; border: 1px solid #e8d6ab; border-radius: 8px; }
 .hint { color: var(--stone); font-size: 14px; }
 .details { display: grid; gap: 12px; margin: 16px 0; overflow-wrap: anywhere; }
 .details dt { color: var(--stone); font-size: 13px; }
 .details dd { margin: 0; }
 .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
 .item { padding: 16px 0; border-top: 1px solid var(--line); }
+.itemHeading { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
 .item h3 { font-size: 17px; margin-bottom: 5px; }
 .reference { overflow-wrap: anywhere; font-size: 13px; color: var(--stone); }
 .message { white-space: pre-wrap; overflow-wrap: anywhere; margin: 12px 0; }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { useAuth } from "@/contexts/AuthContext";
 import { PICKUP_ADDRESS } from "@/lib/checkout.mjs";
+import OrderItemImage from "@/components/OrderItemImage";
 import { PAYMENT_STATUSES } from "@/lib/orderManagement.mjs";
 import { formatDateTime } from "../adminUtils";
 import styles from "../adminShell.module.css";
@@ -23,7 +24,6 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState('');
-  const [notes,setNotes]=useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState("");
   const [refresh, setRefresh] = useState(0);
@@ -62,23 +62,6 @@ export default function Orders() {
     return () => { mounted = false; controller.abort(); };
   }, [isAdmin, authLoading, payment, fulfillment, page, refresh]);
 
-  const updateStatus = async order => {
-    if (saving) return;
-    setSaving(order.id);
-    setError("");
-    try {
-      const response = await fetch("/api/admin/orders", {
-        method: "PATCH", headers: await adminHeaders(),
-        body: JSON.stringify({ id: order.id, expected_status: order.fulfillment_status, action:"delivery_completed", note:notes[order.id]||"" }),
-      });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "Unable to update this order.");
-      setNotice(result.customerEmailSent===false ? "Delivery saved, but the customer email failed. Contact the customer directly." : "Delivery confirmed. The three-day return/refund window is recorded.");
-      setLoading(true);
-      setRefresh((value) => value + 1);
-    } catch (err) { setError(err.message || "Unable to update this order."); }
-    finally { setSaving(""); }
-  };
   const changeFilter = (setFilter, value) => { setFilter(value); setPage(1); setLoading(true); };
   const retryEmails = async order => {
     setSaving(order.id);setError('');setNotice('');
@@ -89,6 +72,22 @@ export default function Orders() {
       setNotice(result.message);setRefresh(value=>value+1);
     } catch(error) { setError(error.message); }
     finally { setSaving(''); }
+  };
+  const updateTransfer = async (order, action) => {
+    setSaving(order.id); setError('');
+    try {
+      const response = await fetch('/api/admin/transfer',{method:'POST',headers:await adminHeaders(),body:JSON.stringify({id:order.id,action})});
+      const result=await response.json(); if(!response.ok)throw new Error(result.error);
+      setNotice(action==='flag' ? 'Transfer flagged for follow-up.' : result.emailFailures ? 'Payment approved. Some emails failed; use Retry payment emails.' : 'Transfer approved and notifications sent.');
+      setRefresh(value=>value+1);
+    } catch(error){setError(error.message);} finally {setSaving('');}
+  };
+  const viewReceipt = async order => {
+    try {const response=await fetch(`/api/admin/transfer?id=${encodeURIComponent(order.id)}`,{headers:await adminHeaders()});const result=await response.json();if(!response.ok)throw new Error(result.error);window.open(result.url,'_blank','noopener,noreferrer');}catch(error){setError(error.message);}
+  };
+  const updateShopProgress = async (order, item, next) => {
+    setSaving(order.id);setError('');setNotice('');
+    try{const response=await fetch('/api/admin/shop-progress',{method:'POST',headers:await adminHeaders(),body:JSON.stringify({orderId:order.id,itemId:item.sellerItemId,expected:item.itemProgress,next})});const result=await response.json();if(!response.ok)throw new Error(result.error);setNotice(next==='notify'?(result.emailSent?'Customer email sent.':'Customer email needs retry.'):next==='at_shop'?'Item received at the shop.':result.emailFailures?'Progress saved, but the customer email needs retry.':next==='ready'?'Order ready for pickup; customer notified.':'Order shipped; customer notified to confirm receipt.');setRefresh(value=>value+1);}catch(error){setError(error.message);}finally{setSaving('');}
   };
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
@@ -118,6 +117,9 @@ export default function Orders() {
           {orders.map((order) => {
             const review = order.payment_status === "review";
             const delivered = Boolean(order.delivery_confirmed_at || order.customer_received_at);
+            const shopHandled = order.delivery?.method==='pickup' || new Set((order.items||[]).map(item=>item.owner?.userId).filter(Boolean)).size>1 || (order.items||[]).every(item=>item.owner?.kind==='admin');
+            const dropoffsReady = (order.items||[]).filter(item=>item.owner?.kind==='vendor').every(item=>item.itemProgress==='at_shop');
+            const canDispatch = shopHandled && order.payment_status==='paid' && !delivered && dropoffsReady && (order.items||[]).every(item=>['new','at_shop'].includes(item.itemProgress));
 
             return (
               <article className={`${styles.card} ${review ? orderStyles.review : ""}`} key={order.id}>
@@ -132,7 +134,8 @@ export default function Orders() {
 
                   </div>
                 </div>
-                {review && <p className={orderStyles.reviewMessage}>{order.payment_review_reason==='reservation_expired'?'Payment arrived after the stock reservation expired. Verify the payment and arrange a refund or a new stock allocation manually.':'Payment needs a manual check: the amount or currency did not match.'} Do not confirm delivery until payment is verified.</p>}
+                {order.payment_method==='bank_transfer' && order.transfer_submitted_at && order.payment_status==='pending' && <div className={styles.actions}><p>Transfer receipt submitted. Verify the bank deposit before approving.</p><button type="button" className={styles.btn} onClick={()=>viewReceipt(order)}>View receipt</button><button type="button" className={`${styles.btn} ${styles.btnPrimary}`} disabled={Boolean(saving)} onClick={()=>updateTransfer(order,'approve')}>{saving===order.id?'Saving…':'Mark paid'}</button><button type="button" className={styles.btn} disabled={Boolean(saving)} onClick={()=>updateTransfer(order,'flag')}>Flag for review</button></div>}
+                {review && <p className={orderStyles.reviewMessage}>{order.payment_review_reason==='reservation_expired'?'Payment arrived after the stock reservation expired. Verify the payment and arrange a refund or a new stock allocation manually.':order.payment_method==='bank_transfer'?'Transfer needs manual review. Contact the customer.':'Payment needs a manual check: the amount or currency did not match.'} Do not confirm delivery until payment is verified.</p>}
                 {order.payment_status==='paid' && order.email_tracking_started_at && <p>
                   Payment notifications: {order.email_status}.
                   {order.email_status!=='sent' && <button type="button" className={styles.btn} disabled={Boolean(saving)} onClick={()=>retryEmails(order)}>Retry payment emails</button>}
@@ -150,18 +153,14 @@ export default function Orders() {
                     {order.delivery_verification_note && <div><dt className={styles.detailLabel}>Verification note</dt><dd className={styles.detailValue}>{order.delivery_verification_note}</dd></div>}
                   </dl>
                   <div className={orderStyles.tableWrap}><table className={orderStyles.table}>
-                    <caption>Order items</caption><thead><tr><th scope="col">Item</th><th scope="col">Product owner</th><th scope="col">Quantity</th><th scope="col">Unit price</th><th scope="col">Amount</th></tr></thead>
-                    <tbody>{(order.items || []).map((item, index) => <tr key={`${item.productId || "item"}-${index}`}><td>{item.name}{item.size && ` · Size ${item.size}`}</td><td>{item.owner?.kind==='admin'?'Elegant Style (admin)':item.owner?.email||item.owner?.userId||'Owner not recorded'}</td><td>{item.quantity}</td><td>{money(item.unitAmountMinor)}</td><td>{money(item.lineAmountMinor)}</td></tr>)}</tbody>
+                    <caption>Order items</caption><thead><tr><th scope="col">Item</th><th scope="col">Product owner</th><th scope="col">Quantity</th><th scope="col">Unit price</th><th scope="col">Amount</th><th scope="col">Progress</th></tr></thead>
+                    <tbody>{(order.items || []).map((item, index) => <tr key={`${item.productId || "item"}-${index}`}><td><div className={orderStyles.itemName}><OrderItemImage image={item.image} name={item.name} /><span>{item.name}{item.size && ` · Size ${item.size}`}</span></div></td><td>{item.owner?.kind==='admin'?'Elegant Style (admin)':item.owner?.email||item.owner?.userId||'Owner not recorded'}</td><td>{item.quantity}</td><td>{money(item.unitAmountMinor)}</td><td>{money(item.lineAmountMinor)}</td><td>{item.itemProgress?.replaceAll('_',' ')||'New'} {shopHandled&&order.payment_status==='paid'&&item.owner?.kind==='vendor'&&item.itemProgress==='new'&&<button type="button" className={styles.btn} disabled={Boolean(saving)} onClick={()=>updateShopProgress(order,item,'at_shop')}>Received at shop</button>} {order.payment_status==='paid'&&['shipped','ready'].includes(item.itemProgress)&&<button type="button" className={styles.btn} disabled={Boolean(saving)} onClick={()=>updateShopProgress(order,item,'notify')}>Send / retry receipt email</button>}</td></tr>)}</tbody>
                   </table></div>
                   <p>Subtotal: {money(order.subtotal_minor)} · Delivery / pickup: {money(order.shipping_minor)} · <strong>Total: {money(order.total_minor)}</strong></p>
+                  {canDispatch&&<button type="button" className={styles.btn} disabled={Boolean(saving)} onClick={()=>updateShopProgress(order,order.items[0],order.delivery?.method==='pickup'?'ready':'shipped')}>{order.delivery?.method==='pickup'?'Mark ready for pickup':'Mark shipped from shop'}</button>}
                 </details>
                 <div className={styles.actions}>
-                  {order.payment_status === 'paid' ? delivered ? <span>Delivery completed.</span> : <>
-                    <label>How was delivery verified?
-                      <textarea value={notes[order.id]||''} onChange={event=>setNotes(current=>({...current,[order.id]:event.target.value}))} minLength={10} maxLength={2000} disabled={Boolean(saving)} placeholder="Record confirmation from the customer or proof of delivery." />
-                    </label>
-                    <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} disabled={Boolean(saving)||(notes[order.id]||'').trim().length<10} onClick={()=>updateStatus(order)}>{saving===order.id?'Saving…':'Delivery completed'}</button>
-                  </> : <span>Delivery confirmation is locked until customer payment is verified.</span>}
+                  {order.payment_status === 'paid' ? delivered ? <span>Customer receipt confirmed. The three-day return/refund period is recorded.</span> : <span>Delivery confirmation is recorded when the customer confirms receipt from My orders.</span> : <span>Shipping is locked until customer payment is verified.</span>}
                 </div>
               </article>
             );

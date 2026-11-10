@@ -60,7 +60,7 @@ export default function PrivacyPolicy() {
               <li>Security identifiers used to recognise the browser that placed the order and avoid reusing a checkout with changed details</li>
             </ul>
             <p>
-              Bachs collects payment details on its hosted checkout. We receive payment references and confirmation information, rather than your card number, PIN, or card security code. A saved cart contains product identifiers in your browser; your name and delivery details are collected when you submit checkout.
+              We collect bank transfer receipts for administrator payment verification. Receipts are stored privately in Supabase. A saved cart contains product identifiers in your browser; your name and delivery details are collected when you submit checkout.
             </p>
 
             <h3>Account Order History and Support Requests</h3>
@@ -68,7 +68,7 @@ export default function PrivacyPolicy() {
               When you open My orders, we link unassigned orders to your account using your verified account email and the email supplied at checkout. We record refund reasons and descriptions of complaints about received products, together with your account, order and product references, receipt confirmation, request status, staff response, review identifier, and timestamps. You can view your own requests; authorised staff can review and update them. Please avoid including unnecessary sensitive information in a request.
             </p>
             <p>
-              Delivery and shipping issues are coordinated directly with the shop. Administrators record when delivery is verified and the supporting note, which starts the three-day return/refund window. We retain historical customer receipt confirmations and token hashes for existing orders, but new confirmations are recorded by administrators. Authorised staff can see these records.
+              Delivery and shipping issues are coordinated directly with the shop. Customers confirm receipt of shipped items in My orders, which starts the three-day return/refund window for each item. We retain historical administrator delivery confirmations and verification notes. Authorised staff can see these records.
             </p>
 
             <h3>Bespoke Requests</h3>
@@ -125,7 +125,7 @@ export default function PrivacyPolicy() {
               <li><strong>Supabase Auth:</strong> Email addresses, password hashes, authentication sessions, confirmation, and password recovery are handled through Supabase&apos;s authentication service. Our staff cannot read your stored password.</li>
               <li><strong>Resend and email recipients:</strong> Resend delivers bespoke notifications to the shop, which may include your name, phone number, request description, reference images as attachments, and temporary image links valid for seven days. For verified paid orders, it delivers a receipt to your supplied email address and an order notification to the shop. These emails include the order reference, items, amounts, and pickup or delivery details; the shop notification also includes your contact details. Copies can remain in the recipient&apos;s mailbox.</li>
               <li><strong>Registration and support emails:</strong> Resend sends the shop your submitted registration details, including sponsorship and organization, and sends an acceptance message to the email on an accepted application. It sends refund and complaint confirmations and status updates to your account email and new-request alerts to the shop, including references, product name, description, status, and any staff response. Copies can remain in recipients&apos; mailboxes.</li>
-              <li><strong>Bachs (payments):</strong> When you check out, we send your name, email, phone number, order reference and payment amount to Bachs. You enter payment details on Bachs&apos;s secure checkout. We store your order items, delivery address, contact details and payment confirmation in Supabase; we do not receive your card number, PIN or security code.</li>
+              <li><strong>Bank transfers:</strong> We store your order details and uploaded transfer receipt in Supabase for payment verification.</li>
               <li><strong>Vercel hosting:</strong> Vercel serves the website and runs the server functions that process checkout, payment notifications, and bespoke submissions. Submitted information passes through these functions, and operational logs may contain request, reference, or error information.</li>
             </ul>
             <p>
@@ -139,14 +139,14 @@ export default function PrivacyPolicy() {
               We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:
             </p>
             <ul>
-              <li><strong>Service providers:</strong> Supabase provides authentication and storage, Vercel provides hosting and server functions, Resend delivers service emails, and Bachs processes checkout payments.</li>
+              <li><strong>Service providers:</strong> Supabase provides authentication and storage, Vercel provides hosting and server functions, Resend delivers service emails, and payment verification is handled by the shop.</li>
               <li><strong>Authorised staff:</strong> Staff use the administrative area to review applications, manage bespoke requests, and process orders. Accepted-student management is not a public directory. Necessary order and contact details may be shared with people arranging your pickup or delivery.</li>
               <li><strong>Legal requirements:</strong> We may disclose your information if required by law, regulation, or legal process, or to protect our rights, property, or safety.</li>
               <li><strong>Business transfers:</strong> In the event of a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction.</li>
               <li><strong>Consent:</strong> We may share your information with your explicit consent.</li>
             </ul>
             <p>
-              If you follow a Facebook, WhatsApp, or other external link, or use Bachs&apos;s checkout, the destination service handles information under its own policies. We do not operate those services. We do not use an uploaded application photo or bespoke reference image for public marketing simply because you submitted it.
+              If you follow a Facebook, WhatsApp, or other external link,  the destination service handles information under its own policies. We do not operate those services. We do not use an uploaded application photo or bespoke reference image for public marketing simply because you submitted it.
             </p>
           </section>
 
@@ -197,6 +197,7 @@ export default function PrivacyPolicy() {
               <li><strong>Uploaded media:</strong> Deleting a student registration, bespoke request or product removes its uploaded images from site storage when no other record uses them. Removal runs during deletion, with automatic retries if storage is temporarily unavailable. This does not erase copies already sent by email or saved by recipients.</li>
               <li><strong>Bespoke requests:</strong> Kept while we assess and fulfil the request and handle follow-up or disputes.</li>
               <li><strong>Shop orders:</strong> Kept to process pickup or delivery, provide support, address disputes, and retain necessary payment and business records. The seven-day order-access cookie expiry does not delete the order.</li>
+              <li><strong>Transfer receipt images:</strong> Removed from our Supabase storage 30 days after you confirm receipt of every item in the order. The order and payment confirmation record remain. Copies sent by email may remain in recipients&apos; mailboxes under their own retention practices.</li>
               <li><strong>Emails and provider records:</strong> Service emails and payment records may remain with recipients or providers under their retention practices and applicable obligations. A deletion request should identify any related order, application, or bespoke request.</li>
               <li><strong>Security records:</strong> Attempt counters use time-based limits, but the end of a rate-limit window does not necessarily erase its underlying identifiers or records. Such records may be kept to investigate abuse or security incidents.</li>
             </ul>
@@ -217,7 +218,7 @@ export default function PrivacyPolicy() {
               <li><strong>Analytics and performance (optional, off by default):</strong> We do not currently run analytics. If we add it in future, it will only run if you have allowed it.</li>
             </ul>
             <p>
-              We do not currently use advertising cookies, tracking pixels, or third-party analytics. Loading placeholders, scroll animations, and responsive layouts work whether you accept or reject optional cookies. Bachs may use its own necessary storage on its hosted payment page.
+              We do not currently use advertising cookies, tracking pixels, or third-party analytics. Loading placeholders, scroll animations, and responsive layouts work whether you accept or reject optional cookies.
             </p>
 
             <h3>Your cookie choices</h3>

@@ -8,6 +8,7 @@ import { availableSizes, productHref } from "@/lib/products.mjs";
 import { repurchaseCart } from "@/lib/accountContracts.mjs";
 import { returnRequestAllowed } from '@/lib/vendorSettlement.mjs';
 import { supabase } from "@/lib/supabaseClient";
+import OrderItemImage from "@/components/OrderItemImage";
 import styles from "../../admin/adminShell.module.css";
 import account from "../account.module.css";
 
@@ -47,6 +48,16 @@ export default function AccountOrders() {
     finally { setBusy(false); }
   }
 
+  async function confirmReceipt(item) {
+    setBusy(true);setError('');setMessage('');
+    try {
+      await authenticatedFetch('/api/account/orders/received',{method:'POST',body:JSON.stringify({itemId:item.sellerItemId})});
+      const result=await authenticatedFetch(`/api/account/orders?page=${page}`);
+      setOrders(result.orders);setTotal(result.total);
+      setMessage('Receipt confirmed. Your three-day return/refund window starts now.');
+    } catch(err){setError(err.message);} finally{setBusy(false);}
+  }
+
   function openRequest(kind, order, item) {
     setSelected({ kind, order, item }); setDescription(""); setReceived(false); setError(""); setMessage(""); requestId.current = crypto.randomUUID();
   }
@@ -62,28 +73,29 @@ export default function AccountOrders() {
   }
 
   return <>
-    <div className={styles.pageHeader}><div><h1 className={styles.pageTitle}>My orders</h1><p className={styles.pageSub}>Your paid purchases. Contact the shop to arrange shipping or resolve delivery issues.</p></div></div>
+    <div className={styles.pageHeader}><div><h1 className={styles.pageTitle}>My orders</h1><p className={styles.pageSub}>Track submitted transfers and paid purchases. Contact the shop to arrange shipping or resolve delivery issues.</p></div></div>
     <p className={account.hint}>Your purchases are linked to your verified account email. <Link href="/account/requests">View refunds & complaints</Link>.</p>
     {error && <p className={styles.error} role="alert">{error}</p>}
     {message && <p className={account.success} role="status">{message} <Link href="/checkout">Go to checkout</Link></p>}
-    {loading ? <p role="status">Loading your orders…</p> : !orders.length ? <p className={styles.empty}>No paid orders match this account email yet. <Link href="/ready-to-wear">Visit the shop</Link>.</p> : <div className={account.stack}>
+    {loading ? <p role="status">Loading your orders…</p> : !orders.length ? <p className={styles.empty}>No orders with a submitted receipt or confirmed payment yet. <Link href="/ready-to-wear">Visit the shop</Link>.</p> : <div className={account.stack}>
       {orders.map((order) => <article className={styles.card} key={order.id}>
         <h2 className={styles.cardTitle}>{new Date(order.created_at).toLocaleDateString("en-GB")}: {money(order.total_minor)}</h2>
-        <p className={account.reference}>Order {order.id}</p><p>Payment: {order.payment_status} · Delivery: {order.fulfillment_status==='completed'?'Completed':'Arranged offline'}</p>
+        <p className={account.reference}>Order {order.id}</p>
+        {order.payment_status === 'pending' ? <p className={account.pending} role="status"><strong>Awaiting payment confirmation</strong><br />Your transfer receipt was recorded{order.transfer_submitted_at ? ` on ${new Date(order.transfer_submitted_at).toLocaleString('en-GB')}` : ''}. The shop will check the transfer and email you when it is confirmed.</p> : order.payment_status === 'review' ? <p className={account.pending} role="status"><strong>Payment needs review.</strong> Please contact the shop with your order reference.</p> : <p>Payment: confirmed · Delivery: {order.fulfillment_status==='completed'?'Completed':'Arranged offline'}</p>}
         {(order.delivery_confirmed_at||order.customer_received_at) && <p className={account.success}>Delivery confirmed on {new Date(order.delivery_confirmed_at||order.customer_received_at).toLocaleString("en-GB")}.</p>}
-        {order.items.map((item) => <div className={account.item} key={`${item.productId}:${item.size || ''}`}><h3>{item.name}{item.size && ` · Size ${item.size}`}</h3><p>{item.quantity} × {money(item.unitAmountMinor)} · {money(item.lineAmountMinor)}</p>
-          <p>Delivery: {item.confirmedAt?'Confirmed':'Not yet confirmed'}. {item.confirmedAt && `Return/refund requests close ${new Date(Date.parse(item.confirmedAt) + 259200000).toLocaleString()}.`}</p><div className={account.actions}><button className={styles.btn} type="button" disabled={busy} onClick={() => repurchase(item)}>Buy again</button><button className={styles.btn} type="button" disabled={busy || !returnRequestAllowed({ confirmedAt: item.confirmedAt })} onClick={() => openRequest("refund", order, item)}>Request refund</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("complaint", order, item)}>Make a complaint</button></div>
+        {order.items.map((item) => <div className={account.item} key={`${item.productId}:${item.size || ''}`}><div className={account.itemHeading}><OrderItemImage image={item.image} name={item.name} /><h3>{item.name}{item.size && ` · Size ${item.size}`}</h3></div><p>{item.quantity} × {money(item.unitAmountMinor)} · {money(item.lineAmountMinor)}</p>
+          {order.payment_status === 'paid' && <><p>Delivery: {item.confirmedAt?'Confirmed':item.fulfilment==='shipped'?'Shipped':item.fulfilment==='ready'?'Ready for pickup':'Not yet confirmed'}. {item.confirmedAt && `Return/refund requests close ${new Date(Date.parse(item.confirmedAt) + 259200000).toLocaleString()}.`}</p><div className={account.actions}>{!item.confirmedAt&&['shipped','ready'].includes(item.fulfilment)&&item.sellerItemId&&<button className={`${styles.btn} ${styles.btnPrimary}`} type="button" disabled={busy} onClick={()=>confirmReceipt(item)}>I received this item</button>}<button className={styles.btn} type="button" disabled={busy} onClick={() => repurchase(item)}>Buy again</button><button className={styles.btn} type="button" disabled={busy || !returnRequestAllowed({ confirmedAt: item.confirmedAt })} onClick={() => openRequest("refund", order, item)}>Request refund</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("complaint", order, item)}>Make a complaint</button></div></>}
         </div>)}
-      </article>)}
-    </div>}
-    {selected && <section className={account.panel} aria-labelledby="request-heading"><h2 id="request-heading">{selected.kind === "refund" ? "Request a refund" : "Complain about a received product"}</h2><p>{selected.item.name}</p>
+        {selected?.order.id === order.id && <section className={account.panel} aria-labelledby="request-heading"><h2 id="request-heading">{selected.kind === "refund" ? "Request a refund" : "Complain about a received product"}</h2><p>{selected.item.name}</p>
       <form className={account.form} onSubmit={submitRequest}>
         <label>{selected.kind === "refund" ? "Reason for the refund request" : "Describe your complaint"}<textarea value={description} onChange={(event) => setDescription(event.target.value)} minLength={10} maxLength={2000} required disabled={busy} /></label>
         {selected.kind === "complaint" && <label className={account.check}><input type="checkbox" checked={received} onChange={(event) => setReceived(event.target.checked)} required disabled={busy} />I confirm I received this product.</label>}
-        {selected.kind === "refund" && <p className={account.hint}>The shop reviews each request. Approval does not itself issue a payment refund; the shop arranges any refund through Bachs.</p>}
+        {selected.kind === "refund" && <p className={account.hint}>The shop reviews each request. Approval does not itself issue a payment refund; the shop arranges any refund by bank transfer.</p>}
 <div className={account.actions}><button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={busy}>{busy ? "Submitting…" : "Submit request"}</button><button type="button" className={styles.btn} disabled={busy} onClick={() => setSelected(null)}>Cancel</button></div>
       </form>
     </section>}
+      </article>)}
+    </div>}
     {total > 20 && <nav className={account.pagination} aria-label="Order pages"><button className={styles.btn} disabled={page === 1 || loading} onClick={() => { setPage(page - 1); setLoading(true); }}>Previous</button><span>{page} / {Math.ceil(total / 20)}</span><button className={styles.btn} disabled={page * 20 >= total || loading} onClick={() => { setPage(page + 1); setLoading(true); }}>Next</button></nav>}
   </>;
 }

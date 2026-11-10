@@ -4,7 +4,7 @@ export function supportEmail(request, kind, recipient, audience = "customer", up
   const label = kind === "refund" ? "Refund request" : "Product complaint";
   const heading = updated ? `${label} update` : `${label} received`;
   const details = `${label} reference: ${request.id}\nOrder: ${request.order_id}\nProduct: ${request.product_name}\nStatus: ${request.status}${audience === "admin" ? `\nCustomer account email: ${customerEmail}` : ""}\nDetails: ${request.description}${request.response ? `\nResponse: ${request.response}` : ""}`;
-  const note = kind === "refund" ? "Approval records the shop's decision. Any payment refund is arranged separately through Bachs; a status change does not itself transfer funds." : "The shop will review your complaint and contact you if more information is needed.";
+  const note = kind === "refund" ? "Approval records the shop's decision. Any payment refund is arranged separately by bank transfer; a status change does not itself transfer funds." : "The shop will review your complaint and contact you if more information is needed.";
   return {
     to: recipient, subject: `Elegant Style ${heading.toLowerCase()} — ${request.id}`,
     idempotencyKey: `support/${kind}/${request.id}/${updated ? request.status : "received"}/${audience}`,
