@@ -1,1 +1,0 @@
-{"nodes": [{"id": "$graphify-root$_supabase_migrations_20261030120500_revoke_unused_profile_writes_sql", "label": "20261030120500_revoke_unused_profile_writes.sql", "file_type": "code", "source_file": "supabase/migrations/20261030120500_revoke_unused_profile_writes.sql", "source_location": null}], "edges": []}

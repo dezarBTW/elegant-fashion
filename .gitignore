@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/blob-report/
 
 # next.js
 /.next/
@@ -22,7 +25,10 @@
 
 # misc
 .DS_Store
+Thumbs.db
+Desktop.ini
 *.pem
+*.log
 
 # local setup and planning notes
 /EXECUTE_NOW.md
@@ -52,7 +58,14 @@ yarn-error.log*
 .claude/
 .grok/
 .kilo/
+.vscode/
 .playwright-mcp/
+/.supabase/
+/graphify-out/
+/.cache/
+/.turbo/
+/.eslintcache
+/e.textContent)
 /rm
 /_to_delete/
 .playwright-cli/

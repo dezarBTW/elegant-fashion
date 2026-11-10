@@ -1,1 +1,0 @@
-{"nodes": [{"id": "$graphify-root$_supabase_migrations_20261106132046_retire_vendor_notification_queue_sql", "label": "20261106132046_retire_vendor_notification_queue.sql", "file_type": "code", "source_file": "supabase/migrations/20261106132046_retire_vendor_notification_queue.sql", "source_location": null}], "edges": []}
