@@ -74,30 +74,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-
-// Utility function to get stock states (used by other components)
-export async function getStockStates(
-  variantIds: string[]
-): Promise<Map<string, 'in_stock' | 'low' | 'out'>> {
-  if (!variantIds.length) {
-    return new Map();
-  }
-
-  const { data, error } = await supabase.rpc('get_stock_states', {
-    p_variant_ids: variantIds,
-  });
-
-  if (error) {
-    console.error('getStockStates error:', error);
-    return new Map();
-  }
-
-  const stockMap = new Map<string, 'in_stock' | 'low' | 'out'>();
-  (data as { variant_id: string; state: 'in_stock' | 'low' | 'out' }[]).forEach(
-    (item) => {
-      stockMap.set(item.variant_id, item.state);
-    }
-  );
-
-  return stockMap;
-}
