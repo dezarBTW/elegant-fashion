@@ -11,9 +11,8 @@ export async function GET(request) {
     if (!/^\d+$/.test(rawPage) || Number(rawPage) < 1 || Number(rawPage) > 100000) throw new OrderRequestError("Invalid page.", 400);
     const page = Number(rawPage), pageSize = 20;
     const { data, count, error } = await db.from("shop_orders")
-      .select("id,created_at,items,total_minor,payment_status,fulfillment_status,delivery,customer_received_at,delivery_confirmed_at,transfer_submitted_at", { count: "exact" })
-      .eq("user_id", user.id).in("payment_status", ["paid", "pending", "review"])
-      .or("payment_status.eq.paid,transfer_submitted_at.not.is.null")
+      .select("id,created_at,items,total_minor,payment_status,fulfillment_status,delivery,customer_received_at,delivery_confirmed_at", { count: "exact" })
+      .eq("user_id", user.id).in("payment_status", ["paid", "review"])
       .order("created_at", { ascending: false }).order("id", { ascending: false })
       .range((page - 1) * pageSize, page * pageSize - 1);
     if (error) throw error;

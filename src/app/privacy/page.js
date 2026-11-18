@@ -60,7 +60,7 @@ export default function PrivacyPolicy() {
               <li>Security identifiers used to recognise the browser that placed the order and avoid reusing a checkout with changed details</li>
             </ul>
             <p>
-              We collect bank transfer receipts for administrator payment verification. Receipts are stored privately in Supabase. A saved cart contains product identifiers in your browser; your name and delivery details are collected when you submit checkout.
+              Bachs processes ready-to-wear payments. We store payment references and confirmation status, but payment credentials are entered with Bachs. A saved cart contains product identifiers in your browser; your name and delivery details are collected when you submit checkout.
             </p>
 
             <h3>Account Order History and Support Requests</h3>
@@ -125,7 +125,7 @@ export default function PrivacyPolicy() {
               <li><strong>Supabase Auth:</strong> Email addresses, password hashes, authentication sessions, confirmation, and password recovery are handled through Supabase&apos;s authentication service. Our staff cannot read your stored password.</li>
               <li><strong>Resend and email recipients:</strong> Resend delivers bespoke notifications to the shop, which may include your name, phone number, request description, reference images as attachments, and temporary image links valid for seven days. For verified paid orders, it delivers a receipt to your supplied email address and an order notification to the shop. These emails include the order reference, items, amounts, and pickup or delivery details; the shop notification also includes your contact details. Copies can remain in the recipient&apos;s mailbox.</li>
               <li><strong>Registration and support emails:</strong> Resend sends the shop your submitted registration details, including sponsorship and organization, and sends an acceptance message to the email on an accepted application. It sends refund and complaint confirmations and status updates to your account email and new-request alerts to the shop, including references, product name, description, status, and any staff response. Copies can remain in recipients&apos; mailboxes.</li>
-              <li><strong>Bank transfers:</strong> We store your order details and uploaded transfer receipt in Supabase for payment verification.</li>
+              <li><strong>Bachs payments:</strong> Bachs processes ready-to-wear payments. We store order details, payment references, and confirmation status in Supabase.</li>
               <li><strong>Vercel hosting:</strong> Vercel serves the website and runs the server functions that process checkout, payment notifications, and bespoke submissions. Submitted information passes through these functions, and operational logs may contain request, reference, or error information.</li>
             </ul>
             <p>

@@ -26,13 +26,13 @@ async function setup({ confirmed=true, active=true, anonymous=false, stockError=
     from(table){
       reads.push(table);let inserted,patch;const filters=[];
       const run=()=>{
-        if(inserted){if(stockError)return {data:null,error:{code:stockError}};orders.push({...inserted});return {data:null};}
+        if(inserted){if(stockError)return {data:null,error:{code:stockError}};orders.push({...inserted});return {data:{reservation_expires_at:new Date(Date.now()+30*60000).toISOString()}};}
         const rows=table==='users'?[{id:userId,is_active:active}]:table==='products'?[{id:productId,name:'Dress',price:100,is_active:true,available_sizes:['M']}]:orders;
         const matches=rows.filter(row=>filters.every(([key,value])=>row[key]===value));
         if(patch)matches.forEach(row=>Object.assign(row,patch));
         return {data:matches};
       };
-      return {select(){return this;},eq(key,value){filters.push([key,value]);return this;},in(){return this;},insert(value){inserted=value;return this;},update(value){patch=value;return this;},async maybeSingle(){const result=run();return {...result,data:result.data[0]||null};},then(resolve,reject){return Promise.resolve(run()).then(resolve,reject);}};
+      return {select(){return this;},eq(key,value){filters.push([key,value]);return this;},in(){return this;},insert(value){inserted=value;return this;},update(value){patch=value;return this;},async single(){return run();},async maybeSingle(){const result=run();return {...result,data:result.data[0]||null};},then(resolve,reject){return Promise.resolve(run()).then(resolve,reject);}};
     }
   };
   const NextResponse={json:(value,options)=>{const response=Response.json(value,options);response.cookies={set(){}};return response;}};
@@ -41,7 +41,8 @@ async function setup({ confirmed=true, active=true, anonymous=false, stockError=
     '@supabase/supabase-js':{createClient(){}},'./checkoutServer.js':{checkoutDatabase:()=>db},'./orderManagement.mjs':management,
     '@/lib/bachsServer':{bachsClient:apiKey=>({checkoutSessions:{create:async(input,options)=>{const response=await context.fetch('https://sandbox-api.bachs.io/v1/checkout-sessions',{headers:{Authorization:'Bearer '+apiKey,'Idempotency-Key':options.idempotencyKey},body:JSON.stringify(input)});if(!response.ok)throw Object.assign(new Error('Provider rejected'),{status:response.status});return response.json();}}})},
     'next/server':{NextResponse},'node:crypto':crypto,zod:{z},'@/lib/checkoutServer':{hasOrderAccess:()=>true,receiptHash:value=>value,setOrderCookie:response=>response},
-    '@/lib/checkout.mjs':checkout,'@/lib/bachs.mjs':bachs,'@/lib/seo.mjs':{SITE_URL:origin},'@/lib/products.mjs':{SIZE_VALUES},'@/lib/orderManagement.mjs':management
+    '@/lib/checkout.mjs':checkout,'@/lib/bachs.mjs':bachs,'@/lib/seo.mjs':{SITE_URL:origin},'@/lib/products.mjs':{SIZE_VALUES},'@/lib/orderManagement.mjs':management,
+    '@/lib/reservationExpiry.mjs':{reservationExpired:()=>false,checkoutLifetimeMinutes:()=>30}
   };
   const synthetic=name=>{const values=deps[name];if(!values)throw new Error(`Unexpected dependency: ${name}`);return new vm.SyntheticModule(Object.keys(values),function(){for(const [key,value]of Object.entries(values))this.setExport(key,value);},{context});};
   const accountModule=new vm.SourceTextModule(await readFile(new URL('../src/lib/accountServer.js',import.meta.url),'utf8'),{context});

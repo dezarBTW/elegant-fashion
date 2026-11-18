@@ -1,7 +1,3 @@
-// Bachs webhook retained for reference. Manual transfer checkout is active.
-import { NextResponse } from 'next/server';
-export async function POST(){return NextResponse.json({error:'Bachs checkout is disabled.'},{status:410});}
-/*
 import { NextResponse } from "next/server";
 import { webhooks } from '@bachs/sdk';
 import { paymentMatchesOrder } from "@/lib/bachs.mjs";
@@ -54,5 +50,3 @@ export async function POST(request) {
     return NextResponse.json({ error: "Unable to save payment event." }, { status: 500 });
   }
 }
-
-*/

@@ -37,7 +37,7 @@ export default function TermsOfService() {
             <ul>
               <li>Supabase provides account authentication, database storage, and photo storage; passwords are stored as hashes</li>
               <li>School applications and saved browser drafts contain the information entered in the application form</li>
-              <li>Bank transfer is used for ready-to-wear payments, and Resend delivers bespoke, registration, paid-order, refund, and complaint service emails</li>
+              <li>Bachs processes ready-to-wear payments, and Resend delivers bespoke, registration, paid-order, refund, and complaint service emails</li>
               <li>We do not sell, trade, or rent your personal information to third parties</li>
               <li>Account deactivation and deletion of personal data are separate requests</li>
             </ul>
@@ -93,10 +93,10 @@ export default function TermsOfService() {
             </p>
             <h3>Payments and Receipts</h3>
             <p>
-              Ready-to-wear payments are made by bank transfer to the account shown at checkout. Upload your transfer receipt and wait for administrator verification. Provide a valid email address and Nigerian phone number, and review the total before paying. We do not ask you to enter your card number, PIN, or card security code on this website. Returning from the payment page, closing it, or receiving an order reference does not by itself confirm payment. The order status page shows confirmation after the payment is verified.
+              Ready-to-wear payments are processed by Bachs. Provide a valid email address and Nigerian phone number, and review the total before paying. Payment details are entered on the Bachs checkout page, not this website. Returning from the payment page, closing it, or receiving an order reference does not by itself confirm payment. The order status page shows confirmation after the payment provider reports a successful collection.
             </p>
             <p>
-              After administrator verification, the site attempts to email a receipt to the address you supplied and an order notification to the shop. Email delivery can fail or be delayed; a missing email does not mean payment failed. Check the order status or contact us with your reference before paying again. If a payment is pending, needs review, or its setup could not be confirmed, contact us before starting another payment. Use the resume-payment link when the status page offers one for an unpaid order.
+              After payment confirmation, the site attempts to email a receipt to the address you supplied and an order notification to the shop. Email delivery can fail or be delayed; a missing email does not mean payment failed. Check the order status or contact us with your reference before paying again. If a payment is pending, needs review, or its setup could not be confirmed, contact us before starting another payment. Use the resume-payment link when the status page offers one for an unpaid order.
             </p>
             <p>
               Online order status is tied to the browser used to place the order through an order-access cookie valid for seven days. Clearing site data, using another browser or device, or waiting until the cookie expires may prevent online access. Keep your order reference and contact us if you need help recovering order information. An order reference alone does not give access to the online status page.

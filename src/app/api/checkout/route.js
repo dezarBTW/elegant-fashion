@@ -1,7 +1,3 @@
-// Bachs checkout retained for reference. Manual transfer checkout is active.
-import { NextResponse } from 'next/server';
-export async function POST(){return NextResponse.json({error:'Bachs checkout is disabled.'},{status:410});}
-/*
 import { bachsClient } from '@/lib/bachsServer';
 import { NextResponse } from "next/server";
 import { randomBytes, createHash, createHmac } from "node:crypto";
@@ -141,5 +137,3 @@ export async function POST(request) {
     return respond({ error: "Checkout is unavailable. Please try again later.", ...(token ? { orderId: id, uncertain: true } : {}) }, 503);
   }
 }
-
-*/

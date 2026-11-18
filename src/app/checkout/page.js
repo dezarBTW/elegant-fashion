@@ -98,7 +98,7 @@ export default function Checkout() {
       attemptId.current ||= crypto.randomUUID();
       const controller = new AbortController();
       pendingCheckout.current = controller;
-      const response = await fetch("/api/checkout/transfer", {
+      const response = await fetch("/api/checkout", {
         signal: controller.signal,
         method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${auth.session.access_token}` },
         body: JSON.stringify({ attemptId: attemptId.current, items: priced.lines.map(({ productId, quantity, size }) => ({ productId, quantity, size })), customer:checkoutCustomer, delivery }),
@@ -117,9 +117,9 @@ export default function Checkout() {
         setUncertain(Boolean(result.uncertain));
         throw new Error(result.error || "Unable to start payment.");
       }
-      if (result.submitted) { router.push(`/checkout/success?order_id=${result.orderId}`); return; }
-      try { sessionStorage.setItem("es_pending_order", result.orderId); } catch { /* Receipt remains available after the provider redirect. */ }
-      router.push(`/checkout/transfer?order_id=${result.orderId}`);
+      if (result.paid) { router.push(`/checkout/success?order_id=${result.orderId}`); return; }
+      try { sessionStorage.setItem("es_pending_order", result.orderId); } catch { /* Browser storage may be unavailable. */ }
+      window.location.assign(result.checkoutUrl);
     } catch (err) { if (err.name !== 'AbortError') setError(err.message || "Connection lost. Try again to resume this checkout."); }
     finally { setSubmitting(false); }
   };
@@ -159,9 +159,9 @@ export default function Checkout() {
                   <p className={styles.hint}>Delivery addresses in Nigeria.</p>
                 </>}
               </fieldset>
-              <p className={styles.hint}>By continuing, you agree to our <Link href="/terms">terms</Link> and <Link href="/privacy">privacy policy</Link>. You will receive bank transfer details on the next page.</p>
+              <p className={styles.hint}>By continuing, you agree to our <Link href="/terms">terms</Link> and <Link href="/privacy">privacy policy</Link>. You will continue to secure Bachs payment.</p>
               {!ready && <p className={styles.hint} role="status">A product or selected size is unavailable. <button type="button" className={styles.cartEdit} onClick={openCart} disabled={submitting || uncertain}>Update your cart</button> before payment.</p>}
-              <button className={styles.button} type="submit" disabled={submitting || uncertain || !ready}>{submitting ? "Preparing transfer…" : `Pay ${formatMoney(subtotal + shipping)}`}</button>
+              <button className={styles.button} type="submit" disabled={submitting || uncertain || !ready}>{submitting ? "Preparing payment…" : `Pay ${formatMoney(subtotal + shipping)}`}</button>
             </form>
             <aside className={styles.summary} aria-label="Order summary">
               <h2>Your order</h2>
@@ -170,7 +170,7 @@ export default function Checkout() {
               <p className={styles.line}><span>Subtotal</span><span>{formatMoney(subtotal)}</span></p>
               <p className={styles.line}><span>{delivery.method === "pickup" ? "Pickup" : "Delivery"}</span><span>{shipping ? formatMoney(shipping) : "Free"}</span></p>
               <p className={`${styles.line} ${styles.total}`}><span>Total</span><span>{formatMoney(subtotal + shipping)}</span></p>
-              <p className={styles.hint}>Prices are checked again before payment. Transfer payment requires receipt upload and shop verification.</p>
+              <p className={styles.hint}>Prices are checked again before payment. Bachs processes your payment securely.</p>
             </aside>
           </div>}
       </>

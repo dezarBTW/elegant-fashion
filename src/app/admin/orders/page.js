@@ -73,18 +73,6 @@ export default function Orders() {
     } catch(error) { setError(error.message); }
     finally { setSaving(''); }
   };
-  const updateTransfer = async (order, action) => {
-    setSaving(order.id); setError('');
-    try {
-      const response = await fetch('/api/admin/transfer',{method:'POST',headers:await adminHeaders(),body:JSON.stringify({id:order.id,action})});
-      const result=await response.json(); if(!response.ok)throw new Error(result.error);
-      setNotice(action==='flag' ? 'Transfer flagged for follow-up.' : result.emailFailures ? 'Payment approved. Some emails failed; use Retry payment emails.' : 'Transfer approved and notifications sent.');
-      setRefresh(value=>value+1);
-    } catch(error){setError(error.message);} finally {setSaving('');}
-  };
-  const viewReceipt = async order => {
-    try {const response=await fetch(`/api/admin/transfer?id=${encodeURIComponent(order.id)}`,{headers:await adminHeaders()});const result=await response.json();if(!response.ok)throw new Error(result.error);window.open(result.url,'_blank','noopener,noreferrer');}catch(error){setError(error.message);}
-  };
   const updateShopProgress = async (order, item, next) => {
     setSaving(order.id);setError('');setNotice('');
     try{const response=await fetch('/api/admin/shop-progress',{method:'POST',headers:await adminHeaders(),body:JSON.stringify({orderId:order.id,itemId:item.sellerItemId,expected:item.itemProgress,next})});const result=await response.json();if(!response.ok)throw new Error(result.error);setNotice(next==='notify'?(result.emailSent?'Customer email sent.':'Customer email needs retry.'):next==='at_shop'?'Item received at the shop.':result.emailFailures?'Progress saved, but the customer email needs retry.':next==='ready'?'Order ready for pickup; customer notified.':'Order shipped; customer notified to confirm receipt.');setRefresh(value=>value+1);}catch(error){setError(error.message);}finally{setSaving('');}
@@ -134,8 +122,7 @@ export default function Orders() {
 
                   </div>
                 </div>
-                {order.payment_method==='bank_transfer' && order.transfer_submitted_at && order.payment_status==='pending' && <div className={styles.actions}><p>Transfer receipt submitted. Verify the bank deposit before approving.</p><button type="button" className={styles.btn} onClick={()=>viewReceipt(order)}>View receipt</button><button type="button" className={`${styles.btn} ${styles.btnPrimary}`} disabled={Boolean(saving)} onClick={()=>updateTransfer(order,'approve')}>{saving===order.id?'Saving…':'Mark paid'}</button><button type="button" className={styles.btn} disabled={Boolean(saving)} onClick={()=>updateTransfer(order,'flag')}>Flag for review</button></div>}
-                {review && <p className={orderStyles.reviewMessage}>{order.payment_review_reason==='reservation_expired'?'Payment arrived after the stock reservation expired. Verify the payment and arrange a refund or a new stock allocation manually.':order.payment_method==='bank_transfer'?'Transfer needs manual review. Contact the customer.':'Payment needs a manual check: the amount or currency did not match.'} Do not confirm delivery until payment is verified.</p>}
+                {review && <p className={orderStyles.reviewMessage}>{order.payment_review_reason==='reservation_expired'?'Payment arrived after the stock reservation expired. Verify the payment and arrange a refund or a new stock allocation manually.':'Payment needs a manual check: the amount or currency did not match.'} Do not confirm delivery until payment is verified.</p>}
                 {order.payment_status==='paid' && order.email_tracking_started_at && <p>
                   Payment notifications: {order.email_status}.
                   {order.email_status!=='sent' && <button type="button" className={styles.btn} disabled={Boolean(saving)} onClick={()=>retryEmails(order)}>Retry payment emails</button>}
