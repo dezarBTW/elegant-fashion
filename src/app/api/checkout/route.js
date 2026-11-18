@@ -10,6 +10,7 @@ import { bachsBaseUrl, validCheckoutUrl } from "@/lib/bachs.mjs";
 import { SITE_URL } from "@/lib/seo.mjs";
 import { SIZE_VALUES } from "@/lib/products.mjs";
 import { reservationExpired, checkoutLifetimeMinutes } from '@/lib/reservationExpiry.mjs';
+import { SHOP_CLOSED_MESSAGE } from '@/lib/shopAvailability.mjs';
 
 export const runtime = "nodejs";
 
@@ -43,6 +44,7 @@ export async function POST(request) {
   try {
     account = await requireActiveAccount(request);
     if (account.user.is_anonymous) return errorResponse("Please sign in to checkout.", 401);
+    if (account.profile.is_admin !== true) return errorResponse(SHOP_CLOSED_MESSAGE, 403);
   } catch (error) {
     return errorResponse(error instanceof OrderRequestError ? error.message : "Unable to verify your account. Please try again.", error instanceof OrderRequestError ? error.status : 503);
   }

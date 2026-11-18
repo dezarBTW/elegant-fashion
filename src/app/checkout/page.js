@@ -11,6 +11,7 @@ import { CHECKOUT_SIGN_IN } from "@/lib/authLinks.mjs";
 import { usePurchaseLimits } from '@/hooks/usePurchaseLimits';
 import styles from "./checkout.module.css";
 import { CheckoutSkeleton } from "./CheckoutSkeleton";
+import ShopClosed from "@/components/ShopClosed";
 
 const formatMoney = (minor) => `₦${(minor / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`;
 
@@ -20,7 +21,7 @@ export default function Checkout() {
   const pendingCheckout = useRef(null);
   const attemptedCart = useRef(null);
   const { items: cart, openCart } = useCart();
-  const { user, loading: authLoading } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const signedIn = Boolean(user && !user.is_anonymous);
   const [products, setProducts] = useState([]);
   const productIds = [...new Set(cart.map(item => item.id))].sort().join(",");
@@ -39,11 +40,7 @@ export default function Checkout() {
   useEffect(() => () => { pendingCheckout.current?.abort(); }, [signedIn, user?.id]);
 
   useEffect(() => {
-    if (!authLoading && !signedIn) router.replace(CHECKOUT_SIGN_IN);
-  }, [authLoading, signedIn, router]);
-
-  useEffect(() => {
-    if (authLoading || !signedIn) return;
+    if (authLoading || !signedIn || !isAdmin) return;
     let mounted = true;
     const load = async () => {
       setLoading(true);
@@ -70,7 +67,7 @@ export default function Checkout() {
     };
     load();
     return () => { mounted = false; };
-  }, [router, productIds, authLoading, signedIn]);
+  }, [router, productIds, authLoading, signedIn, isAdmin]);
 
   const changeCustomer = (event) => {
     attemptId.current = null;
@@ -86,7 +83,7 @@ export default function Checkout() {
   };
   const submit = async (event) => {
     event.preventDefault();
-    if (submitting || uncertain || !ready || !signedIn) return;
+    if (submitting || uncertain || !ready || !signedIn || !isAdmin) return;
     setSubmitting(true);
     setError("");
     try {
@@ -125,7 +122,9 @@ export default function Checkout() {
   };
   const shipping = deliveryFeeMinor(delivery.method, lines);
 
-  if (authLoading || !signedIn || loading) return <CheckoutSkeleton />;
+  if (authLoading && user) return <CheckoutSkeleton />;
+  if (!isAdmin) return <ShopClosed />;
+  if (loading) return <CheckoutSkeleton />;
 
   return (
     <main className={styles.page}>

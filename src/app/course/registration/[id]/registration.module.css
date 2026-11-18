@@ -50,7 +50,6 @@
 .correctionField select,
 .correctionField textarea { width: 100%; min-height: 44px; padding: .7rem; border: 1px solid var(--line); border-radius: 6px; background: var(--white); color: var(--ink); font: inherit; }
 .correctionField input[type="file"] { height: auto; }
-.correctionField textarea { resize: vertical; }
 .correctionSubmit { min-height: 48px; justify-self: start; padding: .75rem 1.4rem; border: 0; background: var(--ink); color: var(--paper); font: inherit; font-weight: 700; cursor: pointer; }
 .correctionSubmit:disabled { opacity: .6; cursor: wait; }
 .correctionCard :focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 3px; }

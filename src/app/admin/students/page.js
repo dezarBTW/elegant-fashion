@@ -287,38 +287,6 @@ export default function StudentApplications() {
               </div>
             )}
 
-            {declineDraft && (
-              <form className={declineStyles.declineForm} onSubmit={(event) => {
-                event.preventDefault();
-                updateStatus(selected, "declined", { reason: declineDraft.reason, correction_fields: declineDraft.fields });
-              }}>
-                <h3>Request a correction</h3>
-                <p>Briefly explain why this application is declined. Select the details the student may change. Their current passport photo will be removed and they must upload a new one.</p>
-                <label htmlFor="student-decline-reason">Reason for decline</label>
-                <textarea id="student-decline-reason" required minLength={8} maxLength={500} rows={3}
-                  value={declineDraft.reason} onChange={(event) => setDeclineDraft((current) => ({ ...current, reason: event.target.value }))}
-                  placeholder="For example, the date of birth does not match your documents." />
-                <fieldset>
-                  <legend>Details the student may correct</legend>
-                  <div className={declineStyles.fieldChoices}>
-                    {CORRECTION_FIELD_OPTIONS.map(([key, label]) => (
-                      <label key={key} className={declineStyles.choice}>
-                        <input type="checkbox" checked={declineDraft.fields.includes(key)} onChange={(event) => setDeclineDraft((current) => ({
-                          ...current, fields: event.target.checked ? [...current.fields, key] : current.fields.filter((field) => field !== key),
-                        }))} />
-                        <span>{label}</span>
-                      </label>
-                    ))}
-                  </div>
-                </fieldset>
-                <p className={declineStyles.passportNote}>Passport photograph is always required again.</p>
-                <div className={styles.actions}>
-                  <button className={`${styles.btn} ${styles.btnDanger}`} type="submit" disabled={busyId !== null}>{busyId === selected.id ? "Declining..." : "Confirm decline and email student"}</button>
-                  <button className={styles.btn} type="button" onClick={() => setDeclineDraft(null)}>Cancel</button>
-                </div>
-              </form>
-            )}
-
             <div className={styles.detailLayout}>
               {selected.passport_photo ? (
                 <PassportPhoto value={selected.passport_photo} alt={`Passport photo of ${fullName(selected)}`} className={styles.passport} />
@@ -353,6 +321,38 @@ export default function StudentApplications() {
                 ))}
               </dl>
             </div>
+
+            {declineDraft && (
+              <form className={declineStyles.declineForm} onSubmit={(event) => {
+                event.preventDefault();
+                updateStatus(selected, "declined", { reason: declineDraft.reason, correction_fields: declineDraft.fields });
+              }}>
+                <h3>Request a correction</h3>
+                <p>Briefly explain why this application is declined. Select the details the student may change. Their current passport photo will be removed and they must upload a new one.</p>
+                <label htmlFor="student-decline-reason">Reason for decline</label>
+                <textarea id="student-decline-reason" required minLength={8} maxLength={500} rows={3}
+                  value={declineDraft.reason} onChange={(event) => setDeclineDraft((current) => ({ ...current, reason: event.target.value }))}
+                  placeholder="For example, the date of birth does not match your documents." />
+                <fieldset>
+                  <legend>Details the student may correct</legend>
+                  <div className={declineStyles.fieldChoices}>
+                    {CORRECTION_FIELD_OPTIONS.map(([key, label]) => (
+                      <label key={key} className={declineStyles.choice}>
+                        <input type="checkbox" checked={declineDraft.fields.includes(key)} onChange={(event) => setDeclineDraft((current) => ({
+                          ...current, fields: event.target.checked ? [...current.fields, key] : current.fields.filter((field) => field !== key),
+                        }))} />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+                <p className={declineStyles.passportNote}>Passport photograph is always required again.</p>
+                <div className={styles.actions}>
+                  <button className={`${styles.btn} ${styles.btnDanger}`} type="submit" disabled={busyId !== null}>{busyId === selected.id ? "Declining..." : "Confirm decline and email student"}</button>
+                  <button className={styles.btn} type="button" onClick={() => setDeclineDraft(null)}>Cancel</button>
+                </div>
+              </form>
+            )}
 
             <div className={styles.actions} style={{ marginTop: "1.25rem" }}>
               {selected.telephone && (

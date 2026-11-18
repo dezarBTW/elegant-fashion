@@ -47,7 +47,6 @@
   color: var(--ink);
 }
 .form-group textarea {
-  resize: vertical;
 }
 .form-group input:focus-visible,
 .form-group select:focus-visible,

@@ -101,6 +101,10 @@ textarea {
   font: inherit;
 }
 
+textarea {
+  resize: none;
+}
+
 button:not(:disabled),
 select:not(:disabled) {
   cursor: pointer;

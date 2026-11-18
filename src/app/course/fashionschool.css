@@ -180,7 +180,6 @@
   font-family: var(--font-sans);
   color: var(--ink);
   min-height: 100px;
-  resize: vertical;
 }
 
 .textarea:focus {

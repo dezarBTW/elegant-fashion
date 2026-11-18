@@ -31,6 +31,7 @@ Desktop.ini
 *.log
 
 # local setup and planning notes
+/src/app/ready-to-wear/open RTW.md
 /EXECUTE_NOW.md
 /IMPLEMENTATION_STATUS.md
 /MIGRATION_COMPLETE.md
@@ -75,3 +76,34 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# additional local outputs, scratch files, and editor state
+/.nyc_output/
+/playwright/.auth/
+/dist/
+/storybook-static/
+/tmp/
+/artifacts/
+/screenshots/
+/reports/
+/.ui-check/
+/.agents/
+/.codex/
+/.idea/
+/.fleet/
+/supabase/.temp/
+/supabase/.cache/
+*.bak
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# local demo data and unused Next.js starter artwork
+/supabase/seeds/
+/public/file.svg
+/public/globe.svg
+/public/next.svg
+/public/vercel.svg
+/public/window.svg

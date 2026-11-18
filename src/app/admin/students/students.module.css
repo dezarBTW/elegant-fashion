@@ -35,7 +35,6 @@
   background: var(--white);
   color: var(--ink);
   font: inherit;
-  resize: vertical;
 }
 .declineForm fieldset { margin: 1rem 0 0; padding: 0; border: 0; }
 .fieldChoices { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .45rem; }

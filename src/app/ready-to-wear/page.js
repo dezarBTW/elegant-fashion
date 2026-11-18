@@ -6,8 +6,11 @@ import { SHOP_PAGE_SIZE } from "@/lib/products.mjs";
 import { loadShopPage } from "@/lib/catalogPages.mjs";
 import { supabase } from "@/lib/supabaseClient";
 import { ShopSkeleton } from "./ShopSkeleton";
+import { useAuth } from "@/contexts/AuthContext";
+import ShopClosed from "@/components/ShopClosed";
 
 export default function ReadyToWear() {
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [priceRange, setPriceRange] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,6 +23,7 @@ export default function ReadyToWear() {
   const itemsPerPage = SHOP_PAGE_SIZE;
 
   useEffect(() => {
+    if (authLoading || !isAdmin) return undefined;
     const controller = new AbortController();
     const fetchProducts = async () => {
       setLoading(true);
@@ -35,7 +39,7 @@ export default function ReadyToWear() {
     };
     const timer = setTimeout(fetchProducts, 200);
     return () => { clearTimeout(timer); controller.abort(); };
-  }, [currentPage, searchQuery, selectedCategory, priceRange, gender]);
+  }, [currentPage, searchQuery, selectedCategory, priceRange, gender, authLoading, isAdmin]);
 
   const categories = ["All", "Dresses", "Skirts", "Trousers", "Tops", "Jackets", "Accessories"];
 
@@ -47,6 +51,8 @@ export default function ReadyToWear() {
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
+  if (authLoading && user) return <ShopSkeleton count={itemsPerPage} />;
+  if (!isAdmin) return <ShopClosed />;
   if (loading && total === null) return <ShopSkeleton count={itemsPerPage} />;
 
   return (

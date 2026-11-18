@@ -3,19 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import RunwayImage from './RunwayImage';
-import { supabase } from "@/lib/supabaseClient";
-import { imagePath } from "@/lib/imagePath.mjs";
-import { productHref } from "@/lib/products.mjs";
-import { selectRunway } from '@/lib/runwaySelection.mjs';
 import styles from "./HomeRunwayLookbook.module.css";
 
-const STORAGE_KEY = "elegant-home-runway";
+const products = [
+  { id: "sapphire", name: "Sapphire evening look", image: "/images/runway/sapphire-cutout.webp" },
+  { id: "powder-blue", name: "Powder blue lace look", image: "/images/runway/powder-blue-cutout.webp" },
+  { id: "champagne", name: "Champagne occasion look", image: "/images/runway/champagne-cutout.webp" },
+  { id: "emerald", name: "Emerald lace look", image: "/images/runway/emerald-cutout.webp" },
+  { id: "plum", name: "Plum Ankara look", image: "/images/runway/plum-cutout.webp" },
+  { id: "coral", name: "Coral Ankara look", image: "/images/runway/coral-cutout.webp" },
+];
 const stageRatio = .84;
-// This listener survives a client-side transition to a product and observes Back.
-if (typeof window !== "undefined" && !window.__elegantRunwayHistoryListener) {
-  window.__elegantRunwayHistoryListener = true;
-  window.addEventListener("popstate", () => { window.__elegantRunwayBack = true; });
-}
 const stops = {
   x: [1.13, .72, .48, .32, .21, .12, .06],
   feet: [1.12, .82, .79, .72, .66, .62, .59],
@@ -36,44 +34,10 @@ const mix = (values, depth) => {
 };
 
 export default function HomeRunwayLookbook() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(0);
   const stage = useRef(null);
   const cards = useRef([]);
   const motion = useRef({ position: 0, target: 0, last: 0, idle: 0, dragging: false, moved: false });
-
-  useEffect(() => {
-    let cancelled = false;
-    let restored = null;
-    try {
-      const stored = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "null");
-      const navigation = performance.getEntriesByType("navigation")[0];
-      const isBack = window.__elegantRunwayBack || navigation?.type === "back_forward";
-      if (isBack && stored?.returning && Array.isArray(stored.products)) restored = stored;
-      window.__elegantRunwayBack = false;
-      sessionStorage.removeItem(STORAGE_KEY);
-    } catch {}
-    if (restored) {
-      motion.current.position = restored.position || 0;
-      motion.current.target = restored.target || 0;
-      Promise.resolve().then(() => { if (!cancelled) setProducts(restored.products); });
-    }
-    {
-      const request = supabase.rpc("get_home_runway_catalog");
-      request.then(({ data, error }) => {
-        if (!cancelled && !error && Array.isArray(data)) {
-          let previous=null;
-          try { previous=JSON.parse(localStorage.getItem('elegant-runway-selection')||'null'); } catch {}
-          const selection=selectRunway(data,previous);
-          setProducts(selection);
-          try { localStorage.setItem('elegant-runway-selection',JSON.stringify({ids:selection.map(product=>product.id),lastSeenAt:data[0]?.created_at||previous?.lastSeenAt||new Date().toISOString()})); } catch {}
-        }
-      }).catch(() => { /* Keep the empty moving stage if the catalog is unavailable. */ })
-        .finally(() => { if (!cancelled) setLoading(false); });
-    }
-    return () => { cancelled = true; };
-  }, []);
 
   useEffect(() => {
     if (!products.length) return;
@@ -126,6 +90,8 @@ export default function HomeRunwayLookbook() {
           card.style.visibility = opacity > 0 ? "visible" : "hidden";
           card.style.zIndex = String(100 - Math.round(depth * 10));
           card.style.pointerEvents = clickable ? "auto" : "none";
+          card.style.left = "0";
+          card.style.top = "0";
           card.tabIndex = clickable ? 0 : -1;
         });
       }
@@ -139,7 +105,7 @@ export default function HomeRunwayLookbook() {
       window.removeEventListener("pageshow", resetClock);
       document.removeEventListener("visibilitychange", resetClock);
     };
-  }, [products]);
+  }, []);
 
   useEffect(() => {
     const element = stage.current;
@@ -155,20 +121,16 @@ export default function HomeRunwayLookbook() {
     };
     element.addEventListener("wheel", wheel, { passive: false });
     return () => { clearTimeout(timer); element.removeEventListener("wheel", wheel); };
-  }, [products]);
+  }, []);
 
   const step = direction => {
     const state = motion.current;
     state.target = Math.round(state.target) + direction;
     state.idle = 0;
   };
-  const save = () => {
-    const { position, target } = motion.current;
-    try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ returning: true, products, position, target })); } catch {}
-  };
   return (
     <>
-    <div className={styles.stage} style={{ "--stage-ratio": stageRatio }} ref={stage} role="region" aria-label="Ready-to-wear runway" aria-busy={loading} tabIndex={products.length > 1 ? 0 : undefined}
+    <div className={styles.stage} style={{ "--stage-ratio": stageRatio }} ref={stage} role="region" aria-label="Ready-to-wear runway" tabIndex={products.length > 1 ? 0 : undefined}
       onKeyDown={event => {
         if (products.length > 1 && ["ArrowLeft", "ArrowRight"].includes(event.key)) {
           event.preventDefault();
@@ -193,16 +155,11 @@ export default function HomeRunwayLookbook() {
       }}
       onPointerUp={() => { const state = motion.current; if (state.dragging && state.moved) state.target = Math.round(state.target); state.dragging = false; }}
       onPointerCancel={() => { const state = motion.current; state.target = Math.round(state.target); state.dragging = false; }}>
-      {!products.length && <div className={styles.haze} aria-hidden="true" />}
-      {loading && !products.length && <>
-        <span role="status" className={styles.loadingLabel}>Loading ready-to-wear images…</span>
-        <div className={styles.loadingLooks} aria-hidden="true">{[0,1,2,3].map(index => <span key={index} className={styles.imageSkeleton} />)}</div>
-      </>}
       {products.map((product, index) => (
         <Link key={product.id} ref={element => { cards.current[index] = element; }}
-          href={productHref(product)} className={styles.look} aria-label={`View ${product.name}`}
-          onClick={event => { if (motion.current.moved) { event.preventDefault(); motion.current.moved = false; return; } save(); }}>
-          <RunwayImage key={product.image} src={imagePath(product.image)} alt={product.name} />
+          href="/ready-to-wear" className={styles.look} aria-label={`Explore ${product.name}`}
+          onClick={event => { if (motion.current.moved) { event.preventDefault(); motion.current.moved = false; } }}>
+          <RunwayImage src={product.image} alt={product.name} />
         </Link>
       ))}
     </div>

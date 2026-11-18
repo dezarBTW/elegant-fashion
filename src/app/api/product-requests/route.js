@@ -1,14 +1,17 @@
 import { after, NextResponse } from 'next/server';
 import { createHash, createHmac } from 'node:crypto';
 import { checkoutDatabase } from '@/lib/checkoutServer';
-import { readAccountBody } from '@/lib/accountServer';
+import { readAccountBody, requireActiveAccount } from '@/lib/accountServer';
 import { OrderRequestError } from '@/lib/orderManagement.mjs';
+import { SHOP_CLOSED_MESSAGE } from '@/lib/shopAvailability.mjs';
 import { productRequestEmail, productRequestSchema } from '@/lib/productRequests.mjs';
 import { sendServiceEmail } from '@/lib/orderEmails.mjs';
 
 export const runtime = 'nodejs';
 export async function POST(request) {
   try {
+    const account = await requireActiveAccount(request);
+    if (account.profile.is_admin !== true) throw new OrderRequestError(SHOP_CLOSED_MESSAGE, 403);
     const input = await readAccountBody(request, productRequestSchema, 7000);
     const db = checkoutDatabase();
     const ip = request.headers.get('x-vercel-forwarded-for') || request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
