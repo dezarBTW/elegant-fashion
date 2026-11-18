@@ -3,6 +3,16 @@ import { PICKUP_ADDRESS } from "./checkout.mjs";
 
 export const SPONSORSHIP_OPTIONS = ["Self sponsored", "Guardian", "Scholarship"];
 export const PROGRAMMES = ["3 Months Programme", "6 Months Programme", "1 Year Programme"];
+export const CORRECTION_FIELD_OPTIONS = [
+  ["surname", "Surname"], ["first_name", "First name"], ["middle_name", "Middle name"],
+  ["gender", "Gender"], ["date_of_birth", "Date of birth"], ["age", "Age"],
+  ["nationality", "Nationality"], ["marital_status", "Marital status"],
+  ["state_of_origin", "State of origin"], ["address", "Address"],
+  ["telephone", "Telephone"], ["email", "Email address"],
+  ["chosen_programme", "Chosen programme"], ["sponsorship", "Sponsorship"],
+  ["sponsor_organization", "Sponsor organization"],
+];
+export const CORRECTION_FIELD_KEYS = CORRECTION_FIELD_OPTIONS.map(([key]) => key);
 export const ACADEMY_ADDRESS = PICKUP_ADDRESS;
 export const REGISTRATION_COMPLETE_MESSAGE = `Registration completed visit ${ACADEMY_ADDRESS} from Mon-Fri, 8am-5pm, for PAYMENT DETAILS, ORIENTAION and PHYSICAL VERIFICATION\nThank You for choosing Elegant Style Fashion Academy`;
 
@@ -25,5 +35,16 @@ export const studentReviewSchema = z.object({
   id: z.union([z.number().int().positive().max(Number.MAX_SAFE_INTEGER), z.string().regex(/^[1-9]\d{0,18}$/)])
     .transform(String).refine((value) => BigInt(value) <= 9223372036854775807n, "Invalid application reference."),
   status: z.enum(["pending", "accepted", "declined"]),
+}).strict();
+export const studentDeclineSchema = z.object({
+  id: studentReviewSchema.shape.id,
+  status: z.literal("declined"),
+  reason: z.string().trim().min(8, "Give a brief reason (at least 8 characters).").max(500),
+  correction_fields: z.array(z.enum(CORRECTION_FIELD_KEYS)).max(16).refine((fields) => new Set(fields).size === fields.length, "Select each field once."),
+}).strict();
+export const studentCorrectionSchema = z.object({
+  id: studentReviewSchema.shape.id,
+  changes: z.record(z.string(), z.unknown()),
+  passport_photo: z.url().max(2000),
 }).strict();
 export const studentName = (student) => [student.surname, student.first_name, student.middle_name].filter(Boolean).join(" ");

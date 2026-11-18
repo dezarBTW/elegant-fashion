@@ -1,0 +1,45 @@
+.notice {
+  padding: .85rem 1rem;
+  border: 1px solid var(--gold-deep);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.reviewNote,
+.declineForm {
+  margin: 1rem 0 1.5rem;
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--gold-deep);
+  border-radius: 10px;
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}
+
+.reviewNote p,
+.declineForm p {
+  line-height: 1.6;
+}
+
+.declineForm h3 { margin: 0 0 .6rem; font-family: var(--font-display); }
+.declineForm > label,
+.declineForm legend { display: block; margin: 1rem 0 .4rem; font-weight: 700; }
+.declineForm textarea {
+  display: block;
+  width: 100%;
+  padding: .8rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  resize: vertical;
+}
+.declineForm fieldset { margin: 1rem 0 0; padding: 0; border: 0; }
+.fieldChoices { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .45rem; }
+.choice { display: flex; align-items: center; gap: .5rem; padding: .35rem 0; line-height: 1.4; }
+.choice input { width: 18px; height: 18px; accent-color: var(--gold-deep); }
+.passportNote { font-weight: 700; }
+.declineForm :focus-visible { outline: 2px solid var(--gold-deep); outline-offset: 3px; }

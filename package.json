@@ -25,10 +25,12 @@
   "devDependencies": {
     "@electric-sql/pglite": "0.5.15",
     "@supabase/cli": "^1.0.0",
+    "@types/node": "24.19.2",
     "@types/react": "19.3.0",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
-    "prettier": "3.9.9"
+    "prettier": "3.9.9",
+    "typescript": "5.9.3"
   }
 }

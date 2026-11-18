@@ -8,6 +8,8 @@ import { consumeRateLimit, formatRetryMessage } from "@/lib/sanitizeInput";
 import { formatDate, formatDateTime, getProgrammePrice, getStudentStatus, toWhatsAppUrl } from "../adminUtils";
 import styles from "../adminShell.module.css";
 import { authenticatedFetch } from "@/lib/clientApi";
+import { CORRECTION_FIELD_OPTIONS } from "@/lib/registration.mjs";
+import declineStyles from "./students.module.css";
 
 const TABS = [
   { key: "pending", label: "Pending" },
@@ -34,6 +36,8 @@ export default function StudentApplications() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
   const [busyId, setBusyId] = useState(null);
+  const [declineDraft, setDeclineDraft] = useState(null);
+  const [notice, setNotice] = useState("");
   const [page, setPage] = useState(1);
   const [version, setVersion] = useState(0);
   const { rows: students, loading, counts, total, error: loadError } = useAdminList('students', isAdmin, { page, status: tab, search, version, onPage: setPage });
@@ -50,16 +54,16 @@ export default function StudentApplications() {
   useEffect(() => {
     if (!selected) return undefined;
     const onKeyDown = (event) => {
-      if (event.key === "Escape") setSelected(null);
+      if (event.key === "Escape") { setSelected(null); setDeclineDraft(null); }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [selected]);
 
-  const updateStatus = async (student, nextStatus) => {
+  const updateStatus = async (student, nextStatus, details = {}) => {
     if (!user || busyId) return;
 
-    if (nextStatus === "declined" && !window.confirm(`Decline the application from ${fullName(student)}?`)) {
+    if (nextStatus === "declined" && !window.confirm(`Decline ${fullName(student)}'s application and permanently remove their current passport photograph?`)) {
       return;
     }
 
@@ -71,11 +75,18 @@ export default function StudentApplications() {
 
     setBusyId(student.id);
     setError("");
+    setNotice("");
 
     try {
-      const result = await authenticatedFetch("/api/admin/students", { method: "PATCH", body: JSON.stringify({ id: student.id, status: nextStatus }) });
+      const result = await authenticatedFetch("/api/admin/students", { method: "PATCH", body: JSON.stringify({ id: student.id, status: nextStatus, ...details }) });
       setVersion(current => current + 1);
       setSelected((current) => current?.id === student.id ? result.student : current);
+      if (nextStatus === "declined") {
+        setDeclineDraft(null);
+        setNotice(result.cleanupPending ? "Application declined. Passport removal is pending; retry the decline setup before the student can edit." :
+          result.emailSent ? "Application declined, old passport removed, and the correction email sent." :
+          "Application declined and old passport removed. The email could not be sent; retry the decline email.");
+      }
     } catch (error) { setError(error.message || "Could not update this application."); }
     finally { setBusyId(null); }
   };
@@ -107,23 +118,39 @@ export default function StudentApplications() {
             {busy ? "Saving..." : "Accept"}
           </button>
         )}
-        {status !== "declined" && (
-          <button
-            type="button"
-            className={`${styles.btn} ${styles.btnDanger}`}
-            disabled={busy}
-            onClick={() => updateStatus(student, "declined")}
-          >
-            Decline
-          </button>
-        )}
+        <button
+          type="button"
+          className={`${styles.btn} ${styles.btnDanger}`}
+          disabled={busy}
+          onClick={() => { setSelected(student); setDeclineDraft({ reason: student.decline_reason || "", fields: student.correction_fields || [] }); }}
+        >
+          {status === "declined" ? "Update decline" : "Decline"}
+        </button>
         {status !== "pending" && (
           <button type="button" className={styles.btn} disabled={busy} onClick={() => updateStatus(student, "pending")}>
             Move to pending
           </button>
         )}
+        {status === "declined" && student.decline_reason && (!student.correction_opened_at || !student.decline_email_sent_at) && (
+          <button type="button" className={styles.btn} disabled={busyId !== null} onClick={() => retryDecline(student)}>
+            {busy ? "Retrying..." : student.correction_opened_at ? "Retry decline email" : "Retry decline setup"}
+          </button>
+        )}
       </div>
     );
+  };
+
+  const retryDecline = async (student) => {
+    if (busyId) return;
+    setBusyId(student.id); setError(""); setNotice("");
+    try {
+      const result = await authenticatedFetch("/api/admin/students", { method: "PUT", body: JSON.stringify({ id: student.id }) });
+      setVersion((current) => current + 1);
+      setSelected((current) => current?.id === student.id ? result.student : current);
+      setNotice(result.cleanupPending ? "Passport removal is still pending. Please retry shortly." :
+        result.emailSent ? "Passport removed and correction email sent." : "Passport removed, but the email could not be sent. Please retry.");
+    } catch (error) { setError(error.message || "Could not finish the decline."); }
+    finally { setBusyId(null); }
   };
 
   const retryNotification = async (student) => {
@@ -152,6 +179,7 @@ export default function StudentApplications() {
       </div>
 
       {(error || loadError) && <div className={styles.error} role="alert">{error || loadError}</div>}
+      {notice && <p className={declineStyles.notice} role="status">{notice}</p>}
       <MediaCleanupNotice message={cleanupWarning} onClear={() => setCleanupWarning('')} />
 
       <div className={styles.tabs} role="tablist" aria-label="Application status">
@@ -227,7 +255,7 @@ export default function StudentApplications() {
       </nav>}
 
       {selected && (
-        <div className={styles.modalOverlay} role="presentation" onClick={() => setSelected(null)}>
+        <div className={styles.modalOverlay} role="presentation" onClick={() => { setSelected(null); setDeclineDraft(null); }}>
           <section
             className={styles.modal}
             role="dialog"
@@ -243,10 +271,53 @@ export default function StudentApplications() {
                   {selected.created_at ? ` Applied ${formatDateTime(selected.created_at)}` : ""}
                 </p>
               </div>
-              <button type="button" className={styles.btn} onClick={() => setSelected(null)}>
+              <button type="button" className={styles.btn} onClick={() => { setSelected(null); setDeclineDraft(null); }}>
                 Close
               </button>
             </div>
+
+            {error && <p className={styles.error} role="alert">{error}</p>}
+            {notice && <p className={declineStyles.notice} role="status">{notice}</p>}
+
+            {selectedStatus === "declined" && selected.decline_reason && (
+              <div className={declineStyles.reviewNote}>
+                <strong>Reason for decline</strong>
+                <p>{selected.decline_reason}</p>
+                <small>Corrections: {(selected.correction_fields || []).map((key) => CORRECTION_FIELD_OPTIONS.find(([field]) => field === key)?.[1]).filter(Boolean).join(", ") || "Passport photograph only"}</small>
+              </div>
+            )}
+
+            {declineDraft && (
+              <form className={declineStyles.declineForm} onSubmit={(event) => {
+                event.preventDefault();
+                updateStatus(selected, "declined", { reason: declineDraft.reason, correction_fields: declineDraft.fields });
+              }}>
+                <h3>Request a correction</h3>
+                <p>Briefly explain why this application is declined. Select the details the student may change. Their current passport photo will be removed and they must upload a new one.</p>
+                <label htmlFor="student-decline-reason">Reason for decline</label>
+                <textarea id="student-decline-reason" required minLength={8} maxLength={500} rows={3}
+                  value={declineDraft.reason} onChange={(event) => setDeclineDraft((current) => ({ ...current, reason: event.target.value }))}
+                  placeholder="For example, the date of birth does not match your documents." />
+                <fieldset>
+                  <legend>Details the student may correct</legend>
+                  <div className={declineStyles.fieldChoices}>
+                    {CORRECTION_FIELD_OPTIONS.map(([key, label]) => (
+                      <label key={key} className={declineStyles.choice}>
+                        <input type="checkbox" checked={declineDraft.fields.includes(key)} onChange={(event) => setDeclineDraft((current) => ({
+                          ...current, fields: event.target.checked ? [...current.fields, key] : current.fields.filter((field) => field !== key),
+                        }))} />
+                        <span>{label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+                <p className={declineStyles.passportNote}>Passport photograph is always required again.</p>
+                <div className={styles.actions}>
+                  <button className={`${styles.btn} ${styles.btnDanger}`} type="submit" disabled={busyId !== null}>{busyId === selected.id ? "Declining..." : "Confirm decline and email student"}</button>
+                  <button className={styles.btn} type="button" onClick={() => setDeclineDraft(null)}>Cancel</button>
+                </div>
+              </form>
+            )}
 
             <div className={styles.detailLayout}>
               {selected.passport_photo ? (

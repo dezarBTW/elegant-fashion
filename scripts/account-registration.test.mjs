@@ -1,8 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ACADEMY_ADDRESS, REGISTRATION_COMPLETE_MESSAGE, registrationSchema, studentReviewSchema } from "../src/lib/registration.mjs";
+import { ACADEMY_ADDRESS, REGISTRATION_COMPLETE_MESSAGE, registrationSchema, studentDeclineSchema, studentReviewSchema } from "../src/lib/registration.mjs";
 import { accountActionSchema, requestSchema, requestReviewSchema, repurchaseCart } from "../src/lib/accountContracts.mjs";
-import { notifyRegistration, registrationAdminEmail, registrationAcceptanceEmail } from "../src/lib/registrationEmails.mjs";
+import { notifyRegistration, registrationAdminEmail, registrationAcceptanceEmail, registrationDeclineEmail } from "../src/lib/registrationEmails.mjs";
+import { passportPath } from "../src/lib/passport.mjs";
 import { notifySupportRequest, supportEmail } from "../src/lib/supportEmails.mjs";
 import { sendServiceEmail } from "../src/lib/orderEmails.mjs";
 
@@ -38,6 +39,33 @@ test("registration rejects invalid programme, declaration, dates, and injected s
     assert.equal(studentReviewSchema.safeParse({ id: invalidId, status: "accepted" }).success, false);
   }
   assert.equal(studentReviewSchema.safeParse({ id: 1, status: "admin" }).success, false);
+});
+
+test("a decline requires a reason and limits the correction fields", () => {
+  assert.equal(studentDeclineSchema.safeParse({ id: 1, status: "declined", reason: "Please correct your date of birth.", correction_fields: ["date_of_birth"] }).success, true);
+  for (const invalid of [
+    { reason: "Short" }, { correction_fields: ["status"] },
+    { correction_fields: ["email", "email"] }, { status: "accepted" },
+  ]) assert.equal(studentDeclineSchema.safeParse({ id: 1, status: "declined", reason: "Please correct your date of birth.", correction_fields: [], ...invalid }).success, false);
+});
+
+test("the decline email presents the reason safely and points to the existing registration", () => {
+  const message = registrationDeclineEmail({ ...application, id: 42, decline_revision: 2,
+    decline_reason: "Correct <script>unsafe</script> date", correction_fields: ["date_of_birth"] }, "account@example.com");
+  assert.equal(message.to, "account@example.com");
+  assert.equal(message.idempotencyKey, "student-decline/42/2");
+  assert.ok(message.html.includes("&lt;script&gt;unsafe&lt;/script&gt;"));
+  assert.ok(!message.html.includes("<script>"));
+  assert.ok(message.html.includes("/course/registration/42"));
+  assert.ok(message.text.includes("Date of birth"));
+  assert.ok(message.text.includes("previous passport photograph was removed"));
+});
+
+test("passport path accepts a new unique correction photo in the student's bucket", () => {
+  const base = "https://example.supabase.co";
+  const path = `${id}/passport-2`;
+  assert.equal(passportPath(`${base}/storage/v1/object/public/student-passports/${path}`, base), path);
+  assert.equal(passportPath(`${base}/storage/v1/object/public/student-passports/${id}/other.jpg`, base), null);
 });
 
 test("the registration completion text retains the exact requested wording and line break", () => {
