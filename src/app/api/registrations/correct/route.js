@@ -4,6 +4,8 @@ import { OrderRequestError } from "@/lib/orderManagement.mjs";
 import { CORRECTION_FIELD_KEYS, registrationSchema, studentCorrectionSchema } from "@/lib/registration.mjs";
 import { passportPath } from "@/lib/passport.mjs";
 import { hasImageSignature } from "@/lib/imageSignature.mjs";
+import { ageFromDateOfBirth } from "@/lib/guardianConsent.mjs";
+import { verifyGuardianConsent } from "@/lib/guardianConsentServer.mjs";
 
 export const runtime = "nodejs";
 
@@ -25,9 +27,13 @@ export async function POST(request) {
     }
     const base = Object.fromEntries(CORRECTION_FIELD_KEYS.map((key) => [key, student[key] ?? ""]));
     const checked = registrationSchema.safeParse({
-      ...base, ...input.changes, passport_photo: input.passport_photo, agreed: true,
+      ...base, ...input.changes, passport_photo: input.passport_photo,
+      guardian_consent_path: input.guardian_consent_path || student.guardian_consent_path || "", agreed: true,
     });
     if (!checked.success) throw new OrderRequestError(checked.error.issues[0].message, 400);
+    const age = ageFromDateOfBirth(checked.data.date_of_birth);
+    if (age === null) throw new OrderRequestError("Enter a valid date of birth.", 400);
+    if (age < 18) await verifyGuardianConsent(db, user.id, checked.data.guardian_consent_path);
     const path = passportPath(input.passport_photo, process.env.NEXT_PUBLIC_SUPABASE_URL);
     if (path !== `${user.id}/passport-${student.decline_revision}` || new URL(input.passport_photo).search) {
       throw new OrderRequestError("Upload a new passport photograph before resubmitting.", 400);
@@ -45,6 +51,7 @@ export async function POST(request) {
       throw new OrderRequestError("Your new passport photograph could not be verified. Upload it again.", 400);
     }
     const changes = Object.fromEntries(changed.map((key) => [key, checked.data[key]]));
+    changes.guardian_consent_path = age < 18 ? checked.data.guardian_consent_path : null;
     const resubmitted = await db.rpc("resubmit_student_application", {
       p_user_id: user.id, p_id: input.id, p_changes: changes, p_passport_photo: input.passport_photo,
     });

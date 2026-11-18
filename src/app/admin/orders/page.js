@@ -82,7 +82,7 @@ export default function Orders() {
   return (
     <>
       <div className={styles.pageHeader}>
-        <div><h1 className={styles.pageTitle}>Shop orders</h1><p className={styles.pageSub}>Arrange shipping and vendor payments offline. Confirm actual delivery here to start the three-day return/refund window.</p></div>
+        <div><h1 className={styles.pageTitle}>Shop orders</h1><p className={styles.pageSub}>Arrange shipping and vendor payments offline. Confirm actual delivery here to start the seven-day return/refund window.</p></div>
         <button type="button" className={styles.btn} disabled={loading || Boolean(saving)} onClick={() => { setLoading(true); setRefresh((value) => value + 1); }}>Refresh orders</button>
       </div>
       <div className={styles.toolbar}>
@@ -147,7 +147,7 @@ export default function Orders() {
                   {canDispatch&&<button type="button" className={styles.btn} disabled={Boolean(saving)} onClick={()=>updateShopProgress(order,order.items[0],order.delivery?.method==='pickup'?'ready':'shipped')}>{order.delivery?.method==='pickup'?'Mark ready for pickup':'Mark shipped from shop'}</button>}
                 </details>
                 <div className={styles.actions}>
-                  {order.payment_status === 'paid' ? delivered ? <span>Customer receipt confirmed. The three-day return/refund period is recorded.</span> : <span>Delivery confirmation is recorded when the customer confirms receipt from My orders.</span> : <span>Shipping is locked until customer payment is verified.</span>}
+                  {order.payment_status === 'paid' ? delivered ? <span>Customer receipt confirmed. The seven-day return/refund period is recorded.</span> : <span>Delivery confirmation is recorded when the customer confirms receipt from My orders.</span> : <span>Shipping is locked until customer payment is verified.</span>}
                 </div>
               </article>
             );

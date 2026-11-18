@@ -12,6 +12,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { consumeRateLimit, formatRetryMessage, sanitizeEmail, sanitizeText, validateImageFile } from "@/lib/sanitizeInput";
 import { getCachedValue, invalidateCachedValue, setCachedValue } from "@/lib/browserCache";
 import BackToTopButton from "@/components/BackToTopButton";
+import { ageFromDateOfBirth, guardianConsentError, guardianConsentPath, GUARDIAN_CONSENT_BUCKET } from "@/lib/guardianConsent.mjs";
 
 const REGISTRATION_DRAFT_TTL_MS = 24 * 60 * 60 * 1000;
 const requiredFields = [
@@ -96,13 +97,19 @@ const africanStates = {
 const initialFormData = {
   surname: "", first_name: "", middle_name: "", gender: "", date_of_birth: "",
   age: "", nationality: "", marital_status: "", state_of_origin: "", address: "",
-  telephone: "", email: "", chosen_programme: "", sponsorship: "", sponsor_organization: "", passport_photo: "", agreed: false,
+  telephone: "", email: "", chosen_programme: "", sponsorship: "", sponsor_organization: "", passport_photo: "", guardian_consent_path: "", agreed: false,
 };
 
 function validateField(name, value) {
   if (name === "agreed") return value ? "" : "You must agree before submitting.";
   if (name === "passport_photo") return value ? "" : "Please upload your passport photograph.";
+  if (name === "guardian_consent_path") return value ? "" : "Upload the signed guardian consent form from the academy.";
   if (!String(value || "").trim()) return "This field is required.";
+  if (name === "date_of_birth") {
+    const age = ageFromDateOfBirth(value);
+    if (age === null) return "Enter a valid date of birth.";
+    if (age < 13) return "Applicants under 13 cannot apply online. Contact the academy.";
+  }
   if (name === "email" && !/^\S+@\S+\.\S+$/.test(value)) return "Enter a valid email address.";
   if (name === "age" && (Number(value) < 1 || Number(value) > 100)) return "Enter an age between 1 and 100.";
   if (name === "telephone" && String(value).replace(/\D/g, "").length < 7) return "Enter a valid telephone number.";
@@ -128,6 +135,8 @@ export default function Course() {
   const [registrationId, setRegistrationId] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [passportUploaded, setPassportUploaded] = useState(false);
+  const [guardianFileName, setGuardianFileName] = useState("");
+  const [uploadingGuardian, setUploadingGuardian] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -266,7 +275,38 @@ export default function Course() {
     } finally { clearInterval(progressInterval); }
   };
 
-  const fieldsToValidate = formData.sponsorship === "Scholarship" ? [...requiredFields, "sponsor_organization"] : requiredFields;
+  const handleGuardianUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    const validationError = guardianConsentError(file);
+    if (validationError) {
+      setFieldErrors((current) => ({ ...current, guardian_consent_path: validationError }));
+      event.target.value = "";
+      return;
+    }
+    setUploadingGuardian(true);
+    setGuardianFileName("");
+    try {
+      const path = guardianConsentPath(user.id, file.type);
+      const { error } = await supabase.storage.from(GUARDIAN_CONSENT_BUCKET).upload(path, file, {
+        contentType: file.type, cacheControl: "3600", upsert: true,
+      });
+      if (error) throw error;
+      setFormData((current) => ({ ...current, guardian_consent_path: path }));
+      setGuardianFileName(file.name);
+      setFieldErrors((current) => ({ ...current, guardian_consent_path: "" }));
+    } catch {
+      setFieldErrors((current) => ({ ...current, guardian_consent_path: "The signed form could not be uploaded. Please try again." }));
+    } finally { setUploadingGuardian(false); }
+  };
+
+  const applicantAge = ageFromDateOfBirth(formData.date_of_birth);
+  const isMinor = applicantAge !== null && applicantAge < 18;
+  const fieldsToValidate = [
+    ...requiredFields,
+    ...(isMinor ? ["guardian_consent_path"] : []),
+    ...(formData.sponsorship === "Scholarship" ? ["sponsor_organization"] : []),
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -289,7 +329,7 @@ export default function Course() {
     setSubmitting(true);
 
     try {
-      const parsed = registrationSchema.safeParse(formData);
+      const parsed = registrationSchema.safeParse({ ...formData, guardian_consent_path: isMinor ? formData.guardian_consent_path : "" });
       if (!parsed.success) {
         setFieldErrors(Object.fromEntries(parsed.error.issues.map((issue) => [issue.path[0], issue.message])));
         setTouchedFields(Object.fromEntries(fieldsToValidate.map((name) => [name, true])));
@@ -490,6 +530,19 @@ export default function Course() {
               required
             />
             {touchedFields.date_of_birth && <FieldError message={fieldErrors.date_of_birth} />}
+            {isMinor && applicantAge >= 13 && (
+              <div className="guardian-consent-section">
+                <p><strong>Guardian consent is needed before you apply.</strong> Visit Elegant Style Fashion Academy at Km 4 Isaac Boro Express Way, Yenagoa, to collect the official form. Ask your parent or legal guardian to sign it, then upload a clear scan or photo here. You can continue filling this page and return to upload it before submitting.</p>
+                <label htmlFor="guardian-consent-upload">Signed guardian consent form <span className="required">*</span></label>
+                <input id="guardian-consent-upload" type="file" className="input-field" accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png"
+                  onChange={handleGuardianUpload} disabled={uploadingGuardian || submitting} aria-describedby="guardian-consent-help" />
+                <small id="guardian-consent-help">PDF, JPG, or PNG, up to 5 MB.</small>
+                {uploadingGuardian && <p role="status">Uploading signed form…</p>}
+                {guardianFileName && !uploadingGuardian && <p role="status">Signed form uploaded: {guardianFileName}</p>}
+                {formData.guardian_consent_path && !guardianFileName && !uploadingGuardian && <p role="status">A signed form was uploaded earlier. You can replace it if needed.</p>}
+                <FieldError message={fieldErrors.guardian_consent_path} />
+              </div>
+            )}
           </div>
 
           {/* Age */}
@@ -751,7 +804,7 @@ export default function Course() {
             {touchedFields.agreed && <FieldError message={fieldErrors.agreed} />}
           </div>
 
-          <button type="submit" className="submit-btn" disabled={submitting || !isFormValid}>
+          <button type="submit" className="submit-btn" disabled={submitting || uploadingGuardian || !isFormValid}>
             {submitting ? (
               <>
                 <span className="submit-spinner" aria-hidden="true" />

@@ -1,5 +1,6 @@
 "use client";
 import PassportPhoto from "@/components/PassportPhoto";
+import GuardianConsentLink from "@/components/GuardianConsentLink";
 import MediaCleanupNotice from '@/components/MediaCleanupNotice';
 import { useEffect, useState } from "react";
 import { useAdminList } from '@/hooks/useAdminList';
@@ -9,6 +10,7 @@ import { formatDate, formatDateTime, getProgrammePrice, getStudentStatus, toWhat
 import styles from "../adminShell.module.css";
 import { authenticatedFetch } from "@/lib/clientApi";
 import { CORRECTION_FIELD_OPTIONS } from "@/lib/registration.mjs";
+import { ageFromDateOfBirth } from "@/lib/guardianConsent.mjs";
 import declineStyles from "./students.module.css";
 
 const TABS = [
@@ -319,8 +321,15 @@ export default function StudentApplications() {
                     <dd className={styles.detailValue}>{text || "—"}</dd>
                   </div>
                 ))}
+                <div>
+                  <dt className={styles.detailLabel}>Guardian consent</dt>
+                  <dd className={styles.detailValue}><GuardianConsentLink path={selected.guardian_consent_path} /></dd>
+                </div>
               </dl>
             </div>
+            {ageFromDateOfBirth(selected.date_of_birth) !== null && ageFromDateOfBirth(selected.date_of_birth) < 18 && (
+              <p className={styles.detailValue}>Review the signed guardian consent form and verify the guardian details before accepting this applicant.</p>
+            )}
 
             {declineDraft && (
               <form className={declineStyles.declineForm} onSubmit={(event) => {

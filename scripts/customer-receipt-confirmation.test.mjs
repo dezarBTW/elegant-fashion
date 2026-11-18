@@ -32,7 +32,7 @@ test('receipt confirmation starts the refund timer only after shipment',async()=
 test('shipped email asks the customer to confirm receipt before the deadline starts',()=>{
  const message=buildShippingConfirmationEmail({id:'order',customer_email:'customer@example.invalid',customer_name:'Ada'}, {id:'item',product_name:'Dress'});
  assert.match(message.html,/confirm receipt/i);
- assert.match(message.text,/three-day return\/refund period begins when you confirm receipt/i);
+ assert.match(message.text,/seven-day return\/refund period begins when you confirm receipt/i);
  assert.match(message.html,/\/account\/orders/);
 });
 

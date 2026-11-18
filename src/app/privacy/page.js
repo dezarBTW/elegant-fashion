@@ -10,11 +10,10 @@ export default function PrivacyPolicy() {
         <header className={styles.header}>
           <span className={styles.eyebrow}>Legal</span>
           <h1>Privacy Policy</h1>
-          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-11-06">6 November 2026</time></p>
+          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-11-18">18 November 2026</time></p>
         </header>
 
         <div className={styles.content}>
-          <section className={styles.section}><h2>Order fulfilment and delivery verification</h2><p>We retain checkout contact and delivery details with each order, product ownership, historical shipping updates, administrator delivery confirmations and verification evidence to fulfil orders, investigate delivery problems and manage returns and payments. Relevant fulfilment providers receive only the customer information needed for their items. We record who confirmed delivery and when. The normal return/refund request window is three days from confirmed delivery. Vendor identity and account permission records are restricted to the relevant account and authorised administrators. Vendor approval, agreements, vendor payments and shipping coordination are handled offline.</p></section>
           <section className={styles.section}>
             <h2>1. Information We Collect</h2>
             <p>
@@ -44,14 +43,18 @@ export default function PrivacyPolicy() {
               <li>Chosen programme (3-month, 6-month, or 1-year)</li>
               <li>Sponsorship type (Self sponsored, Guardian, or Scholarship) and the sponsoring organization for a scholarship</li>
               <li>Passport photograph</li>
+              <li>For applicants under 18, a signed guardian consent form collected from the academy</li>
               <li>Your account identifier, application reference, submission date, and application or admission status</li>
             </ul>
             <p>
-              While you complete the application, the site saves a draft of the form fields in this browser, linked to your account, with a 24-hour expiry renewed when you edit the form. The draft excludes the passport photo. Expired drafts are discarded when read, and the draft is removed after successful submission. Other people using the same browser may be able to access locally stored information; clear site data when using a shared device.
+              While you complete the application, the site saves a draft of the form fields in this browser, linked to your account, with a 24-hour expiry renewed when you edit the form. The draft excludes the passport photo and guardian consent file itself but may retain a reference to an uploaded guardian form. Expired drafts are discarded when read, and the draft is removed after successful submission. Other people using the same browser may be able to access locally stored information; clear site data when using a shared device.
+            </p>
+            <p>
+              If an application is declined, we record the administrator&apos;s reason, the fields opened for correction, and the review history. We remove the previous passport photograph before opening corrections and require a new one on resubmission. Other application details remain in the record. We attempt to email the reason and correction instructions to the address on the application.
             </p>
 
             <h3>Product and Order Data</h3>
-            <p>You can browse the shop and use checkout without creating an account. When you place an order, we collect:</p>
+            <p>Ready-to-wear shopping is currently limited to administrators while products are being organised. Checkout requires a signed-in account. When you place an order, we collect:</p>
             <ul>
               <li>Your name, email address, and phone number</li>
               <li>Your pickup or delivery choice and, for delivery, your street address, city, and state</li>
@@ -68,7 +71,7 @@ export default function PrivacyPolicy() {
               When you open My orders, we link unassigned orders to your account using your verified account email and the email supplied at checkout. We record refund reasons and descriptions of complaints about received products, together with your account, order and product references, receipt confirmation, request status, staff response, review identifier, and timestamps. You can view your own requests; authorised staff can review and update them. Please avoid including unnecessary sensitive information in a request.
             </p>
             <p>
-              Delivery and shipping issues are coordinated directly with the shop. Customers confirm receipt of shipped items in My orders, which starts the three-day return/refund window for each item. We retain historical administrator delivery confirmations and verification notes. Authorised staff can see these records.
+              Delivery and shipping issues are coordinated with the shop. We retain shipping progress, who confirmed receipt and when, and any administrator delivery verification notes. Customers can confirm receipt of shipped or collected items in My orders. The seven-day online return/refund request window starts for each item when receipt is confirmed by the customer or verified by an administrator.
             </p>
 
             <h3>Bespoke Requests</h3>
@@ -102,7 +105,7 @@ export default function PrivacyPolicy() {
               <li><strong>Student registration:</strong> To process your course application, assess eligibility, manage admissions, and maintain academic records.</li>
               <li><strong>Bespoke requests:</strong> To review your outfit request, contact you about it, and prepare a quote.</li>
               <li><strong>Orders and fulfilment:</strong> To check prices, create and verify a payment, arrange pickup or delivery, manage order progress, and resolve payment or order problems.</li>
-              <li><strong>Transactional emails:</strong> To send paid-order receipts, student acceptance messages, and refund or complaint confirmations and updates, and notify the shop of registrations, paid orders, bespoke enquiries, and support requests. These messages are service communications, not optional advertising emails.</li>
+              <li><strong>Transactional emails:</strong> To send paid-order receipts, shipping and pickup updates, student acceptance or decline messages, and refund or complaint confirmations and updates; to notify vendors of paid purchases and necessary fulfilment details; and to notify the shop of paid orders, bespoke enquiries, and support requests. Staff review submitted applications in the administrative area. These messages are service communications, not optional advertising emails.</li>
               <li><strong>Communication:</strong> To respond to your inquiries, send updates about your application or orders, and provide customer support.</li>
               <li><strong>Service improvement:</strong> To understand how our services are used and improve the user experience.</li>
               <li><strong>Security:</strong> To protect against fraud, abuse, and unauthorized access through rate limiting and input validation.</li>
@@ -121,10 +124,11 @@ export default function PrivacyPolicy() {
             </p>
             <ul>
               <li><strong>Supabase database:</strong> Account profiles, student applications and sponsorship details, bespoke requests, shop orders, refund requests, product complaints, staff responses, payment and fulfilment records, and security identifiers are stored in Supabase. Database policies and server-side access checks restrict account, application, and request records to the relevant users or authorised staff.</li>
-              <li><strong>Supabase Storage:</strong> Product images, student passport photographs, and bespoke reference photos are stored in Supabase. Product images are public. The student photo feature currently uses public image links; anyone who obtains a working public link may be able to view the photo. Bespoke reference photos are kept in a private bucket and made available to authorised staff through the administrative area or temporary signed links.</li>
+              <li><strong>Supabase Storage:</strong> Product images, student passport photographs, signed guardian consent forms, and bespoke reference photos are stored in Supabase. Product images are public. Student passport photographs and guardian consent forms are stored in private buckets and viewed through temporary signed links by the applicant or authorised staff. Bespoke reference photos are kept in a private bucket and made available to authorised staff through the administrative area or temporary signed links.</li>
               <li><strong>Supabase Auth:</strong> Email addresses, password hashes, authentication sessions, confirmation, and password recovery are handled through Supabase&apos;s authentication service. Our staff cannot read your stored password.</li>
               <li><strong>Resend and email recipients:</strong> Resend delivers bespoke notifications to the shop, which may include your name, phone number, request description, reference images as attachments, and temporary image links valid for seven days. For verified paid orders, it delivers a receipt to your supplied email address and an order notification to the shop. These emails include the order reference, items, amounts, and pickup or delivery details; the shop notification also includes your contact details. Copies can remain in the recipient&apos;s mailbox.</li>
-              <li><strong>Registration and support emails:</strong> Resend sends the shop your submitted registration details, including sponsorship and organization, and sends an acceptance message to the email on an accepted application. It sends refund and complaint confirmations and status updates to your account email and new-request alerts to the shop, including references, product name, description, status, and any staff response. Copies can remain in recipients&apos; mailboxes.</li>
+              <li><strong>Registration and support emails:</strong> Staff review your submitted registration details, including sponsorship and organization, in the administrative area. A registration notification may be retried by staff when needed. Resend sends acceptance messages and, for declined applications, the reason and correction instructions to the application email. It sends refund and complaint confirmations and status updates to your account email and new-request alerts to the shop, including references, product name, description, status, and any staff response. Copies can remain in recipients&apos; mailboxes.</li>
+              <li><strong>Vendor fulfilment emails:</strong> After payment confirmation, Resend sends the relevant vendor the purchased item details and the customer&apos;s name, phone number, and delivery or pickup details. Vendors in a multiple-vendor order are told to send their items to the shop for combined delivery. Shipping and pickup notifications are sent to the customer&apos;s checkout email. Copies can remain in recipients&apos; mailboxes.</li>
               <li><strong>Bachs payments:</strong> Bachs processes ready-to-wear payments. We store order details, payment references, and confirmation status in Supabase.</li>
               <li><strong>Vercel hosting:</strong> Vercel serves the website and runs the server functions that process checkout, payment notifications, and bespoke submissions. Submitted information passes through these functions, and operational logs may contain request, reference, or error information.</li>
             </ul>
@@ -139,8 +143,8 @@ export default function PrivacyPolicy() {
               We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:
             </p>
             <ul>
-              <li><strong>Service providers:</strong> Supabase provides authentication and storage, Vercel provides hosting and server functions, Resend delivers service emails, and payment verification is handled by the shop.</li>
-              <li><strong>Authorised staff:</strong> Staff use the administrative area to review applications, manage bespoke requests, and process orders. Accepted-student management is not a public directory. Necessary order and contact details may be shared with people arranging your pickup or delivery.</li>
+              <li><strong>Service providers:</strong> Supabase provides authentication and storage, Vercel provides hosting and server functions, Resend delivers service emails, and Bachs processes and reports ready-to-wear payments.</li>
+              <li><strong>Authorised staff and relevant vendors:</strong> Staff use the administrative area to review applications, manage bespoke requests, and process orders. Accepted-student management is not a public directory. A vendor receives the customer contact and delivery or pickup information needed to fulfil their purchased items; other necessary order details may be shared with people arranging pickup or delivery. Vendor approval, agreements, payments, and shipping coordination are handled offline.</li>
               <li><strong>Legal requirements:</strong> We may disclose your information if required by law, regulation, or legal process, or to protect our rights, property, or safety.</li>
               <li><strong>Business transfers:</strong> In the event of a merger, acquisition, or sale of assets, your information may be transferred as part of that transaction.</li>
               <li><strong>Consent:</strong> We may share your information with your explicit consent.</li>
@@ -194,10 +198,10 @@ export default function PrivacyPolicy() {
               <li><strong>Account data:</strong> Kept to provide account services and handle related obligations. Deactivating an account does not automatically delete its records; contact us about deletion.</li>
               <li><strong>Student registration data:</strong> Retained for academic record-keeping purposes throughout your programme and thereafter as required by applicable regulations.</li>
               <li><strong>Application drafts:</strong> Saved locally with a 24-hour expiry renewed on editing, discarded when an expired draft is read, and removed after successful submission. You can remove local drafts by clearing site data.</li>
-              <li><strong>Uploaded media:</strong> Deleting a student registration, bespoke request or product removes its uploaded images from site storage when no other record uses them. Removal runs during deletion, with automatic retries if storage is temporarily unavailable. This does not erase copies already sent by email or saved by recipients.</li>
+              <li><strong>Uploaded media:</strong> Deleting a student registration, bespoke request or product removes its uploaded images and guardian consent document from site storage when no other record uses them. Removal runs during deletion, with automatic retries if storage is temporarily unavailable. This does not erase copies already sent by email or saved by recipients.</li>
+              <li><strong>Unsubmitted guardian forms:</strong> A signed guardian form uploaded without a completed application is queued for removal after seven days. If you return later, you may need to upload it again.</li>
               <li><strong>Bespoke requests:</strong> Kept while we assess and fulfil the request and handle follow-up or disputes.</li>
               <li><strong>Shop orders:</strong> Kept to process pickup or delivery, provide support, address disputes, and retain necessary payment and business records. The seven-day order-access cookie expiry does not delete the order.</li>
-              <li><strong>Transfer receipt images:</strong> Removed from our Supabase storage 30 days after you confirm receipt of every item in the order. The order and payment confirmation record remain. Copies sent by email may remain in recipients&apos; mailboxes under their own retention practices.</li>
               <li><strong>Emails and provider records:</strong> Service emails and payment records may remain with recipients or providers under their retention practices and applicable obligations. A deletion request should identify any related order, application, or bespoke request.</li>
               <li><strong>Security records:</strong> Attempt counters use time-based limits, but the end of a rate-limit window does not necessarily erase its underlying identifiers or records. Such records may be kept to investigate abuse or security incidents.</li>
             </ul>
@@ -241,7 +245,7 @@ export default function PrivacyPolicy() {
               Our services are not intended for children under the age of 13. We do not knowingly collect personal information from children under 13. If we become aware that we have collected personal information from a child under 13, we will take steps to delete that information promptly.
             </p>
             <p>
-              Users under 18 must involve a parent or legal guardian before submitting personal information or applying for training. A parent or guardian should contact us to arrange any consent required for the application and any service agreement. If you believe a child&apos;s information has been submitted without appropriate permission, contact us so we can review it and take the required action.
+              Applicants under 13 cannot apply online. Applicants aged 13 to 17 must visit the academy to collect its guardian consent form, have it signed by a parent or legal guardian, and upload a clear copy before submitting a training application. If you believe a child&apos;s information has been submitted without appropriate permission, contact us so we can review it and take the required action.
             </p>
           </section>
 

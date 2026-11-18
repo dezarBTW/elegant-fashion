@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PICKUP_ADDRESS } from "./checkout.mjs";
+import { ageFromDateOfBirth } from "./guardianConsent.mjs";
 
 export const SPONSORSHIP_OPTIONS = ["Self sponsored", "Guardian", "Scholarship"];
 export const PROGRAMMES = ["3 Months Programme", "6 Months Programme", "1 Year Programme"];
@@ -24,8 +25,12 @@ export const registrationSchema = z.object({
   state_of_origin: requiredText(100), address: requiredText(500), telephone: requiredText(40).regex(/^\+?[\d\s()-]{7,40}$/, "Enter a valid telephone number."),
   email: z.email().max(254).transform((value) => value.toLowerCase()), chosen_programme: z.enum(PROGRAMMES),
   sponsorship: z.enum(SPONSORSHIP_OPTIONS), sponsor_organization: z.string().trim().max(160).nullish(),
-  passport_photo: z.url().max(2000), agreed: z.literal(true, { error: "You must agree before submitting." }),
+  passport_photo: z.url().max(2000), guardian_consent_path: z.string().max(200).optional().default(""),
+  agreed: z.literal(true, { error: "You must agree before submitting." }),
 }).strict().superRefine((value, ctx) => {
+  const age = ageFromDateOfBirth(value.date_of_birth);
+  if (age !== null && age < 13) ctx.addIssue({ code: "custom", path: ["date_of_birth"], message: "Applicants under 13 cannot apply online. Contact the academy." });
+  if (age !== null && age < 18 && !value.guardian_consent_path) ctx.addIssue({ code: "custom", path: ["guardian_consent_path"], message: "Upload the signed guardian consent form from the academy." });
   if (value.sponsorship === "Scholarship" && !value.sponsor_organization?.trim()) {
     ctx.addIssue({ code: "custom", path: ["sponsor_organization"], message: "State the organization sponsoring your training." });
   }
@@ -46,5 +51,6 @@ export const studentCorrectionSchema = z.object({
   id: studentReviewSchema.shape.id,
   changes: z.record(z.string(), z.unknown()),
   passport_photo: z.url().max(2000),
+  guardian_consent_path: z.string().max(200).optional().default(""),
 }).strict();
 export const studentName = (student) => [student.surname, student.first_name, student.middle_name].filter(Boolean).join(" ");

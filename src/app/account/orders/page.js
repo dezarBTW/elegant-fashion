@@ -6,7 +6,7 @@ import { authenticatedFetch } from "@/lib/clientApi";
 import { writeCart, readCart } from "@/lib/checkout.mjs";
 import { availableSizes, productHref } from "@/lib/products.mjs";
 import { repurchaseCart } from "@/lib/accountContracts.mjs";
-import { returnRequestAllowed } from '@/lib/vendorSettlement.mjs';
+import { returnDeadline, returnRequestAllowed } from '@/lib/vendorSettlement.mjs';
 import { supabase } from "@/lib/supabaseClient";
 import OrderItemImage from "@/components/OrderItemImage";
 import styles from "../../admin/adminShell.module.css";
@@ -54,7 +54,7 @@ export default function AccountOrders() {
       await authenticatedFetch('/api/account/orders/received',{method:'POST',body:JSON.stringify({itemId:item.sellerItemId})});
       const result=await authenticatedFetch(`/api/account/orders?page=${page}`);
       setOrders(result.orders);setTotal(result.total);
-      setMessage('Receipt confirmed. Your three-day return/refund window starts now.');
+      setMessage('Receipt confirmed. Your seven-day return/refund window starts now.');
     } catch(err){setError(err.message);} finally{setBusy(false);}
   }
 
@@ -84,7 +84,7 @@ export default function AccountOrders() {
         {order.payment_status === 'review' ? <p className={account.pending} role="status"><strong>Payment needs review.</strong> Please contact the shop with your order reference.</p> : <p>Payment: confirmed · Delivery: {order.fulfillment_status==='completed'?'Completed':'Arranged offline'}</p>}
         {(order.delivery_confirmed_at||order.customer_received_at) && <p className={account.success}>Delivery confirmed on {new Date(order.delivery_confirmed_at||order.customer_received_at).toLocaleString("en-GB")}.</p>}
         {order.items.map((item) => <div className={account.item} key={`${item.productId}:${item.size || ''}`}><div className={account.itemHeading}><OrderItemImage image={item.image} name={item.name} /><h3>{item.name}{item.size && ` · Size ${item.size}`}</h3></div><p>{item.quantity} × {money(item.unitAmountMinor)} · {money(item.lineAmountMinor)}</p>
-          {order.payment_status === 'paid' && <><p>Delivery: {item.confirmedAt?'Confirmed':item.fulfilment==='shipped'?'Shipped':item.fulfilment==='ready'?'Ready for pickup':'Not yet confirmed'}. {item.confirmedAt && `Return/refund requests close ${new Date(Date.parse(item.confirmedAt) + 259200000).toLocaleString()}.`}</p><div className={account.actions}>{!item.confirmedAt&&['shipped','ready'].includes(item.fulfilment)&&item.sellerItemId&&<button className={`${styles.btn} ${styles.btnPrimary}`} type="button" disabled={busy} onClick={()=>confirmReceipt(item)}>I received this item</button>}<button className={styles.btn} type="button" disabled={busy} onClick={() => repurchase(item)}>Buy again</button><button className={styles.btn} type="button" disabled={busy || !returnRequestAllowed({ confirmedAt: item.confirmedAt })} onClick={() => openRequest("refund", order, item)}>Request refund</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("complaint", order, item)}>Make a complaint</button></div></>}
+          {order.payment_status === 'paid' && <><p>Delivery: {item.confirmedAt?'Confirmed':item.fulfilment==='shipped'?'Shipped':item.fulfilment==='ready'?'Ready for pickup':'Not yet confirmed'}. {item.confirmedAt && `Online return/refund requests close ${new Date(returnDeadline(item.confirmedAt)).toLocaleString()}.`}</p><div className={account.actions}>{!item.confirmedAt&&['shipped','ready'].includes(item.fulfilment)&&item.sellerItemId&&<button className={`${styles.btn} ${styles.btnPrimary}`} type="button" disabled={busy} onClick={()=>confirmReceipt(item)}>I received this item</button>}<button className={styles.btn} type="button" disabled={busy} onClick={() => repurchase(item)}>Buy again</button><button className={styles.btn} type="button" disabled={busy || !returnRequestAllowed({ confirmedAt: item.confirmedAt })} onClick={() => openRequest("refund", order, item)}>Request refund</button><button className={styles.btn} type="button" disabled={busy} onClick={() => openRequest("complaint", order, item)}>Make a complaint</button></div>{item.confirmedAt && !returnRequestAllowed({ confirmedAt: item.confirmedAt }) && <p className={account.hint}>The online window has closed. For a faulty item or another return concern, <Link href="/contact">contact the shop</Link>.</p>}</>}
         </div>)}
         {selected?.order.id === order.id && <section className={account.panel} aria-labelledby="request-heading"><h2 id="request-heading">{selected.kind === "refund" ? "Request a refund" : "Complain about a received product"}</h2><p>{selected.item.name}</p>
       <form className={account.form} onSubmit={submitRequest}>

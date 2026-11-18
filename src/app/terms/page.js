@@ -9,7 +9,7 @@ export default function TermsOfService() {
         <header className={styles.header}>
           <span className={styles.eyebrow}>Legal</span>
           <h1>Terms of Service</h1>
-          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-11-05">5 November 2026</time></p>
+          <p className={styles.lastUpdated}>Last updated: <time dateTime="2026-11-18">18 November 2026</time></p>
         </header>
 
         <div className={styles.content}>
@@ -19,10 +19,10 @@ export default function TermsOfService() {
               These terms apply to elegantstyle.com.ng and the ready-to-wear clothing, bespoke tailoring enquiries, and fashion design training provided by Elegant Style at Km 4 Isaac Boro Express Way, Yenagoa, Bayelsa State, Nigeria.
             </p>
             <p>
-              You may use our website if you are at least 13 years of age. If you are under 18, you must involve a parent or legal guardian before submitting personal information, applying for training, or making a purchase. A parent or guardian must authorise any purchase or service agreement on your behalf.
+              You may use our website if you are at least 13 years of age. If you are under 18, you must involve a parent or legal guardian before submitting personal information, applying for training, or making a purchase. Applicants under 18 must collect the academy&apos;s official guardian consent form, have it signed by a parent or legal guardian, and upload a clear copy before submitting an application. A parent or guardian must authorise any purchase or service agreement on your behalf.
             </p>
             <p>
-              We may restrict access or suspend accounts where necessary to address misuse, fraud, security risks, or breaches of these terms, subject to applicable law. Browsing the shop, sending a bespoke enquiry, and using guest checkout do not require an account. Submitting a Fashion Academy application requires sign-in.
+              We may restrict access or suspend accounts where necessary to address misuse, fraud, security risks, or breaches of these terms, subject to applicable law. Sending a bespoke enquiry does not require an account. Fashion Academy applications and ready-to-wear checkout require sign-in. The ready-to-wear shop is currently open only to administrators while its products are being organised.
             </p>
           </section>
 
@@ -78,18 +78,18 @@ export default function TermsOfService() {
 
             <h3>Course Registration</h3>
             <p>
-              Provide accurate application details and a passport photograph in JPG or PNG format, up to 5 MB. Select a sponsorship type and, for Scholarship, name the organization sponsoring your training. A sponsorship selection does not itself award funding or confirm an arrangement with that organization. The current programmes are 3 months (&#8358;150,000), 6 months (&#8358;200,000), and 1 year (&#8358;300,000). After registration, visit the academy from Monday to Friday, 8am to 5pm, for payment details, orientation, and physical verification, as instructed on your registration confirmation. The ready-to-wear checkout does not collect course fees.
+              Provide accurate application details and a passport photograph in JPG or PNG format, up to 5 MB. Applicants under 18 must also upload the academy&apos;s signed guardian consent form as a PDF, JPG, or PNG file of up to 5 MB. Select a sponsorship type and, for Scholarship, name the organization sponsoring your training. A sponsorship selection does not itself award funding or confirm an arrangement with that organization. The current programmes are 3 months (&#8358;150,000), 6 months (&#8358;200,000), and 1 year (&#8358;300,000). After registration, visit the academy from Monday to Friday, 8am to 5pm, for payment details, orientation, and physical verification, as instructed on your registration confirmation. The ready-to-wear checkout does not collect course fees.
             </p>
             <p>
               An application acknowledgement or registration reference confirms submission, not admission. Our staff review applications and update their status. Your registration details show your application information and admission outcome. Accepted-student management is restricted to the administrative area. Draft details may be saved on your device while you complete the form, as explained in the Privacy Policy.
             </p>
             <p>
-              The shop receives a registration notification, and we attempt to send an acceptance email when an application is first accepted. Email delivery can fail or be delayed; check your registration details for the recorded decision or contact the academy. A missing email does not require another application.
+              Staff review submitted applications in the administrative area, and we attempt to send an acceptance email when an application is first accepted. If staff decline an application, they give a brief reason and identify which details you may correct. Your other details remain as submitted. The previous passport photograph is removed, and you must upload a new one before resubmitting for review. We attempt to email the reason and correction instructions. Email delivery can fail or be delayed; check your registration details for the recorded decision or contact the academy. A missing email does not require another application.
             </p>
 
             <h3>Product Purchases</h3>
             <p>
-              Ready-to-wear products are subject to availability. Prices are shown in Nigerian Naira (NGN), and the items, current prices, discounts, and delivery charge are checked again when checkout starts. Adding an item to your cart does not reserve it or lock its price. Checkout currently allows up to 10 of each item and 20 different items. A change to a displayed price does not by itself change a payment already confirmed for an order.
+              When public shopping resumes, ready-to-wear products will be subject to availability. Prices are shown in Nigerian Naira (NGN), and the items, current prices, discounts, and delivery charge are checked again when checkout starts. Adding an item to your cart does not reserve it or lock its price. Starting checkout reserves available stock for a limited time; an unpaid reservation expires and the stock becomes available again. Checkout allows up to 10 of each item and 20 different selections. A change to a displayed price does not by itself change a payment already confirmed for an order.
             </p>
             <h3>Payments and Receipts</h3>
             <p>
@@ -106,13 +106,13 @@ export default function TermsOfService() {
               Shop pickup is free. Home delivery within Yenagoa costs ₦1,000 per distinct product; delivery outside Yenagoa costs ₦2,000 per distinct product. Multiple units or sizes of the same product incur one product delivery fee. Outside Yenagoa, the estimate is 3–5 days for one distinct product and 4–7 days for two or more. The maximum delivery deadline is seven days from confirmed payment. Provide accurate contact and delivery details so we can arrange delivery and investigate any problems.
             </p>
             <p>
-              Customer checkout payment and delivery are separate. Shipping, pickup arrangements, vendor payments and delivery issues are handled directly with Elegant Style offline. A paid order does not mean it has been delivered. An administrator records delivery as completed only after verifying that the customer received the products.
+              Customer checkout payment and delivery are separate. Shipping, pickup arrangements, vendor payments and delivery issues are coordinated by Elegant Style. For an order involving multiple vendors, each vendor sends their items to the shop for combined delivery. A paid order does not mean it has been delivered. Customers can confirm receipt of each shipped item or collected item in My orders. Where the customer has not confirmed receipt, an administrator may record verified delivery with supporting details after the applicable waiting period.
             </p>
             <p>
-              Contact the shop with your order reference to arrange shipping or resolve a delivery issue. When an item ships or is ready for pickup, we attempt to email you a link to confirm receipt in My orders. The three-day return/refund period begins when you confirm you received that item. Contact us if the shipment or receipt status is incorrect.
+              Contact the shop with your order reference to arrange shipping or resolve a delivery issue. When an item ships or is ready for pickup, we attempt to email you a link to confirm receipt in My orders. The seven-day return/refund period begins when you confirm you received that item. Contact us if the shipment or receipt status is incorrect.
             </p>
             <h3>Order Changes, Cancellations, and Problems</h3>
-            <p>Return/refund requests must be submitted within three days of confirmed delivery, as verified and recorded by an administrator. The normal request option locks after this window. Timely requests remain available for review after the window ends. Contact Elegant Style about non-delivery or access problems. This window does not remove rights that cannot lawfully be excluded.</p>
+            <p>Return/refund requests through My orders may be submitted within seven days after receipt of the particular item is confirmed by you or verified and recorded by an administrator. The online request option closes after this window. Timely requests remain available for review after the window ends. Contact Elegant Style about a later return request, faulty goods, non-delivery, or access problems. This online window does not remove rights that cannot lawfully be excluded.</p>
             <p>
               Contact us with your order reference as soon as possible if you need to change or cancel an order, have paid twice, or receive an incorrect, damaged, or faulty item. Signed-in customers can view paid orders matched to their verified account email, submit a refund reason for an ordered product, or describe a complaint about a product they confirm they received. Requests and staff responses appear in the account dashboard, and we attempt to send confirmation and status emails. Contact the shop if an order used a different email or you cannot access your account.
             </p>

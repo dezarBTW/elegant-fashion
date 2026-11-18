@@ -3,6 +3,8 @@ import { registrationSchema } from "@/lib/registration.mjs";
 import { readAccountBody, requireActiveAccount } from "@/lib/accountServer";
 import { OrderRequestError } from "@/lib/orderManagement.mjs";
 import { hasImageSignature } from "@/lib/imageSignature.mjs";
+import { ageFromDateOfBirth } from "@/lib/guardianConsent.mjs";
+import { verifyGuardianConsent } from "@/lib/guardianConsentServer.mjs";
 
 export const runtime = "nodejs";
 
@@ -10,6 +12,9 @@ export async function POST(request) {
   try {
     const { db, user } = await requireActiveAccount(request);
     const input = await readAccountBody(request, registrationSchema);
+    const applicantAge = ageFromDateOfBirth(input.date_of_birth);
+    if (applicantAge === null) throw new OrderRequestError("Enter a valid date of birth.", 400);
+    if (applicantAge < 18) await verifyGuardianConsent(db, user.id, input.guardian_consent_path);
     const photo = new URL(input.passport_photo);
     const expected = `/storage/v1/object/public/student-passports/${user.id}/`;
     if (photo.origin !== new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin ||

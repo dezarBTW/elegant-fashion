@@ -1,5 +1,6 @@
 "use client";
 import PassportPhoto from "@/components/PassportPhoto";
+import GuardianConsentLink from "@/components/GuardianConsentLink";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
@@ -9,6 +10,7 @@ import { validateImageFile } from "@/lib/sanitizeInput";
 import { passportUploadError } from "@/lib/passportUpload.mjs";
 import styles from "./registration.module.css";
 import { CORRECTION_FIELD_OPTIONS, PROGRAMMES, REGISTRATION_COMPLETE_MESSAGE, SPONSORSHIP_OPTIONS } from "@/lib/registration.mjs";
+import { ageFromDateOfBirth, guardianConsentError, guardianConsentPath, GUARDIAN_CONSENT_BUCKET } from "@/lib/guardianConsent.mjs";
 
 const fieldOptions = Object.fromEntries(CORRECTION_FIELD_OPTIONS);
 const selectOptions = { chosen_programme: PROGRAMMES, sponsorship: SPONSORSHIP_OPTIONS };
@@ -47,6 +49,9 @@ export default function RegistrationDetails() {
   const [draft, setDraft] = useState({});
   const [newPhoto, setNewPhoto] = useState("");
   const [photoName, setPhotoName] = useState("");
+  const [guardianPath, setGuardianPath] = useState("");
+  const [guardianName, setGuardianName] = useState("");
+  const [uploadingGuardian, setUploadingGuardian] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
@@ -98,9 +103,31 @@ export default function RegistrationDetails() {
     finally { setUploading(false); }
   };
 
+  const handleGuardianUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    const validationError = guardianConsentError(file);
+    if (validationError) { setFormError(validationError); event.target.value = ""; return; }
+    setUploadingGuardian(true); setFormError(""); setGuardianName("");
+    try {
+      const path = guardianConsentPath(user.id, file.type);
+      const { error } = await supabase.storage.from(GUARDIAN_CONSENT_BUCKET).upload(path, file, {
+        contentType: file.type, cacheControl: "3600", upsert: true,
+      });
+      if (error) throw error;
+      setGuardianPath(path); setGuardianName(file.name);
+    } catch { setFormError("The signed form could not be uploaded. Please try again."); }
+    finally { setUploadingGuardian(false); }
+  };
+
   const submitCorrection = async (event) => {
     event.preventDefault();
     if (!newPhoto) { setFormError("Upload a new passport photograph before resubmitting."); return; }
+    const correctedAge = ageFromDateOfBirth(draft.date_of_birth);
+    if (correctedAge === null || correctedAge < 13) { setFormError("Enter a valid date of birth for an applicant aged at least 13."); return; }
+    if (correctedAge < 18 && !guardianPath && !registration.guardian_consent_path) {
+      setFormError("Upload the signed guardian consent form from the academy before resubmitting."); return;
+    }
     const fields = registration.correction_fields || [];
     const editable = fields.includes("sponsorship") && draft.sponsorship === "Scholarship"
       ? [...new Set([...fields, "sponsor_organization"])] : fields;
@@ -108,7 +135,8 @@ export default function RegistrationDetails() {
     setSubmitting(true); setFormError(""); setFormNotice("");
     try {
       const result = await authenticatedFetch("/api/registrations/correct", {
-        method: "POST", body: JSON.stringify({ id: registration.id, changes, passport_photo: newPhoto }),
+        method: "POST", body: JSON.stringify({ id: registration.id, changes, passport_photo: newPhoto,
+          guardian_consent_path: guardianPath || registration.guardian_consent_path || "" }),
       });
       setRegistration(result.registration);
       setFormNotice("Your corrected application has been sent for review.");
@@ -142,6 +170,8 @@ export default function RegistrationDetails() {
   if (correctionFields.includes("sponsorship") && draft.sponsorship === "Scholarship" && !correctionFields.includes("sponsor_organization")) {
     correctionFields.push("sponsor_organization");
   }
+  const correctedAge = ageFromDateOfBirth(draft.date_of_birth);
+  const minorCorrection = correctedAge !== null && correctedAge < 18;
 
   if (loading) {
     return (
@@ -192,6 +222,16 @@ export default function RegistrationDetails() {
                   {correctionFields.map((name) => <CorrectionField key={name} name={name} value={draft[name]}
                     onChange={(event) => setDraft((current) => ({ ...current, [name]: event.target.value }))} />)}
                 </div>}
+                {minorCorrection && <div className={styles.correctionField}>
+                  <p>Applicants under 18 need a signed guardian consent form. Visit Elegant Style Fashion Academy to collect the official form, ask your parent or guardian to sign it, then upload a scan or photo. You can keep the form already on your application if it is still correct.</p>
+                  <label htmlFor="correction-guardian-consent">Signed guardian consent form</label>
+                  <input id="correction-guardian-consent" type="file" accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png"
+                    onChange={handleGuardianUpload} disabled={uploadingGuardian || submitting} />
+                  <small>PDF, JPG, or PNG, up to 5 MB.</small>
+                  {uploadingGuardian && <span role="status">Uploading signed form…</span>}
+                  {guardianName && !uploadingGuardian && <span role="status">Signed form uploaded: {guardianName}</span>}
+                  {!guardianName && registration.guardian_consent_path && <GuardianConsentLink path={registration.guardian_consent_path} />}
+                </div>}
                 <div className={styles.correctionField}>
                   <label htmlFor="replacement-passport">New passport photograph</label>
                   <p>Your previous photo has been removed. Choose a clear JPG or PNG image under 5 MB.</p>
@@ -201,7 +241,7 @@ export default function RegistrationDetails() {
                   {photoName && !uploading && <span role="status">New photograph uploaded: {photoName}</span>}
                 </div>
                 {formError && <p className={styles.correctionError} role="alert">{formError}</p>}
-                <button type="submit" className={styles.correctionSubmit} disabled={uploading || submitting}>
+                <button type="submit" className={styles.correctionSubmit} disabled={uploading || uploadingGuardian || submitting}>
                   {submitting ? "Sending application…" : "Send corrected application"}
                 </button>
               </form>
@@ -243,6 +283,10 @@ export default function RegistrationDetails() {
             </div>
           )}
         </div>
+        {registration.guardian_consent_path && <div className={styles.card}>
+          <h2>Guardian consent</h2>
+          <GuardianConsentLink path={registration.guardian_consent_path} />
+        </div>}
 
         {/* Personal Information Card */}
         <div className={styles.card}>

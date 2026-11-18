@@ -4,6 +4,8 @@ import { checkoutDatabase } from "@/lib/checkoutServer";
 import { OrderRequestError, requireOrderAdmin } from "@/lib/orderManagement.mjs";
 import { readAccountBody } from "@/lib/accountServer";
 import { studentDeclineSchema, studentReviewSchema } from "@/lib/registration.mjs";
+import { ageFromDateOfBirth } from "@/lib/guardianConsent.mjs";
+import { verifyGuardianConsent } from "@/lib/guardianConsentServer.mjs";
 import { notifyAcceptance, notifyDecline, notifyRegistration } from "@/lib/registrationEmails.mjs";
 import { removeQueuedMedia } from "@/lib/storageCleanup.mjs";
 
@@ -80,6 +82,17 @@ export async function PATCH(request) {
       if (declined.error?.code === "23514") throw new OrderRequestError(declined.error.message, 409);
       if (declined.error) throw declined.error;
       return NextResponse.json(await finishDecline(db, declined.data), { headers: { "Cache-Control": "no-store" } });
+    }
+    if (input.status === "accepted") {
+      const { data: applicant, error: lookupError } = await db.from("students")
+        .select("user_id,date_of_birth,guardian_consent_path").eq("id", input.id).maybeSingle();
+      if (lookupError) throw lookupError;
+      if (!applicant) throw new OrderRequestError("Student application not found.", 404);
+      const age = ageFromDateOfBirth(applicant.date_of_birth);
+      if (age !== null && age < 18 && !applicant.guardian_consent_path) {
+        throw new OrderRequestError("A signed guardian consent form is required before accepting this applicant. Request a correction.", 409);
+      }
+      if (age !== null && age < 18) await verifyGuardianConsent(db, applicant.user_id, applicant.guardian_consent_path);
     }
     const { data, error } = await db.rpc("review_student_application", { p_id: input.id, p_status: input.status });
     if (error?.code === "P0002") throw new OrderRequestError("Student application not found.", 404);

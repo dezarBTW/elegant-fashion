@@ -645,6 +645,19 @@
 
 .sponsor-organization { display: grid; gap: 8px; margin-top: 16px; }
 
+.guardian-consent-section {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 18px;
+  background: var(--paper-dim);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.guardian-consent-section p { margin: 0; line-height: 1.55; }
+.guardian-consent-section label { font-weight: 700; }
+.guardian-consent-section small { color: var(--stone); }
+
 .no-pending {
   padding: 2rem;
   text-align: center;

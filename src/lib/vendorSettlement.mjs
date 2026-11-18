@@ -1,5 +1,5 @@
 // Deadlines use elapsed time from the recorded delivery confirmation, in UTC.
-export const RETURN_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
+export const RETURN_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 export const DELIVERY_DEADLINE_MS = 7 * 24 * 60 * 60 * 1000;
 
 function deadline(timestamp, duration) {
